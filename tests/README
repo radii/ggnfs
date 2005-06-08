@@ -1,0 +1,101 @@
+  Note: This README file is badly outdated - much of this no longer
+applies, since the Bash script is no longer even being distributed.
+By now, it seems everyone has migrated over to the Perl script.
+However, some of the parameter explanations may still be helpful,
+so I'll leave it here for now (until I can actually fix it and make
+a proper README file for the Perl script).
+  But here's a quick-start for the new Perl script, if you want to
+allow the script to select the polynomial and all parameters (for general
+numbers only - for special numbers, you need to make the poly by hand):
+(1) Make a file called foo.n, containing the single line:
+n: MY-NUMBER
+(2) factLat.pl foo.n
+  And that's all there is to it. Note that you (probably) need a space
+between the `n:' and the number. But don't try to use this automation
+for anything smaller than 75 digits or anything larger than about 115
+digits or so. The needed defaults for larger numbers have not been
+filled into the data table yet, so it will not work well at all!
+=====================================================================
+
+  The factLat.sh script has changed as of 0.53.1. The big difference is
+that you no longer modify the script for each number you factor. Instead,
+the various parameters needed for the factorization should all be in the
+poly file. The new script will read them from there and then create job
+files as needed to do the factorization. To see how the parameters are
+specified in the poly file, look at tstS1 for example.
+  This necessitates a slight change in usage as well. To use this script
+to factor the number in tstS1, for example, I would do:
+
+../factLat.sh s1
+
+or
+
+../factLat.sh s1.poly
+
+Both are acceptable, so long as you always follow the convention that
+the filename with the polynomial ends in .poly.
+
+======================================================================
+NOTE 1: You will probably have to edit the first line of factLat.sh
+        to set the path to the GGNFS binaries before the script will
+        work.
+
+NOTE 2: The two directories F7 and tst150 are special cases for which this
+script will not work. They are very small numbers which I use just when I
+need a quick test to be sure nothing has been broken. To factor those
+numbers, use the factor.sh scripts in their respective directories.
+
+NOTE 3: The exceptions where the script may still need to be modified are
+  (1) Factoring a larger number, which requires using a different siever
+      binary (see that part of the factLat.sh script for details).
+  (2) To give the script the path to the GGNFS binaries.
+  (3) To save the sieve reports to a gzipped file (recommended for large
+      factorizations!). But then, you probably wouldn't use this script
+      for such a large factorization without some mods anyway.
+  (4) To force a cycle-count to see how many full relations there are.
+      The criteria by which `getdeps' tries to guess whether or not it's
+      worth counting is still pretty lousy. So, if you have reason to think
+      there may be enough relations, you might want to kill, set this to 1,
+      and restart, to force a count the next time around. (or, run
+      getdeps manually with the -forceCC flag to force it). Counting
+      every time is not such a big deal anymore since the new cycle counting
+      code is fairly quick.
+
+=======================================================================
+The factorization parameters quickly explained:
+=======================================================================
+  These are the parameters for the (small) SNFS number in the tstS1
+directory. At the moment, they must be specified exactly as they are
+here: one per line, no trailing comments, and a space between the token
+and the value.
+
+# Rational and Algebraic factor base limits, respectively:
+rlim: 300000
+alim: 350000
+# Number of bits allowed in large primes (currently, max allowed is 31).
+lpbr: 25
+lpba: 25
+# Sieve reports with this many leftover bits will be further investigated.
+# Higher = more reports may be investigated, but it may slow down the siever.
+mfbr: 44
+mfba: 44
+
+####################################################################
+# Sieve reports with a sieve value of at least:
+#          log(abs(polynomial value))-lambda*log(factor base bound)
+# will be investigated by the trial division sieve. Note that this
+# is different than the lambda used by the classical siever!
+# In particular, the larger lambda is, the more smooth pairs may be found
+# but the longer it takes. If lambda is too large, trial division will
+# dominate the runtime. Use the sec/rel value reported by the siever to determine
+# an optimal value for the number you're factoring. Generally, this number will
+# be somewhere between 1 and 3.
+####################################################################
+rlambda: 2.1
+alambda: 2.1
+
+# Size of the q-interval for each job. In the old script, this was
+# specified as QSTEP.
+qintsize: 20000
+
+

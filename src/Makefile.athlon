@@ -1,0 +1,105 @@
+INC=-I../include
+CC=gcc
+DEBUGOPT=-Wall -g -pg 
+
+LANCZOS=blanczos64
+# Choose one of these for some more optimization for
+# all but the lattice sieving code.
+# -DL2_CACHE_SIZE=512 works well on some Pentium 4 processors.
+# It brings the opposite effect on AMD chips and some Pentium 4 processors.
+#ALLOPT=-march=athlon-xp
+ALLOPT=-march=athlon -DMALLOC_REPORTING
+#ALLOPT=-march=pentium4 -DL2_CACHE_SIZE=512
+#ALLOPT=-march=pentium3
+
+OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
+OPT3=-O3 -fomit-frame-pointer -Wall $(ALLOPT)
+OPT=-Wall -O $(ALLOPT)
+
+#OPT=$(DEBUGOPT) $(ALLOPT) 
+#OPT2=$(DEBUGOPT) $(ALLOPT)
+#OPT3=$(DEBUGOPT) $(ALLOPT) 
+
+OBJS=getprimes.o \
+     fbmisc.o mulmod32.s squfof.o rels.o \
+     $(LANCZOS).o poly.o mpz_poly.o \
+     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
+     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
+     modinv1002.S llist.o combparts.o
+BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
+#LSBINS=lasieve4/gnfs-lasieve4I12e lasieve4/gnfs-lasieve4I13e \
+#       lasieve4/gnfs-lasieve4I14e
+LSBINS=latsiever polsel
+TESTBIN=./tsrc
+TESTCODE=./tsrc
+
+all : $(OBJS) $(BINS) $(LSBINS) ;
+tests: $(TESTS) ;
+bins: $(BINS) ;
+
+
+.c.o : 
+	$(CC) $(INC) $(OPT3) -c $*.c
+
+smintfact.o : smintfact.c ;
+	gcc $(INC) $(OPT3) -c smintfact.c
+
+fbmisc.o : fbmisc.c ;
+	gcc $(INC) $(OPT3) -c fbmisc.c
+
+rels.o : rels.c ;
+	gcc $(INC) $(OPT3) -c rels.c
+
+latsieve.o : latsieve.c ;
+	gcc $(INC) $(OPT3) -c latsieve.c 
+
+sieve : sieve.c clsieve.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o sieve sieve.c clsieve.c $(OBJS) -lgmp -lm 
+
+makefb : makefb.c $(OBJS) ;
+	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
+             misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o -lgmp -lm
+
+procrels : procrels.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o procrels procrels.c $(OBJS) -lgmp -lm 
+#	gcc $(INC) $(DEBUGOPT) -o procrels procrels.c $(OBJS) -lgmp -lm 
+
+matbuild : matbuild.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+#	gcc $(INC) $(DEBUGOPT) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+
+matsolve : matsolve.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o matsolve matsolve.c $(OBJS) -lgmp -lm 
+#	gcc $(INC) $(OPT3) -g -o matsolve matsolve.c $(OBJS) -lgmp -lm -lefence
+
+sqrt : sqrt.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o sqrt sqrt.c $(OBJS) -lgmp -lm 
+
+polyselect : polyselect.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o polyselect polyselect.c $(OBJS) -lgmp -lm 
+
+latsiever : ;
+	cd lasieve4; make
+	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
+	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
+	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
+
+polsel : ;
+	cd pol5; make intel
+	ln -fs pol5/pol51m0b-intel pol51m0b
+	ln -fs pol5/pol51m0n-intel pol51m0n
+	ln -fs pol5/pol51opt-intel pol51opt
+
+clean : lasieve-clean polsel-clean ;
+	rm -f *.o core $(BINS)
+	rm -f gnfs-lasieve4I1?e
+
+lasieve-clean: ;
+	make -C lasieve4 clean
+
+polsel-clean : ;
+	make -C pol5 clean
+
+squeaky : clean ;
+	

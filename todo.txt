@@ -1,0 +1,18 @@
+It might be a while before I get around to fixing/improving
+some things, so I decided to start keeping a list so as not
+to forget them:
+
+---------------------------------------------------------------------
+From Jes:
+It isn't as easy as it should be to find the optimal parameters. This is 
+> because the lattice sieve has been broken. It SHOULD print how many 
+> special_q it has sieved when it completes a range, but is always says 0 
+> special q. Chris, can you please fix this? It's quite annoying...
+
+---------------------------------------------------------------------
+From Kamada:
+  He sent a patch to reduce the number of sqrt's done by the
+Perl script when a number has more than 2 prime factors. This
+should be integrated, but I have some similar useful code I wrote
+a while back that should make it easier. So I need to merge the two
+and apply it.

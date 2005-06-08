@@ -1,0 +1,1137 @@
+0.77.1, 5/4/05
+  * Two more little BSD fixes that I missed last time.
+
+0.77.0, 5/3/05
+  * Some BSD fixes. Things seem to be reasonably stable now.
+
+0.76.9, 4/26/05
+  * Some fixes to Makefile.ppc. But apparently there is still
+    some ppc problem causing the lattice siever to crash.
+  * Applied Kamada's patches for faster Lanczos and reducing
+    the number of sqrts that the Perl script needs when there
+    are 3 prime factors.
+
+0.76.8, 4/25/05
+  * Commented out an errant statement at line 746 of combparts.c
+    which surely caused at least some of the matbuild/matsolve
+    failures and crashes. It's not yet clear whether this is the
+    only bug reponsible for the problems, but it was probably the
+    major cause.
+
+0.76.7, 4/21/05
+  * I botched the fix that Kamada sent - I thought he had
+    a typo in what he sent, but it was correct. I fixed it.
+
+0.76.6, 4/20/05
+  * Kamada pointed out that some conditionals in MultB64() and
+    MultB_T64() were unneeded; indeed, I did not have them in
+    there in earlier versions - I'm not exactly sure how they
+    wound up in there (in blanczos64.c).
+
+0.76.5, 4/13/05
+  * Modified the mkLT() function to result in fewer mallocs, by
+    accepting an input argument which can be reused for subsequent
+    calls (and is, in fact, reused).
+  * modified the mallinfo() calls so that they work on my linux
+    box - the numbers I was getting before were flat wrong.
+  * Modified the rest of combparts.c so that all allocate calls
+    go through lxmalloc(), lxrealloc(), or lxcalloc(), so that
+    we can keep track of the total number of calls.
+  * Small fix in the Perl script ; in some situations, it would not
+    restart from the correct q-value for lattice sieving before.
+
+0.76.4, 4/13/05
+  * line 206 of matbuild.c was wrong, and may have caused some segfaults.
+    The right-hand side was changed from 'c' to '2*i+1'.
+  * Added a sanity check/warning message to some fishy looking code
+    in mkLT(), which seems to be causing problems for some folks during
+    weight reduction.
+  * Removed some leading asterisks from non-warning, non-error output,
+    to make errors and warnings easier to spot on stdout. I would like
+    to uniformize this so that errors and warnings follow some consistent
+    convention which makes them easy to find.
+
+0.76.3, 4/13/05
+  * Modified Perl script to use polyselect on numbers < 100 digits
+    instead of the Kleinjung/Franke tool (i.e., K/F is not appropriate
+    there since degree 5 is too big)
+  * Fixed a '#if' that should have been a '#ifdef' somewhere.
+
+0.76.2, 4/12/05
+  * Added a couple new lines to def-par.txt to go up to 126 digits
+    (note, though, that the figures I supplied are guesses; but they
+    should still be better than the choices resulting from using
+    the 118 digit level).
+  * Added a define in combparts.c to allow bypassing of the
+    relation-set weight reduction.
+
+0.76.1, 4/10/05
+  * Finished the Perl script mods so that it does a reasonable
+    job with classical sieving. It will now scan the logfile
+    to see how much classical sieving has already been done,
+    and resume if necessary.
+
+0.76.0, 4/7/05
+  * Some small changes to combparts.c and matbuild.c
+    to try to combat the memory fragmentation problems.
+  * Added lxalloc() and lxrealloc() which can also keep track
+    of the number of calls and max heap useage. I will go through
+    the code replacing malloc() and realloc() calls with these
+    on a case-by-case basis.
+  * Added Jason's fixes for the classical siever now - it seems
+    to be working great. I made one small change for folks using
+    pre 4.1.3 versions of GMP: line 298 of squfof.c, Jason used
+    NULL for the second argument to mpz_export(), and this seems
+    to only be supported for 4.1.3+, so I threw in a trash variable
+    instead.
+  * Added Brian's updates and pre C99 changes to clsieve.c.
+  * Added a little hack to the Perl script to show how some classical
+    sieving _could_ be done. It is not at all complete - there are
+    some notes in the file as to how it might be completed, but I
+    won't get to it for a while. But if you want to do a little
+    classical sieving, you can either uncomment the relevent lines
+    (990 and 991), or make/modify a job file and run the sieve
+    program manually.
+
+0.75.1, 3/26/05
+  * Some small fixes to the Perl script to compensate for the new
+    matbuild program. The script no longer looks for the depinf
+    file, but uses spmat instead.
+  * Included Jason's updates to the classical siever, but I seem
+    to have broken it in the process (possibly because I applied
+    the patch he send on 3/2/05 to the latest source tree which
+    may have had too many changes and confused 'patch').
+  * Removed the tests/F7 and tests/tst150 directories since the 
+    scripts in them were broken and I don't necessarily feel like 
+    fixing.
+
+0.75.0, 3/24/05
+  * Moved matrix pruning into the matbuild program. The matbuild
+    program now does pruning of the matrix after building it,
+    and stored the pruned matrix to file, along with a map that specifies
+    how columns of the resulting matrix map onto original relaton sets.
+      The benefit of doing it this way is that the parallelizing of
+    matsolve will be greatly simplified. This meant some pretty significant
+    changes in the overall structure, and the addition of new functions
+    for saving and loading nfs_mat_t and llist_t data types.
+
+0.74.2, 3/22/05
+  * Another VC fix - the ggnfs.vc/lat_asm directory was accidentally
+    omitted from the last release.
+  * Finally added an lxmalloc() function and changed some malloc
+    calls to use it. It is essentially just an xmalloc(), but it
+    logs the error to the logfile as well.
+
+0.74.1, 3/18/05
+  * Included Brian's VC changes.
+  * Included Sam's MingW32 fixes.
+  * around line 870 of combparts.c : changed the default initialization
+    size of 'R' to try and combat the large realloc() problems. I didn't
+    think the new value through too carefully, so it still might be off
+    (and still might now solve the problem completely, since there may
+    be other default initialization values which similarly need to be
+    changed). Someone (probably me, I suppose) should sit down and carefully
+    work out reasonable heuristic values for these.
+
+0.74.0, 3/16/05
+  * As promised, I seperated out the cycle-counting and
+    matrix-building code into a new program, `matbuild'.
+    The plan is to eventually move the matrix pruning
+    over into this program as well. But in the meantime,
+    I hope this will make it easier to debug the memory
+    problems occuring during cycle counting. There are probably
+    still some scraps to be cleaned up, like functions in
+    procrels.c which are no longer used. I will get around
+    to doing a thorough house-cleaning on the code sometime
+    this summer I hope.
+  * Updated the Perl script to use this new program.
+
+
+0.73.6, 3/11/05
+  * Swapped order of command-line options for the lattice siever
+    in the Perl script, to accomodate a bug in the Cygwin implementation
+    of getopts (at least, it seems to be a bug there; in any case,
+    it now properly parses the -n option).
+  * Various cosmetic fixes to screen output.
+
+0.73.5, 3/11/05
+  * Lowered MAX_MERGE_OPS in comparts.c from 500000 to 100000.
+    I don't know if the higher value was causing some of the
+    memory problems on larger numbers or not, but 100000 is still
+    pretty reasonable I think. I lowered a couple of other defaults
+    by a little bit too, I think.
+  * In llist.c, changed the statement
+      maxShift = MAX(labs(shift), maxShift);
+    to read:
+      if (labs(shift) > maxShift)
+        maxShift = labs(shift);
+    I don't think this should have caused any problems, but I suppose
+    that if labs() were implemented as a macro, some funny things
+    could happen if my MAX or the labs() macro weren't coded just right.
+  * Added a -prune option to procrels to cause it to remove a specified
+    fraction of processed relations (i.e., the heaviest 10%, for example).
+    Those relations will be first dumped to an output file in siever-output
+    format, then removed from the binary files. This option has been lightly
+    tested and seems to be okay.
+  * Applied Tomoya's patch to procrels to remove heavy relsets at each
+    makePass() and thus reduce RAM useage.
+  * Added a heap-size checking function for debugging. This will no doubt
+    cause problems on some platforms - on such platforms, just remove
+    the -DMALLOC_REPORTING from src/Makefile, or write a replacement
+    function in misc.c for mallocReport().
+  * Added some debugging output in the event of memory allocation error
+    in ll_catFields(). I don't know if it will help track down the problem
+    or not, but it can't hurt. I suspect the problem is a boundary-overwrite
+    one somewhere else, but it's going to require some seriously good
+    memory tools to find it.
+  * Added Rob's fixes/changes to the Perl script to chomp Q0 on
+    restart and output the min # of FF's to the log file.
+  * Small hack to the Perl script, setting PNUM=0 as a workaround for the
+    Cygwin problem with parsing the -n option.
+  * Added startup messages to the Kleinjung/Franke poly selection code.
+    I sent Thorsten and email and got his okay on this first.
+  * Added Brian's changes to version 0.73.4 for VC.
+
+0.73.4, 3/1/05
+  * Some of Sam's corrections to the Perl script.
+  * Added a Cygwin fix for the Kleinjung/Franke poly selection
+    code. We need to write a floorl() function for Cygwin. In the
+    meantime, I added a #undef HAVE_FLOAT64 to circumvent the
+    offending code on Cygwin. This may also need to be defined
+    on MingW32 and/or VC if they don't have this function.
+
+0.73.3, 2/24/05
+  * Added Anton's MingW32 patches.
+  * Added Tomoya's Cygwin patch of src/pol5/if.c.
+  * Some small changes to pol5 code to hush compiler warnings
+    (added prototype, remove/hide unused variables).
+  * Added some of Brian's VC changes, but not all of them; it occurred
+    to me that I was spending time integrating some changes which might
+    already be broken.
+
+0.73.2, 2/22/05
+  * Added Sam's code to the Perl script which essentially completes
+    the integration of the Kleinjung/Franke poly selection tool.
+    (that is, except for multiple box support). It seems to work
+    nicely on linux, though I'm sure there will still be some problems to
+    be worked out on other platforms.
+  * Added the interpolated parameter choices by Jes for the
+    Kleinjung/Franke code (src/def-nm-params.txt).
+  * Added the directory tests/template for gnfs factorizations.
+
+
+0.73.1, 2/18/04
+  * Included a fix by Eric in polyselect for the function
+    sieveOverSimilarSize().
+  * Integrated the Kleinjung/Franke polynomial selection
+    tool (with non-monic linear polynomial).
+  * Started adding capability to the Perl script to run the
+    new tool. It's not done yet and certainly not tested yet,
+    though it won't require too much more work.
+
+0.73.0, 2/10/05
+  * Another set of Sam's fixes for the Perl script
+    (checking gnfs vs. snfs and setting the summary file name).
+  * Return type for mulmod32() on PPC changed to s32, as per
+    Tetsuya's suggestion (caused problems in procrels, where
+    about half of the relations were being thrown out).
+  * Some small changes to lasieve4/if.c and lasieve4/ppc/mpqs.c
+    for PPC compatability, pointed out by Tom.
+  * Implemented Eric's fixes in polyselect.c for deg >=6 polys.
+  * Tweaked the default PRNG seeding in matsolve, to put a little
+    more seperation between initial seeds in successive runs
+    (note: this shouldn't really be needed if the PRNG's are
+    any good at all, but it certainly cannot hurt to have this
+    in case there is some bias on the low bits or something).
+    Also, fixed a bug that broke manual seeding (had (+i) instead
+    of (++i) ).
+  * As per Anton's suggestion, modified the Perl script to
+    pass the $minFF value on to procrels so that it doesn't
+    do weight reduction and build column files unless we have
+    the specified number of FF's (previously, it would do this
+    if the matrix was overdetermined - but often, we want to wait
+    until it is very overdetermined, so that pruning will shrink
+    it more).
+
+0.72.12, 2/1/05
+  * Added some of Sam's fixes to the Perl script.
+  * Added Sam's fix to gnfs-lasieve4e.c so that:
+    (1) It will take fractional skew values.
+    (2) The 64-bit constants are specified with trailing ULL,
+        to hush compiler warnings in some environments (perhaps
+        even errors in some environments??).
+  * Changed the default IPB size from 64 bits back to 128 bits
+    in montgomery_sqrt.c. Something mysterious is going on there
+    that really should be further investigated, but basically
+    it seems that the CRT lift was failing in some cases, even
+    where all the residues are 1 (i.e., probably a variable
+    containing the number of moduli was being corrupted somewhere,
+    and so the function was using an undefined residue/modulus
+    combination somewhere). It seems to only have added about
+    8% or so to the runtime, so it's not too big of a deal. But
+    I would like to know exactly what was going on there.
+  * Included Eric's improvements to the classical siever.
+
+0.72.11, 1/24/05
+  * Fixed some typos (year numbers) in this Changelog :)
+  * Added a quick self-test of the matrix multiplication code
+    in blanczos64.c ; it's not very thorough - it simply tests
+    for linearity of the product (which is unlikely to occurr
+    in the event of a serious coding error).
+  * Changed matsolve.c to seed the PRNG with the clock by default,
+    and output the seed used to the logfile and stdout. I believe
+    this to be a fix to the matsolve failures (i.e., they may still
+    occur from time to time, but should be fixed by simply re-running
+    with a different seed).
+
+0.72.10, 1/22/05
+  * I believe I've fixed the SNFS difficulty calculation in
+    the Perl script to correctly work for the non-monic linear
+    polynomial case also. A back-of-envelope calculation suggests
+    that it should simply be about the size of f_1(Y0), where f_1 is
+    the non-linear polynomial.
+
+0.72.9, 1/18/05
+  * Moved the even-number-of-relations bit to a different
+    column; something funny seems to have happened and I had
+    some dependencies with an odd number of relations (probably
+    somewhere it says qcb size = 62, so that it might have missed
+    the bit where it was??)
+  * Included some fixes from Sam:
+    * Various things in the Perl script, mostly for multi-client support.
+    * Fixed a memory initialization at line 662 of combparts.c.
+    * Some typos corrected in def-par.txt.
+    * Added a test to the division at line 2307 of montgomery_sqrt.c
+      to make sure the division was exact.
+  * Small change in nfmisc.c : line 232, an unnecessary test was removed.
+
+0.72.8, 1/18/05
+  * A small fix to montgomery_sqrt.c for non-monic polynomials was
+    needed. It seems to be okay now, at least in more cases than
+    before. It is possible that there are still some things that
+    might make it fail for general numbers, but one can hope :)
+  * Another small fix to rels.c to properly compute the sign bit
+    (for monic linear polynomial, it didn't matter - we could safely
+    assume it to always be negative; but for non-monic linear,
+    the sign bit really does matter).
+  * Fixed the Perl script to match the new method of controlling
+    cycle counting in procrels.
+
+0.72.7, 12/19/04
+  * Changed runPolyselect in the Perl script to start off
+    with smaller coefficient divisors after a couple of experiments
+    (in the c110 range) suggested that this would be a good idea.
+  * Probably some other changes which I forgot to document
+    (I am uploading this version today, 1/12/05). But it still
+    does not fix several known bugs. I have even witnessed a failure
+    on the tst250 test case in matsolve (it subsequently worked
+    when re-run with a different value for the -wt option).
+
+0.72.6, 12/19/04
+  * Included Brian's VC updates as well as a suggested fix of my
+    mpqs-hack.c fix, and some mods to the Perl script so it can
+    report the commands that are being issued.
+  * Changed the default value of maxRelsInFF in the Perl script
+    from 40 to 32, to give (by default) slightly sparser matrices 
+    at the expense of a little extra sieving.
+
+0.72.5, 12/18/04
+  * Some more PPC fixes from Mark.
+  * A fix to mpqs-hack.c - somebody had suggested it a week ago
+    or so, and I forgot to check it out. But then Brian sent in
+    the same suggestion, so I stopped and looked and it and it did
+    need a fix around line 1171 of mpqs-hack.c; I added another
+    check at the first 'if' to see if there's room for more
+    mpqs survivors in the array.
+  * Another small tweak to the square root code - some of the LLL
+    calls did not need the transition matrix, so they now pass
+    a NULL value for that pointer, saving a little bit of uneeded
+    work.
+
+0.72.4, 12/15/04
+  * Another PPC #include fixed/
+  * A small fix to readPoly() to allow no space between the
+    token and value. Also added a couple of stderr messages to
+    this function to be somewhat more informative of failures.
+  * Added periodic output of the current special-q by the lattice
+    siever, as a workaround for the failure of the Cygwin version
+    to catch interrupt signals. This probably still doesn't work
+    quite right, as I seem to remember that the Cygwin version doesn't
+    properly parse the '-n' option for some reason. So another easy
+    fix should still be needed, but I don't have a Cyg box handy at the
+    moment to see what it needs.
+  * Some more tweaks to montgomerySqrt() to avoid the cycling effect
+    that is happening sometimes. I think there is something funny going
+    on in this code still which is causing it to run a bit slower than
+    it should (in particular, either the denominator step or the numerator
+    step might be funny). But it seems to work fine now.
+
+0.72.3, 12/15/04
+  * Changed the default value of discFact in sqrt.c, so that
+    the program will not try hard to factor the discriminant.
+  * Sam pointed out that lpF.numFiles should be initialized to
+    zero, not 4.
+  * Included some more of Mark's patches for PPC compilation.
+   
+
+0.72.2, 12/14/04
+  * Increased MAX_RAT_FACTORS, MAX_ALG_FACTORS and MAX_SP_FACTORS :
+    Bob hit a snag with the old values being too small for some number.
+    It doesn't affect memory allocation, so no biggy.
+  * Made a change to matsolve so that it can recover from a small
+    number of bad columns by simply deleting them. This is untested
+    at the moment.
+  * Slightly increased the number of primes sieved with in the
+    poly selection code. Result: slight increase in runtime, slightly
+    better polynomials sometimes.
+  * Slight change to runPolyselect in the Perl script, to further restrict
+    the conditions under which it will refine the search. I think it was
+    often refining itself too much too soon before. This stuff still is
+    nowhere near perfect, though - one should almost always be able to get
+    better polys when the program is run manually by a skilled hand.
+  * Fixed some initializations in sqrt.c and procrels.c pointed
+    out by José. He also suggests removing the mpqs assembly files from
+    the VC project because they define some of the same global symbols,
+    causing incorrect linking (i.e., no linking error, but the resulting
+    executable is broken).
+  * Included some new files and diffs from Mark for PPC compilation;
+    I did the diffs by hand, though, and so I'm sure I probably messed
+    some of them up. Hopefully, any such mistakes will be corrected by
+    the next version.
+
+0.72.1, 12/10/04
+  * Summary output of the perl script is now sent to a file
+    whose name depends on the number factored. For example,
+       g104-al.txt
+    would be the output name for a general c104 for which I
+    was using the name `al'. For SNFS factorizations, the
+    file will be named with the SNFS difficulty level instead
+    of the number of digits of the actual divisors that was
+    being factored.
+  * Fixed the -speedtest option for procrels (used by the Perl
+    script to get some rough idea how fast a machine is). It
+    spits out something which is called `timeunit', but it
+    was inversely wrong before: it is supposed to be representative
+    of how much work a machine can do in a given unit of time.
+    Poorly names, perhaps, but this is what the Perl script expects
+    the number to represent. As a result, the `scaled time' reported
+    by the Perl script was wrong by a factor inversely proportional
+    to the speed of the machine (i.e., if it doubled the actual time,
+    it should have halved the actual time instead). No big deal since
+    I haven't used this yet and nobody seems to have noticed that it's
+    there yet (of course, it's necessarily inaccurate anyway, since
+    the scale factor can be way off if another process is running
+    while the time scale is being computed. But when these `scaled
+    times' are averaged out in the long run, it shouldn't matter much.
+    Especially if the same process happened to be running during
+    much of the factorization, in which case it has cancelling effect
+    anyway).
+
+0.72.0, 12/10/04
+  * Fixed a small bug, pointed out by Bob, in the perl script
+    that wound up passing the entire m: xxxxxx line to the log
+    function.
+  * Added a snippet to procrels.c to detect the condition when
+    there are no valid relations after addNewRelations5() has been
+    called. This happens as a result of bad parameter choices or
+    invalid usage; previously, this would result in a segfault - 
+    now, a brief message is printed follwed by a graceful exit.
+  * Some changes to runPolyselect() in the Perl script, so that it's
+    a bit smarter about honing in on particular ranges of coefficient
+    size. It will now remember the leading coefficient of the best
+    poly found so far, and use that to decide whether or not to
+    further refine the search in some range (i.e., if it finds a
+    new best score which comes from a poly which was already found,
+    it will not refine again).
+
+0.71.9, 12/9/04
+  * Small change to src/lasieve4/piii/mpqs.c suggested by Brian
+    for VC compilation. While I was in there, though, I removed
+    some unused junk leftover from an earlier hack of this file.
+  * Included new VC project files from Brian.
+  * Started including Mark R.'s changes for PPC compilation - 
+    he's taking it easy on me and sending the required changes
+    in increments, so it will be a while before all the necessary
+    stuff is in here for an actual PPC compile.
+
+0.71.8, 12/8/04
+  * More changes to factLat.pl : some suggested by Sam (better
+    parsing of input - some of the digit counts were probably
+    wrong before), some by Steve (concerning the multi-box mode).
+    Also, the script will now add `q1' to the job file in a commented-out
+    line (purely for convenence - there's no associated functionality).
+  * Another fix suggested by Sam - the problems allowing the
+    script to run polyselect under Cygwin should now be gone
+    (my boneheaded error - I forgot to close a file).
+  * I think there might have been another small change or two
+    which I've forgotten - but nothing major.
+
+0.71.7, 12/8/04
+  * Changed factLat.pl : square roots are run exactly until all
+    prime factors have been found. It's not very smart, though:
+    it waits until sqrt reports all the prime divisors. If we
+    had a primality test in Perl (perhaps there is on in the
+    BigInt module??), we could do a little better by doing some
+    gcd and divisions to stop a bit sooner. I think, worst case,
+    though, is that the script will run 2 or 3 more square roots
+    than strictly needed. A side-effect of this change is that
+    if the factLat.pl script is run in a directory where an entire
+    factorization has been completed, it will probably skip all
+    steps through to the summary-generation code.
+      Note that none of these changes have ben extensively tested!
+
+0.71.6, 12/8/04
+  * Changed the test for detecting convergence failure in the
+    square root code.
+  * Some changes suggested by Bob to the screen output formatting
+    in polyselect.
+  * Added the 'type' field to the test numbers' poly files.
+  * Fixed a bug in the multi-box hack of the Perl script that
+    caused machines to choose identical sieving ranges under
+    some circumstances.
+
+
+0.71.5, 12/4/04
+  * Modified the Perl script to preceed it's stdout output with
+    '->' to make it easier to see which output is coming from
+    the script, versus the GGNFS binaries.
+  * Included Anton's fix of ll_getsortOnFieldSize() - it avoids
+    the sort altogether, and so is faster and more reliable than
+    before.
+  * Included Sam's suggestion for abbreviating the `speedtest' code
+    in the Perl script.
+  * Included Robert's fix to the Perl script to get the stdout
+    stuff straight.
+  * Implemented Steve's suggestion that the Perl script should make
+    unique job/spairs files when running in multi-client mode.
+    I haven't tested it yet, though, so it could be broken.
+    Also, by Steve's suggestion, any secondary clients will now
+    die if/when a `deps' file appears.
+
+0.71.4, 12/4/04
+  * It's been a busy day for bugfixes - I fixed yet another boneheaded
+    bug in the Perl script that messed up sieving ranges.
+
+0.71.3, 12/4/04
+  * Made another change to checkAB() in procrels.c. I think I fixed
+    another bug that was causing the speed to slow down quickly.
+    But it hasn't yet been tested on a large number of relations,
+    so there could still be some funny stuff with it. I just moved the
+    code for merging abExtraList with the abList.
+
+0.71.2, 12/3/04
+  * Fixed readBinField() in misc.c to check for EOF condition while
+    reading input.
+  * Fixed a bug in the Perl script which messed up the sieving ranges
+    after an interrupt.
+
+0.71.1, 12/3/04
+  * Fixed a bug in blanczos.c : in MultB64() and MultB_T64(),
+    it was possible for some memory to be erroneously overwritten.
+    This is the likely cause of the error where Lanczos wouldn't
+    terminate. It's possible that this caused some other errors as
+    well, but I also think that some error still might remain in
+    matstuff.c.
+
+0.71.0, 12/3/04.
+  * Coded up a better method of computing the valuations of
+    <a-b\alpha> at the special primes, to take advantage of the
+    facts that:
+      (1) This is a principal ideal.
+      (2) The generator is linear in \alpha.
+    Previously, we were computing the valuations using the general
+    case algorithm in Cohen, but this is much much faster for the
+    special case. The net result is a speedup of maybe 8x or so
+    for relation processing on general numbers.
+  * A fix and some bells (but no whistles) added to the factLat.pl
+    script.
+  * Fixed a bug in that abHash code which caused relation processing
+    to unnecessarily slow down (we weren't using all of the allocated
+    memory for the hash, and I think we failed to completely zero out
+    abExtraHash when that stuff was added to the long list. It was
+    a silly counting error on my part).
+
+0.70.9, 12/2/04
+  * Added a small hack to the Perl script to that I can conveniently
+    sieve on several machines at once. This hack is very temporary,
+    untested so far, and I don't encourage using it! If it doesn't
+    work right for you, I will accept suggestions for a fix, but I
+    won't track down bugs byself, since it's only intended to be a 
+    temporary hack. A longterm method will have to be far more robust.
+    Note: this hack assumes a reasonably homogenous network of
+    machines - it just blindly divides sieving regions up equally.
+
+0.70.8, 12/1/04
+  * Added Greg's tweak to the Perl script to allow the non-monic
+    linear polynomial. Ran it with his test case, and everything 
+    worked fine.
+  * One more fix for Cyg compilation.
+
+0.70.7, 12/1/04
+  * 24 days till Christmas!
+  * Added a prototype and another hack to piii/mpqs.c for Cygwin
+    compilation.
+
+0.70.6, 11/30/04
+  * Again, fixed printTmp() : Sam pointed out that there was an unnecessary loop.
+  * I hacked up the pure-C version of Franke's mpqs code for factoring the
+    leftover stuff after sieving. I used this to replace the rho code which
+    was doing the same job. However, MPQS failures (which are rare), are handled
+    by the rho code (instead of simply giving up on them).
+  * A couple of small changes in nfmisc.c to speed up relation processing
+    by a tiny bit. Much more is needed there - the time to compute valuations
+    at ramified primes is unbearable!
+  * Changed exponent selection during square root initialization, to use a
+    greedy strategy (before, it just alternated exponents :). On tst250, the
+    net result is about a 50% speedup.
+  * Added Montgomery's trick for the ideal quotients during the square root
+    step - this gained another 40-50% or so (at the current LLL_max level;
+    when LLL_max is greater, the gain will probably be greater as well).
+    Between these two improvements, tst250 sqrt time was dropped from 108 seconds
+    to about 35 seconds.
+
+0.70.5, 11/29/04
+  * Included Tomoya Adachi's patch to allow non-monic linear polynomials.
+    This is a huge help!
+  * Started updating some of the default parameters in def-par.txt file
+    to figures actually obtained through testing, instead of the completely
+    guessed ones that were there (I haven't gotten very far yet - only the
+    gnfs-80 and gnfs-90 figures are better now, but 90 is still not
+    done).
+
+0.70.4, 11/29/04
+  * Modified the Perl script to detect special-q above lpba. Note that this
+    occurs only if the initial choice of parameters was far from optimal.
+  * Fixed a bug in the discriminant factoring code, which sometimes caused
+    a failure to compute the ramified primes (symptom: procrels would report
+    failure on nearly all relations).
+  * Added a workaround to factLat.pl since chomp doesn't remove both CR/LF
+    under Windows.
+  * Added code to factLat.pl to so slightly more sophisticated polynomial
+    searches. It dynamically selects a leading coefficient divisor based on
+    the size of the number, and will back it down to a smaller one when
+    it hits a region which seems to have some good polys (i.e., which
+    probably means a nice balance between size of poly and size of 'm',
+    and so that region should be searched at a finer level of detail).
+    This change hasn't been heavily tested yet, but so far it appears to
+    be better. The exact choices of leading coefficient divisors will surely
+    need to be adjusted after more testing.
+  * Fixed polyselect.c so that only polynomials meeting the cutoff are
+    appended to the all.poly file. This should help keep the size down and
+    thus allow for running polyselect over smaller ranges from the Perl
+    script (otherwise the filesize would have grown out of control).
+  * Used Sam/Mark's suggestions to fix up printTmp() in misc.c.
+  * Ditto for the fix at/around lines 298-299 of mpz_poly.c.
+  * Change to polyselect, so that when it finds a new `best', it uses a larger
+    sample size to estimate the small prime contribution (should result in
+    more accurate scores on top candidates, when run in small chunks as from
+    the Perl script).
+
+0.70.3, 11/27/04
+  * Fixed polyselect so that it outputs the newly required 'type: gnfs'
+    line as well.
+
+0.70.2, 11/25/04
+  * Added some code to the Perl script to automagically run polyselect
+    if a polynomial is not found. It will also automatically choose
+    parameters from a table (but the table is not yet complete, so I
+    don't encourage using this `feature' until the table is completed).
+    It will also automatically choose parameters for SNFS numbers, though
+    the user still must supply the polynomial and 'm' value.
+      When the table of parameters is refined and completed, this should
+    make the software much easier to run. Everything is still fine
+    tuneable by the advanced user (the default parameters are always
+    selected, and then overridden by any user-supplied parameters). 
+      One change in the script that will affect everyone is that there is 
+    a new field which must be in the poly file:
+      type: <gnfs|snfs>
+    In a couple of places, it is convenient for the script to know if this
+    is a GNFS or SNFS factorization (among other reasons, it chooses the
+    appropriate lattice siever automatically).
+      I also added a timescale feature to procrels and the script, to make
+    it easier to compare timings from summary.txt files. When the def-par.txt
+    table is more complete, it should also contain average values of these
+    scaled timings for the given parameter choices, so that we can more
+    easily decide if one set of parameters is better than those in the table
+    (this table will be very dynamic for a while, as it will take much testing
+    to determine the best parameter choices on average).
+  * In an earlier release, I made a change I forgot to document. 
+    matsolve now spits out a number it calls 'matrix difficulty'.
+    This number represents, oddly enough, the difficulty of solving
+    the resulting matrix. It is a function of both the matrix size,
+    the number of sparse entries and the number of dense blocks. This
+    makes it much easier to compare Lanczos optimizations and for folks
+    to see why some 400Kx400K matrices may solve fairly quickly (say,
+    3 or 4 hours), while others need much longer (say 20 hours). There
+    are some ways to control the density of the matrix by choosing smarter
+    parameters and oversieving and such. I'll say more about this when
+    I get around to writing up proper documentation for the whole thing.
+  * Fixed the LPBR output error in factLat.pl and cleaned up a bunch
+    of sloppy code (though there is no doubt that much of what remains
+    is still sloppy - this is the only real Perl code I've ever written,
+    so I'm sure guru's would find much of what I've written 'unacceptable').
+    Thanks to Sam for pointing out the most serious problems and the -w flag.
+  * Also changed the memalign stuff in blanczos64.c for MingW32 compilation
+    and changed some return values in sqrt.c as a workaround for a known
+    Windows Perl bug. Thanks again to Sam for suggesting these fixes.
+  * Took Bob's suggestion for printing out the divisors in sorted order
+    in the factLat.pl script.
+  * Removed the tests/old directory which contained the Bash script; by now,
+    I hope everyone is using the Perl script which is far more robust.
+  * Fixed the top-level Makefile; there was some knuckleheaded dependency
+    in it that would often cause compilation to fail from the toplevel
+    (because it would try to compile src/*.c files from the toplevel without
+    using the src/Makefile).
+  * Reverted part of the square root code back to machine-precision computations
+    and increased LLL_max back to 10^200 to get some speed back - I think
+    it was unnecessarily backed down before (the problem was the ordering of
+    the special prime ideals - not lost precision).
+  * Updated the tex file documentation, but it still needs much more work.
+
+0.70.1, 11/18/04
+  * Added a workaround (hack) to take care of the ``Could not
+    find large xxxxxx prime'' error. This is a bug which needs
+    to be properly tracked down. So far, I _believe_ it has
+    only been witnessed properly on Cygwin boxes (this message
+    can also be caused by corrupted data files; I know the
+    message has been seen on Linux boxes, but as far as I can tell
+    all of those instances were actually caused by corrupted
+    data files from bugs in other versions or from mixing versions
+    of GGNFS on the same run).
+      Anyway, the message will still appear when this bug crops
+    up, but it will be safely dealt with instead of the program
+    simply bailing out as it did before.
+  * Added a new command-line option to procrels: -maxrelsinff <int>.
+    This is for those ever-annoying situations where the matrix
+    you wind up with is too dense to fit into RAM. In this case,
+    supply a smaller number (the default is 48 - try 32 or 24,
+    for example). You will likely have to do more sieving than you
+    otherwise would have, but when you do get enough FF's, the
+    resulting matrix will be sparser. I am currently testing this
+    option with a general c118 I have for which the resulting
+    matrix won't fit into the 512MB on my laptop.
+  * Added a new parameter to combParts(), so that it won't bother
+    with doing the weight reduction unless there are possibly
+    enough full relation-sets.
+  * Some tweaks to the relation-set weight reduction code to speed
+    it up a bit (at the expense of possibly missing a tiny fraction
+    of possible weight reductions). I may be able to push this a
+    bit and speed it up much more, but it will require some testing
+    to make sure that we aren't missing too many of these reductions.
+
+0.70.0, 11/17/04
+  * No change - I just decided that this version should finally
+    be somewhat stable for moderate sized numbers, and finally
+    ready for a version number upgrade.
+
+0.61.5, 11/17/04
+  * Added code to sort the special ideals after they're found.
+    This seems to be what was causing the square root problems
+    on Cygwin (i.e., they were reported in different orders
+    at different times, resulting in the mis-indexing of some
+    factorization data).
+  * Added a snippet of code to procrels to report factorization
+    of a specific relation. This should help debug such situations
+    should they arise again in the future.
+  * #define'd out stdint.h in one of the lattice siever header files
+    for Win boxes. Apparently, MS chose to not include this (standard)
+    header file.
+
+0.61.4, 11/15/04
+  * Changed posix_memalign() calls to memalign(), for
+    Cygwin compatibility.
+  * Fixed asm_mul64.S for Cygwin (it needed underscores).
+  * Changes and Windows fixes to the Perl script.
+  * Some small tweaks to montgomery_sqrt.c - there is likely
+    still a problem with it for large factorizations, but I am
+    going to try to debug this with Rod; he has an RSA-130 factorization
+    which is stuck at the square root step because of this bug.
+    It may be the case that all of the floating point arithmetic
+    needs to be converted over to multi-precision, but this remains
+    to be seen (I don't think that this _should_ be necessary, so I'm
+    holding off on it for now).
+  * Updated with Brian Gladman's latest VC++ files.
+  * Changes to blanczos64.c for VC++ compatability.
+
+0.61.3, 11/7/04
+  * Threw a hack into factLat.pl to allow lattice sieving below
+    the AFB limit. This definitely should result in a sparser matrix,
+    and I think it should make large factorizations at least a little
+    bit faster.
+
+0.61.2, 11/5/04
+  * Removed some debug flags that were accidentally left on in Makefiles.
+  * Added the other-arch subdirectories back into lasieve4 - they were
+    accidentally deleted.
+
+0.61.1, 11/5/04
+  * Re-fixed the lambda >= 2 problem. This was caused by a MingW32 fix
+    which broke asm_mul64.s on Linux/Cygwin. Anyway, this has been fixed.
+  * I have reluctantly included some of my test MMX code in blanczos64.c.
+    This is really just some test stuff, while I learn some more of the
+    ins-and-outs of gcc inline assembly. I am also looking for a _good_ SSE2
+    tutorial; if anybody knows of one, I'd appreciate hearing about it.
+    I would like to get the Lanczos code at least twice as fast on a
+    single P4 or Athlon XP as it is now. I will then move on to MPI-izing
+    it. I will retain a pure-C version of it, but the push is definitely
+    going to be toward assembly to juice more speed from it.
+  * Incorporated Anton's MingW32 fixes. Also, implemented his suggestion
+    to have readRels() report some status information since it can sometimes
+    take so much time.
+  * Made some changes to the factLat.pl script, suggested by Greg.
+  * Fixed the ``cheap fix'' from 0.60.9-unstable, which had broken the
+    duplicate relation filtering. The problem: I forgot to multiply
+    some stupid variable by two. Doh!
+    from procrels.c, line 1281:
+      memcpy(abList+2*abListSize, abExtra, abExtraSize*2*sizeof(s32));
+                    ^
+    While I was in there, though, I happened to find another problem
+    with the initialization of those ab hash tables. I am suprised that
+    it hadn't caused a problem with duplicate relations, but the same
+    file around line 1325 or so was wrong: it failed to add each existing
+    (a,b) pair to both tables.
+
+0.60.9-unstable, 10/29/04
+  * Found a cheap fix for the quadratic slowdown of relation
+    processing on files containing a large number of new
+    relations. It hasn't been heavily tested, but it seems to
+    be ok. The new code (in case of crash) is around line 1270
+    of procrels.c.
+  * I finally got around to trying out some -march flags, and found
+    that with gcc 3.3.3, I get a bit of a boost on my Athlon 2800+ XP laptop
+    by giving -march=athlon (for procrels, at least). Of course, this won't
+    speed up the lattice siever since it's already assembly coded, but at
+    least a little boost for relation processing is worth it.
+    This probably means its time for a proper configure script, but I 
+    don't have time for that yet. In the meantime, I added a 
+    Makefile.athlon for this. I suspect that various pentium flags may also
+    help, so you may want to experiment with this.
+
+0.60.8-unstable, 10/22/04
+  * Small change to the lattice sieving code so that the
+    siever logs the time it spent sieving. I needed this
+    to better time beowulf runs.
+
+0.60.6-unstable, 10/21/04
+  * Removed the re-seeding of the PRNG in polyselect, as pointed out
+    by J.Bass.
+  * As a first step toward some 64-bit compatibility, I went through
+    and changed all 'long' to 's32' and' unsigned long' to 'u32'.
+    The next step is to carefully go through the code and see what
+    really needs to be s32 and what can be u32 (i.e., in all post-sieving
+    code, so that we can handle large primes upto 32 bits).
+    
+
+0.60.5-unstable, 10/21/04
+  * Fixed up the 64-bit Lanczos code. It still needs to be cleaned
+    up a bit and it is probably no faster than the 32-bit code right
+    now, but it will be. Anyway, it seems to work.
+
+0.60.4-unstable, 10/19/04
+  * Fixed a bug that caused procrels to segfault.
+  * Fixed a bug in the Lanczos code which caused wrong
+    matrix multiplication.
+  * Fixed and tweaked the matrix pruning code - it was always
+    leaning too heavily toward removing heavy rows because of
+    some bad formulae.
+
+0.60.3-unstable, 10/17/04
+  * Tweaked gnfs-lasieve4e.c and the factLat.pl script
+    to:
+    (1) Automatically resume sieving from the exact place where
+        it was interrupted, when killed with CTRL-C. Previously,
+        it would resume from wherever the previous job was started.
+        Now it will resume from where the previous job was stopped.
+    (2) Allow parameter changes mid-factorization. This is not
+        thoroughly tested, but it appears to work. If you want to
+        change factor base sizes or large prime limits, simply
+        kill the script, change the parameters in the .poly file,
+        and restart the script. It will have to re-process all relations,
+        so this may take a bit of time if you have alot of relations.
+        Also be aware that if you decrease factor base limits or
+        large prime limits, you will see many invalid relations
+        during re-processing, as it will have to throw some out due
+        to the decreased limits.
+
+0.60.2-unstable, 10/15/04
+  * Changed the NFS_HASH() macro again, so that it will
+    uniformly distribute relations across the rels.bin files.
+    It should be ok now.
+
+0.60.1-unstable, 10/14/04
+  * Fixed a naughty little bug that caused a miscount of the
+    total number of large primes in procrels (net result was a 
+    memory allocation error).
+
+0.60-unstable, 10/13/04
+  * Deleted most of the files from include-extra, which seem not to be
+    needed anymore. I guessed at the syntax of the VC files and tried
+    to comment out the corresponding lines. Hopefully I didn't break it.
+    But I think I moved some files around which probably broke it anyway.
+    I should probably consider asking someone (Brian :) to keep a copy
+    of the VC files somewhere else and I'll link to them. What keeps happening
+    is that by the time I get to include the updates, I've already changed
+    things so that they are broken by the time they get included. 
+  * I finally started debugging the lasieve/lambda problem. My suspicion
+    was (of course :) right, that it was crashing when it attempted to
+    MPQS a leftover norm. Most likely, this is due to some error on my
+    part during the translation & incorporation process. For now, I fixed
+    this by replacing the mpqs call with a Pollard-rho call. This is probably
+    substantially slower than with mpqs, so it should be fixed at some point.
+    I looked briefly at the assembly to try and pinpoint the problem and I did
+    manage to find some problems, but I still couldn't quite nail them all.
+    The options left to us are (in order of preference):
+      (1) Do what it takes to debug the mpqs stuff (possibly starting from the
+        original code might help).
+      (2) Make a fast SQUFOF implementation and use it to replace the rho code.
+      (3) Radically speed up the rho code.
+  * In any case, there is no some more flexibility in how we can use the lattice
+    siever. Lambda values larger than 2 will no longer crash it. Doing this
+    results in relations with upto 2 or 3 large primes on each side. As a result,
+    I made some tweaks to the rest of GGNFS so it can handle 3 large primes from
+    each side. This means faster factorization on larger numbers. I am testing
+    it now and it seems to be ok. (But I don't know if I'd try any very large
+    ones with it yet).
+  * Modified the factLat.sh script a bit more. It now has a built in parameter
+    for `over-sieving', to generate extra relations to help get the pruned matrix
+    smaller.
+  * Anton reported that GGNFS now (0.54.5b) appears to work under MingW32, at least
+    for the F7 test case.
+  * I ported the factLat.sh script over to Perl for several reasons:
+    (1) The camel is cool.
+    (2) To make life a bit easier on Windows non-Cygwin folks. My understanding
+        is that they can, in theory, install a working Perl environment
+        easier than a bash shell.
+    (3) At some point, this script may become a robust factorization controller,
+        with the ability to control several nodes. This will require some level
+        of network communication capabilities which Perl has but Bash does not
+        (at least, not via any reasonably clean techniques that I know).
+    (4) I want to learn Perl. Not a bad start I think, though I'm sure 
+        I broke some style rules.
+    (5) It should be a transparent change for Linux users since we all
+        have Perl anyway. So why not?
+    (6) In general, there is just much more capability in Perl. So there
+        is potential now add all sorts of interesting capabilities.
+  * Added a 'dump' option to getdeps to recover siever-formatted relations
+    from processed relation files. This is to help with debugging, or restarting
+    a factorization with different FB sizes without the need to re-sieve
+    (of course, this can also be done by turning on the SAVE_PAIRS flag in
+    the scripts, but on several occasions I've left it off and wished I
+    could recover the siever output. Now I can! :)
+  * Modified the Lanczos code to use u32/s32 types instead of long. This
+    is in preparation for writing some decent 64 or 128 bit Lanczos code.
+  * Started fixing getdeps.c. It is far too slow and uses far too much RAM.
+    I have rewritten the duplicate-checking stuff, so it should be much
+    faster and more RAM-friendly than the old method. (It remains to be
+    tested on an interesting sized number, though, to see if this is
+    actualy the case). I also started pulling apart some of the code
+    responsible for the scattered disk-access which was slowing the program
+    to a crawl when working on large numbers. The problem is the same one
+    that KAMADA fixed in addNewRelations() - reading/writing little bits
+    at a time inside of often-repeated loops. This is being done away
+    with by reading/writing to a RAM buffer which is filled/dumped as needed.
+    I'm not yet done - I've only done the disk writing so far (which is
+    the easy part :)
+  * Modified the factLat.pl script to also kick out a jpeg showing the FF's as
+    a function of the total relations. 
+  * (MAJOR CHANGE) : The old `getdeps' program and source file are now called
+    `procrels', which makes far more sense. The old name, getdeps, was a reminant
+    from the early days of GGNFS when this program did both relation processing
+    and matrix solving. I have adjusted the scripts to reflect this change.
+  * Slightly smarter cycle-building. It will now build cycles with upto 1.5*MAX_RELS_IN_FF
+    relations per relation set. It then goes through and attempts to combine
+    relation-sets to reduce the weights of relation-sets before going back through
+    and tossing out any that still have more than MAX_RELS_IN_FF. The net result
+    should be both more full relation-sets and a (at least slightly) sparser
+    matrix. This remains to be extensively tested though.
+  * Added a new command-line parameter to matsolve to allow varying strategies
+    for density vs. dimension of the final matrix.
+
+
+0.54.5/b, 9/22/04
+  * Incorporated Brian Gladman's VC diffs, which sadly might be
+    broken already :( I decided that all of the 32-bit Lanczos
+    stuff should be in one file, so I combined the needed parts
+    of spmatmul.c into blanczos32.c and removed spmatmul.c.
+    Note that the directory with the VC files has changed from
+    vc_project to ggnfs.vc.) 
+   (Nope - it's fixed now. I sent it to Brian first and he updated
+    the files).
+  * Added a new parameter, `examinefrac', to the polyselect input
+    file. This parameter gives a criterion by which polynomials
+    are initially filtered out if the 3rd coefficient is too large.
+    At some point, I did also add a c_3 parameter to the Montgomery-Murphy
+    code, and I just realized I probably didn't mention it earlier.
+    Anyway, the polyselect program is now fairly decent, if run properly.
+  * Changed a few more fopen() calls to add the "b" flag as well,
+    for Windows compatibility.
+  * Modified the factLat.sh script to put all the relevent info and
+    parameters in the summary file. This should make it easier to keep
+    track of factorizations, timings and parameter choices.
+
+0.54.4, 9/16/04
+  * Fixed another bug in the square root code. This bug was due
+    to the bad practice of computing logarithms of mpz_t's by:
+      log(mpz_get_d(k));
+    The problem is that on large factorizations, some of the intermediate
+    numbers involved seemed to overflow past what the exponent
+    part of a double can handle. The net result is that the return
+    value would sometimes be 'inf', throwing everything else way off.
+    It might be the case that there are other chunks of the code
+    suffering from the same problem. At some point, I should hunt them
+    all down and replace with calls to the new function _mpz_log(),
+    defined in misc.c.
+
+
+0.54.3, 9/14/04
+  * Increased MAX_ALIM and MAX_RLIM from 10^7 to 10^8 : I guess
+    some people are experimenting with some larger GNFS numbers
+    and this limitation caused segfaults instead of clean exits
+    when one tried to use a larger limit for the factor bases.
+  * Fixed one small bug and added some more debugging code to
+    montgomery_sqrt.c. There may or may not still be some bugs
+    linerging around in the sqrt code - I'm now in wait-and-see
+    mode to see if the bug I found is the only one that has been
+    causing problems.
+
+0.54.2, 9/12/04
+  * Some work on polyselect has been incorporated. It's not
+    yet done and I really didn't intend to release it yet,
+    but it seems to be somewhat stable.
+
+  * Some bugfixes submitted by KAMADA Makoto were implemented:
+    *Correction:
+    GGNFS 0.54.1 src/getdeps.c line 703:
+      RL->maxDataSize = fileInfo.st_size;
+    should be
+      RL->maxDataSize = fileInfo.st_size / sizeof(long);
+                                                                                              
+    Description:
+    There is a mismatch of the unit between source and destination.
+      (src) fileInfo.st_size ... bytes
+      (dst) RL->maxDataSize ... longs
+                                                                                             
+    Result:
+    After the correction, large waste memory -- more than 300MB? -- has been saved.
+
+    *Correction:
+    GGNFS 0.54.1 src/rels.c line 398:
+          bufSize += fread(&buf[bufSize], sizeof(long), bufMax-bufIndex-10, fp);
+    should be
+          bufSize += fread(&buf[bufSize], sizeof(long), bufMax-bufSize, fp);
+                                                                                             
+    Description:
+    It's a simple mistake. fread() overruns memory blocks and causes segfaults on
+Cygwin.
+
+0.54.1, 9/8/04
+  * Ditched some of the extra output that had been added to `sqrt'
+    for debugging.
+
+0.54.0, 9/8/04
+  * Hammered out another square root bug. I hope this was the last
+    one (it is definitely the last one of which I'm aware). The problem
+    was stupid, really: If the final residue from Montgomery's method
+    happened to have a denominator different from 1 when expressed in
+    terms of the power basis, the code was neglecting it. The fix is just
+    to multiply by the square of the discriminant prior to the square root,
+    then divide out by the discriminant after the square root is done.
+
+0.53.4, 9/8/04
+  * Modified addNewRelations4 in getdeps.c so it doesn't try to read
+    the whole input file at once. Instead, it will be read by chunks
+    of 4MB or so at a time. This should save some memory when getdeps
+    is run with a large spairs.out file.
+  * makefb now outputs an error message and dies if the coeffficients
+    of the algebraic polynomial have a nontrivial gcd.
+  * I think I finally nailed the main matrix bug. Well, kinda. It seems
+    to be caused by the new function removeSingletons2() in matstuff.c,
+    which was used to replace removeSingletons(). It's a pretty straightforward
+    function, and for all my efforts I still can't figure out exactly why
+    it fails, but it does (sometimes). The symptom is that many non-singleton
+    columns are deleted. So what was happening to many people is that it
+    would delete too many columns, leaving an underdetermined matrix, and
+    Lanczos would wind up running forever on it.
+  * Implemented some suggestions of Kamada Makoto & Greg Childers:
+    * getdeps condition for running cycle finding code modified to something
+      which seems to work better (we're all tired of waiting for me to get off
+      my can and do the heuristics, but this seems to work pretty well).
+    * sqrt now returns -1,0 or 1 depending on whether or not the number was
+      not factored, partially factored or completely factored respectively.
+    * The factlat.sh script was modified to allow several additional square
+      root jobs in the case where a number was not completely factored (i.e.,
+      at least one of the divisors found was composite).
+  * Started messing with polyselect.c. It's probably no better right now,
+    but it is a little cleaner and shouldn't have the stall-bug that people
+    witnessed (I never saw it myself, but I did see something funny that might
+    have caused it).
+  * KAMADA Makoto submitted a fix for a nasty little bug in llist.c which
+    caused segfaults on Cygwin (and probably some headaches on linux as well,
+    though none were reported). Many thanks to KAMADA!
+
+0.53.3, 8/23/04
+  * A couple more little bugs were hammered out with the
+    help of Electric Fence and gdb. Some of them should have
+    caused segfaults, but probably not the matrix bug (incidentally,
+    I think this is another bug only witnessed under Cygwin so far,
+    but there is still another bug remaining which is in the sqrt
+    code - Rod and I have both witnessed it, but I mistakenly thought
+    it was the same as the current matrix bug which causes Lanczos
+    to not terminate. The latter bug is most likely some problem with
+    the new method of grouping dense rows up. I don't yet have any
+    real idea about the square root bug, but I think it coincides with
+    an early deviation of the algebraically-measured norm from the
+    numerically computed one; this is the difference reported by the
+    sqrt program that looks like:
+      step 3315, sl=-1, logGam=673671.49/673897.33, \
+           emb: -60.38 -47.55 -47.55 -35.17 -35.17 , diff=- 0.0000
+    Here, the final quantity is the one I'm talking about. It _should_ always
+    stay fairly close to zero, but it sometimes jumps after the first iteration.
+    This seems to indicate that somewhere we are dividing or multiplying 
+    by a different ideal than we adjust the exponents by.)
+
+0.53.2, 8/21/04
+  * Some little changes to matrix stuff: there were two seperate
+    defines, MAX_ROWS_IN_COL and MAXCOLWT which should have been
+    the same, and now they are. But I don't believe this caused
+    anyone any problems, because they are both large enough that
+    nobody should have reached them.
+
+0.53.1, 8/17/04
+  * Made some more modifications to the factRel.sh script.
+    The new script now expects all parameters for the factorization
+    to be in the poly file, including RFB/AFB limits, large-prime
+    sizes, lambdas,...
+      Additionally, the part of the script responsible for creating
+    a job file has been seperated out to a bash function.
+     The idea is that:
+    (1) At some point, polyselect may become smart enough to
+    at least suggest some parameters. In that case, it would only
+    make sense to record them with the polynomial.
+    (2) In principle, one might want to tweak the script to just
+    produce some job files which can be sent out to worker nodes.
+    This should be much easier with the current setup.
+    (3) One does not have to modify the script for each factorization.
+    Instead, use the same script for all factorizations (i.e., none
+    of the parameters are hardcoded into the script!)
+    Note: I may consider migrating this script over to Perl at some
+    point to allow the script to send job files to worker nodes
+    via sockets. This is not high on my priority list at the moment,
+    but it is fairly easy to do from the server side, given the current
+    script. It also shouldn't take much work on the client side. 
+    It would just be a matter of adding a few lines of code to the siever to 
+    query a server for a job file (if run in client mode). 
+    If it gets one, dump it to file and everything proceeds as normal.
+    If it did not get one, the siever will shutdown, after complaining
+    about not finding a job file. The hard part of this will be getting
+    the siever to properly restart after completing a job.
+  * Made some changes to polyselect so that it spits out a template
+    (in the 'best.poly' file only) for what is expected by the
+    new script.
+
+0.53.0, 8/16/04
+  * KAMADA Makoto submitted another patch which fixed the serious
+    Cygwin bug and further sped up addNewRelations4() by another 
+    18% or so. Many thanks to Makoto for his hard work in tracking
+    that bug down and speeding up the various functions in getdeps.c.
+

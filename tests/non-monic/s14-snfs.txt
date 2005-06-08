@@ -1,0 +1,60 @@
+Number: snfs
+N=6336348260440219970725096108505792822584894566369686935367355504409
+  ( 67 digits)
+SNFS difficulty: 14 digits.
+Divisors found:
+ r1=624958606550654822293 (pp21)
+ r2=10138828706452319901511087969019211193701892213 (pp47)
+Version: GGNFS-0.72.7
+Total time: 0.11 hours.
+Scaled time: 0.06 units (timescale=0.551).
+Factorization parameters were as follows:
+# This is a small test case for non-monic linear polynomials.
+name: snfs
+type: snfs
+n: 6336348260440219970725096108505792822584894566369686935367355504409
+deg: 3
+c3: 1
+c2: 1
+c1: -2
+c0: -1
+Y0: -3211838877954855105157370
+Y1: 1792160394037
+skew: 3.000
+
+rlim: 50000
+alim: 50000
+lpbr: 25
+lpba: 25
+mfbr: 43
+mfba: 43
+rlambda: 2.2
+alambda: 2.2
+qintsize: 5000
+Factor base limits: 50000/50000
+Large primes per side: 3
+Large prime bits: 25/25
+Sieved special-q in [25000, 35001)
+Relations: rels:296487, finalFF:16694
+Initial matrix: 10319 x 16694 with sparse part having weight 505293.
+Pruned matrix : 8458 x 8573 with weight 178721.
+Total sieving time: 0.09 hours.
+Total relation processing time: 0.02 hours.
+Matrix solve time: 0.00 hours.
+Time per square root: 0.00 hours.
+Prototype def-par.txt line would be:
+snfs,14.0969100130081,3,0,0,0,0,0,0,0,0,50000,50000,25,25,43,43,2.2,2.2,10000
+total time: 0.11 hours.
+ --------- CPU info (if available) ----------
+CPU: AMD mobile AMD Athlon(tm) XP2800+ stepping 00
+Memory: 449348k/457664k available (2537k kernel code, 7568k reserved, 649k data, 168k init, 0k highmem)
+Calibrating delay loop... 4210.68 BogoMIPS
+x86info v1.12b.  Dave Jones 2001-2003
+Feedback to <davej@redhat.com>.
+
+Found 1 CPU
+--------------------------------------------------------------------------
+Family: 6 Model: 10 Stepping: 0
+CPU Model : Mobile Athlon XP (Barton)
+2.1Ghz processor (estimate).
+

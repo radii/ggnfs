@@ -1,0 +1,7 @@
+$search_a5step=1;
+$projectname=rsa110;
+$npr=4;
+$normmax=2e16;
+$normmax1=8e14;
+$normmax2=8e12;
+$murphymax=6e-10;

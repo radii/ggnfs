@@ -1,0 +1,161 @@
+[11/17 22:34:13] GGNFS-0.70.0 : makefb
+[11/17 22:34:13] name: 
+[11/17 22:34:13] n=48112675629372767804524219707530062462251150382843481915847109420993527839223554575368891438718253 (98 digits)
+[11/17 22:34:13] c0: -539
+[11/17 22:34:13] c1: 0
+[11/17 22:34:13] c2: 0
+[11/17 22:34:13] c3: 0
+[11/17 22:34:13] c4: 1
+[11/17 22:34:13] RFBsize: 25997 (upto 299993)
+[11/17 22:34:13] AFBsize: 29953 (upto 349967)
+[11/17 22:34:13] maxNumLargeRatPrimes: 3
+[11/17 22:34:13] maxLargeRatPrime: 33554432
+[11/17 22:34:13] maxNumLargeAlgPrimes: 3
+[11/17 22:34:13] maxLargeAlgPrime: 33554432
+	LatSieveTime: 127
+[11/17 22:36:21] GGNFS-0.70.0 : procrels
+[11/17 22:36:27] There were 104/47601 duplicates.
+[11/17 22:36:27] RelProcTime: 5.9
+[11/17 22:36:27] largePrimes: 83641 , relations: 47497
+[11/17 22:36:28] reduceRelSets dropped relation-set weight from 1081 to 1081.
+[11/17 22:36:28] rels:47497, initialFF:0, finalFF:1001
+	LatSieveTime: 119
+[11/17 22:38:27] GGNFS-0.70.0 : procrels
+[11/17 22:38:33] There were 335/44410 duplicates.
+[11/17 22:38:33] RelProcTime: 5.6
+[11/17 22:38:33] largePrimes: 152783 , relations: 91572
+[11/17 22:38:34] reduceRelSets dropped relation-set weight from 2265 to 2265.
+[11/17 22:38:34] rels:91572, initialFF:0, finalFF:2003
+	LatSieveTime: 126
+[11/17 22:40:40] GGNFS-0.70.0 : procrels
+[11/17 22:40:46] There were 565/47379 duplicates.
+[11/17 22:40:46] RelProcTime: 6.2
+[11/17 22:40:47] largePrimes: 219792 , relations: 138386
+[11/17 22:40:47] reduceRelSets dropped relation-set weight from 3902 to 3902.
+[11/17 22:40:47] rels:138386, initialFF:0, finalFF:3244
+	LatSieveTime: 108
+[11/17 22:42:36] GGNFS-0.70.0 : procrels
+[11/17 22:42:41] There were 626/40219 duplicates.
+[11/17 22:42:41] RelProcTime: 5.3
+[11/17 22:42:43] largePrimes: 272426 , relations: 177979
+[11/17 22:42:43] reduceRelSets dropped relation-set weight from 5661 to 5661.
+[11/17 22:42:43] rels:177979, initialFF:0, finalFF:4398
+	LatSieveTime: 114
+[11/17 22:44:37] GGNFS-0.70.0 : procrels
+[11/17 22:44:43] There were 787/42128 duplicates.
+[11/17 22:44:43] RelProcTime: 5.6
+[11/17 22:44:45] largePrimes: 324566 , relations: 219320
+[11/17 22:44:45] reduceRelSets dropped relation-set weight from 7822 to 7822.
+[11/17 22:44:45] rels:219320, initialFF:0, finalFF:5678
+	LatSieveTime: 105
+[11/17 22:46:31] GGNFS-0.70.0 : procrels
+[11/17 22:46:37] There were 875/38845 duplicates.
+[11/17 22:46:37] RelProcTime: 5.4
+[11/17 22:46:38] largePrimes: 370051 , relations: 257290
+[11/17 22:46:39] reduceRelSets dropped relation-set weight from 10428 to 10428.
+[11/17 22:46:39] rels:257290, initialFF:0, finalFF:7032
+	LatSieveTime: 140
+[11/17 22:49:00] GGNFS-0.70.0 : procrels
+[11/17 22:49:07] There were 1425/52068 duplicates.
+[11/17 22:49:07] RelProcTime: 7.1
+[11/17 22:49:09] largePrimes: 427538 , relations: 307933
+[11/17 22:49:10] reduceRelSets dropped relation-set weight from 15167 to 15167.
+[11/17 22:49:10] rels:307933, initialFF:0, finalFF:9203
+	LatSieveTime: 123
+[11/17 22:51:13] GGNFS-0.70.0 : procrels
+[11/17 22:51:19] There were 1357/45217 duplicates.
+[11/17 22:51:19] RelProcTime: 6.2
+[11/17 22:51:22] largePrimes: 475134 , relations: 351793
+[11/17 22:51:23] reduceRelSets dropped relation-set weight from 21135 to 21135.
+[11/17 22:51:23] rels:351793, initialFF:0, finalFF:11393
+	LatSieveTime: 121
+[11/17 22:53:24] GGNFS-0.70.0 : procrels
+[11/17 22:53:31] There were 1510/45557 duplicates.
+[11/17 22:53:31] RelProcTime: 6.3
+[11/17 22:53:33] largePrimes: 521261 , relations: 395840
+[11/17 22:53:34] reduceRelSets dropped relation-set weight from 29156 to 29155.
+[11/17 22:53:34] rels:395840, initialFF:0, finalFF:13926
+	LatSieveTime: 118
+[11/17 22:55:33] GGNFS-0.70.0 : procrels
+[11/17 22:55:39] There were 1657/44043 duplicates.
+[11/17 22:55:39] RelProcTime: 6.1
+[11/17 22:55:42] largePrimes: 564170 , relations: 438226
+[11/17 22:55:43] reduceRelSets dropped relation-set weight from 40649 to 40644.
+[11/17 22:55:43] rels:438226, initialFF:0, finalFF:16928
+	LatSieveTime: 119
+[11/17 22:57:42] GGNFS-0.70.0 : procrels
+[11/17 22:57:49] There were 1749/44934 duplicates.
+[11/17 22:57:49] RelProcTime: 6.8
+[11/17 22:57:53] largePrimes: 606197 , relations: 481411
+[11/17 22:57:54] reduceRelSets dropped relation-set weight from 56882 to 56869.
+[11/17 22:57:54] rels:481411, initialFF:0, finalFF:20628
+	LatSieveTime: 119
+[11/17 22:59:54] GGNFS-0.70.0 : procrels
+[11/17 23:00:00] There were 1889/44159 duplicates.
+[11/17 23:00:00] RelProcTime: 6.6
+[11/17 23:00:04] largePrimes: 646241 , relations: 523681
+[11/17 23:00:06] reduceRelSets dropped relation-set weight from 77933 to 77914.
+[11/17 23:00:06] rels:523681, initialFF:0, finalFF:24828
+	LatSieveTime: 119
+[11/17 23:02:05] GGNFS-0.70.0 : procrels
+[11/17 23:02:12] There were 2012/43739 duplicates.
+[11/17 23:02:12] RelProcTime: 6.5
+[11/17 23:02:15] largePrimes: 684735 , relations: 565408
+[11/17 23:02:18] reduceRelSets dropped relation-set weight from 104542 to 104523.
+[11/17 23:02:18] rels:565408, initialFF:0, finalFF:29771
+	LatSieveTime: 130
+[11/17 23:04:28] GGNFS-0.70.0 : procrels
+[11/17 23:04:35] There were 2247/47002 duplicates.
+[11/17 23:04:35] RelProcTime: 6.9
+[11/17 23:04:39] largePrimes: 725076 , relations: 610163
+[11/17 23:04:42] reduceRelSets dropped relation-set weight from 140223 to 140149.
+[11/17 23:04:42] rels:610163, initialFF:0, finalFF:36015
+	LatSieveTime: 123
+[11/17 23:06:46] GGNFS-0.70.0 : procrels
+[11/17 23:06:53] There were 2325/45318 duplicates.
+[11/17 23:06:53] RelProcTime: 6.9
+[11/17 23:06:57] largePrimes: 762980 , relations: 653156
+[11/17 23:07:00] reduceRelSets dropped relation-set weight from 177961 to 177839.
+[11/17 23:07:00] rels:653156, initialFF:0, finalFF:42533
+	LatSieveTime: 124
+[11/17 23:09:05] GGNFS-0.70.0 : procrels
+[11/17 23:09:12] There were 2454/46232 duplicates.
+[11/17 23:09:12] RelProcTime: 7.0
+[11/17 23:09:17] largePrimes: 800509 , relations: 696934
+[11/17 23:09:20] reduceRelSets dropped relation-set weight from 222002 to 221873.
+[11/17 23:09:20] rels:696934, initialFF:0, finalFF:50028
+	LatSieveTime: 131
+[11/17 23:11:32] GGNFS-0.70.0 : procrels
+[11/17 23:11:40] There were 2558/47986 duplicates.
+[11/17 23:11:40] RelProcTime: 7.2
+[11/17 23:11:45] largePrimes: 838564 , relations: 742362
+[11/17 23:11:49] reduceRelSets dropped relation-set weight from 271976 to 271833.
+[11/17 23:11:52] rels:742362, initialFF:0, finalFF:58617
+[11/17 23:11:52] depinf file written. Run matsolve.
+	LatSieveTime: 136
+[11/17 23:14:09] GGNFS-0.70.0 : procrels
+[11/17 23:14:17] There were 2933/49419 duplicates.
+[11/17 23:14:17] RelProcTime: 8.1
+[11/17 23:14:27] largePrimes: 876375 , relations: 788848
+[11/17 23:14:33] reduceRelSets dropped relation-set weight from 328262 to 328115.
+[11/17 23:14:38] rels:788848, initialFF:0, finalFF:68319
+[11/17 23:14:38] depinf file written. Run matsolve.
+[11/17 23:14:38] GGNFS-0.70.0 : matsolve
+[11/17 23:14:38] Pruning matrix with wt=0.250
+[11/17 23:14:38] Initial matrix is 56016 x 68319 with sparse part having weight 2839833.
+[11/17 23:14:38] (total weight is 6069442)
+[11/17 23:14:46] Matrix pruned to 50374 x 50494 with weight 1573298.
+[11/17 23:16:14] BLanczosTime: 87.9
+[11/17 23:16:14] GGNFS-0.70.0 : sqrt
+[11/17 23:16:14] bmultiplier=1
+[11/17 23:16:48] From dependence 0, sqrt obtained:
+[11/17 23:16:48]   r1=48112675629372767804524219707530062462251150382843481915847109420993527839223554575368891438718253
+[11/17 23:16:48]   r2=1
+[11/17 23:16:48] sqrtTime: 33.7
+[11/17 23:16:48] GGNFS-0.70.0 : sqrt
+[11/17 23:16:48] bmultiplier=1
+[11/17 23:17:33] From dependence 1, sqrt obtained:
+[11/17 23:17:33]   r1=21326617921435191345914805886616773334390107640406173073760517251 (pp65)
+[11/17 23:17:33]   r2=2255991822360879425583919003791503 (pp34)
+[11/17 23:17:33] (pp=probable prime, c=composite)
+[11/17 23:17:33] sqrtTime: 44.5

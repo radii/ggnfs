@@ -1,0 +1,54 @@
+Number: s1
+N=48112675629372767804524219707530062462251150382843481915847109420993527839223554575368891438718253
+  ( 98 digits)
+Divisors found:
+2255991822360879425583919003791503 (pp34)
+21326617921435191345914805886616773334390107640406173073760517251 (pp65)
+Version: GGNFS-0.70.0
+total time: 0.68 hours.
+Factorization parameters were as follows:
+n: 48112675629372767804524219707530062462251150382843481915847109420993527839223554575368891438718253
+m:  157775382034845806615042743
+c4: 1
+c3: 0
+c2: 0
+c1: 0
+c0: -539
+skew: 5
+
+# This is the number 7^122 - 11.
+rlim: 300000
+alim: 350000
+lpbr: 25
+lpba: 25
+mfbr: 43
+mfba: 43
+rlambda: 2.2
+alambda: 2.2
+qintsize: 5000
+
+Factor base limits: 300000/350000
+Large primes per side: 3
+Large prime bits: /
+Sieved special-q in [175000, 265000)
+Relations: rels:788848, finalFF:68319
+Initial matrix: 56016 x 68319 with sparse part having weight 2839833.
+Pruned matrix : 50374 x 50494 with weight 1573298.
+Total sieving time: 0.61 hours.
+Total relation processing time: 0.03 hours.
+Matrix solve time: 0.02 hours.
+Time per square root: 0.01 hours.
+total time: 0.68 hours.
+ --------- CPU info (if available) ----------
+CPU: AMD mobile AMD Athlon(tm) XP2800+ stepping 00
+Memory: 449348k/457664k available (2537k kernel code, 7568k reserved, 649k data, 168k init, 0k highmem)
+Calibrating delay loop... 4210.68 BogoMIPS
+x86info v1.12b.  Dave Jones 2001-2003
+Feedback to <davej@redhat.com>.
+
+Found 1 CPU
+--------------------------------------------------------------------------
+Family: 6 Model: 10 Stepping: 0
+CPU Model : Mobile Athlon XP (Barton)
+2.1Ghz processor (estimate).
+

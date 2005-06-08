@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+require(".searchrc");
+$lock_ex=2;
+$lock_un=8;
+$hfile="+<search_a5";
+unless( open(hfile1,$hfile) ) {
+    print "-2\n";
+    exit(1);
+}
+flock(hfile1,$lock_ex);
+$hv=<hfile1>;
+print "$hv";
+$hv+=$search_a5step;
+seek(hfile1,0,0);
+printf hfile1 "%15d",$hv;
+flock(hfile1,$lock_un);
+exit(0);
+

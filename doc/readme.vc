@@ -1,0 +1,9 @@
+  The VC project files have been generously contributed by Brian Gladman. He
+does send me new ones pretty regularly, but please understand: he has a life
+and I don't have VC; so more often than not, they might lag a little behind
+the current source. In that case, if you want to use VC to compile, expect
+to do a little work.
+  This is because the project is still very beta and the compilation process
+and files are still evolving. As the project nears some level of stability,
+the structure of the source tree won't change as much and the VC compilation
+will probably become easier.

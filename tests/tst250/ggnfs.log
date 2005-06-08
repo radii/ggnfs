@@ -1,0 +1,75 @@
+[04/14 15:39:50] GGNFS-0.76.4 : matbuild
+[04/14 15:40:17] largePrimes: 787513 , relations: 765551
+[04/14 15:40:24] reduceRelSets dropped relation-set weight from 296209 to 296204.
+[04/14 15:40:24] After removing heavy rel-sets, weight is 296204.
+[04/14 15:40:38] rels:765551, initialFF:0, finalFF:98037
+[04/14 15:40:38] Pruning matrix with wt=0.700
+[04/14 15:40:38] Initial matrix is 64068 x 98037 with sparse part having weight 3134595.
+[04/14 15:40:38] (total weight is 7291208)
+[04/14 15:40:50] Matrix pruned to 51685 x 52069 with weight 1253689.
+[04/14 15:40:51] depinf file written. Run matsolve.
+[04/14 15:40:51] Heap stats for matbuild run:
+[04/14 15:40:51] Max heap useage: 163 MB
+[04/14 15:40:51] malloc/realloc errors: 0 
+[04/14 15:40:51] total malloc's : 168 
+[04/14 15:40:51] total realloc's: 54 
+[04/14 15:42:54] GGNFS-0.76.4 : matbuild
+[04/14 15:43:12] largePrimes: 787513 , relations: 765551
+[04/14 15:43:20] reduceRelSets dropped relation-set weight from 296209 to 296204.
+[04/14 15:43:20] After removing heavy rel-sets, weight is 296204.
+[04/14 15:43:27] rels:765551, initialFF:0, finalFF:98037
+[04/14 15:43:27] Heap stats for matbuild run, before buildSparseMat():
+[04/14 15:43:27] Max heap useage: 163 MB
+[04/14 15:43:27] malloc/realloc errors: 0 
+[04/14 15:43:27] total malloc's : 159 
+[04/14 15:43:27] total realloc's: 54 
+[04/14 15:43:28] Pruning matrix with wt=0.700
+[04/14 15:43:28] Initial matrix is 64068 x 98037 with sparse part having weight 3134595.
+[04/14 15:43:28] (total weight is 7291208)
+[04/14 15:43:41] Matrix pruned to 51685 x 52069 with weight 1253689.
+[04/14 15:43:41] depinf file written. Run matsolve.
+[04/14 15:43:41] Heap stats for matbuild run:
+[04/14 15:43:41] Max heap useage: 163 MB
+[04/14 15:43:41] malloc/realloc errors: 0 
+[04/14 15:43:41] total malloc's : 168 
+[04/14 15:43:41] total realloc's: 54 
+[04/14 15:45:59] GGNFS-0.76.4 : matbuild
+[04/14 15:46:12] largePrimes: 787513 , relations: 765551
+[04/14 15:46:19] reduceRelSets dropped relation-set weight from 296209 to 296204.
+[04/14 15:46:19] After removing heavy rel-sets, weight is 296204.
+[04/14 15:46:26] rels:765551, initialFF:0, finalFF:98037
+[04/14 15:46:26] Heap stats for matbuild run, before buildSparseMat():
+[04/14 15:46:26] Max heap useage: 163 MB
+[04/14 15:46:26] malloc/realloc errors: 0 
+[04/14 15:46:26] total malloc's : 159 
+[04/14 15:46:26] total realloc's: 54 
+[04/14 15:46:26] Pruning matrix with wt=0.700
+[04/14 15:46:26] Initial matrix is 64068 x 98037 with sparse part having weight 3134595.
+[04/14 15:46:26] (total weight is 7291208)
+[04/14 15:46:38] Matrix pruned to 51685 x 52069 with weight 1253689.
+[04/14 15:46:39] depinf file written. Run matsolve.
+[04/14 15:46:39] Heap stats for matbuild run:
+[04/14 15:46:39] Max heap useage: 163 MB
+[04/14 15:46:39] malloc/realloc errors: 0 
+[04/14 15:46:39] total malloc's : 168 
+[04/14 15:46:39] total realloc's: 54 
+[04/14 15:47:45] GGNFS-0.76.4 : matbuild
+[04/14 15:48:00] largePrimes: 787513 , relations: 765551
+[04/14 15:48:03] reduceRelSets dropped relation-set weight from 296209 to 296204.
+[04/14 15:48:03] After removing heavy rel-sets, weight is 296204.
+[04/14 15:48:10] rels:765551, initialFF:0, finalFF:98037
+[04/14 15:48:10] Heap stats for matbuild run, before buildSparseMat():
+[04/14 15:48:10] Max heap useage: 163 MB
+[04/14 15:48:10] malloc/realloc errors: 0 
+[04/14 15:48:10] total malloc's : 159 
+[04/14 15:48:10] total realloc's: 54 
+[04/14 15:48:10] Pruning matrix with wt=0.700
+[04/14 15:48:10] Initial matrix is 64068 x 98037 with sparse part having weight 3134595.
+[04/14 15:48:10] (total weight is 7291208)
+[04/14 15:48:22] Matrix pruned to 51685 x 52069 with weight 1253689.
+[04/14 15:48:22] depinf file written. Run matsolve.
+[04/14 15:48:22] Heap stats for matbuild run:
+[04/14 15:48:22] Max heap useage: 163 MB
+[04/14 15:48:22] malloc/realloc errors: 0 
+[04/14 15:48:22] total malloc's : 168 
+[04/14 15:48:22] total realloc's: 54 

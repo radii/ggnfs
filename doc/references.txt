@@ -1,0 +1,78 @@
+                  References, in no particular order:
+--------------------------------------------------------------------------------
+
+[1] Lenstra, A. and Lenstra, H. (eds), ``The development of the number field sieve''. 
+    Lecture Notes in Mathematics 1554, Springer-Verlag, Berlin, 1993.
+
+[2] Pollard, J., ``Factoring with cubic integers''. in [1].
+
+[3] Pollard, J., ``The lattice sieve''. in [1].
+
+[4] Couveignes, J., ``Computing a square root for the number field sieve''.
+    in [1].
+
+[5] Bernstein, D. and Lenstra, A., ``A general number field sieve implementation''.
+    in [1].
+
+[6] Montgomery, P., ``A block Lanczos algorithm for finding dependencies over GF(2)''.
+    Advances in Cryptology - Eurocrypt '95, Lecture Notes in Computer Science 921, 1995.
+
+[7] Briggs, M., ``An introduction to the general number field sieve''.
+    M.S. Thesis, Virginia Polytechnic Institute, Blacksburg, Virginia, 1998.
+
+[8] Cohen, H., ``A course in computational algebraic number theory''.
+    GTM 138, Springer, Berlin. Third corrected printing, 1996.
+
+[9] Bach, E. and Shallit, J., ``Algorithmic number theory, volume I: efficient algorithms''.
+    The MIT Press, Cambridge. Second printing, 1997.
+
+[10] Knuth, D., ``The art of computer programming, volumne 2: seminumerical algorithms''.
+     Addison-Wesley, Reading. Third edition, 1998.
+
+[11] Murphy, B., ``Polynomial selection for the number field sieve factorization
+     algorithm''. Ph.D. Thesis, The Australian National University, 1999.
+
+[12/13] Montgomery, P. ``Square roots of products of algebraic numbers.''
+        [12] Draft of May 16, 1997 (?circulated preprint?)
+        [13] in ``Proceedings of Symposia in Applied Mathematics,'' v.48,
+             Mathematics of Computation 1943--1993. Walter Gautschi, ed.
+[14] Nguyen, P. ``A Montgomery-like Square Root for the Number Field Sieve,''
+             Proceedings of ANTS-III. Also, pp. 151--168 in vol. 1423 of Lecture Notes in
+             Computer Science, Springer-Verlag.
+
+
+                       Notes:
+* These references are by no means complete or exhaustive. It is simply
+  a list of papers and books I had handy and referred to while writing this
+  code. There are undoubtedly more up-to-date references and newer techniques
+  that could be implemented (i.e., Montgomery's square root technique).
+
+* The book [1] is an excellent source. There are a number of papers in it
+  that were invaluable to me. I would recommend it to anyone serious about
+  wanting to learn some details on the number field sieve. It would be cool
+  if the authors would consider making an updated edition including the advances 
+  that have taken place in the meantime. But it will be an interesting read 
+  regardless of what further advances take place, because it allows one to follow 
+  the history of the development of NFS from the original paper by Pollard 
+  when it was unclear exactly how powerful the technique could be, all the
+  way upto a full working implementation of the GNFS.
+
+* Alot of the standard algorithms were taken directly from [8], [9] and [10].
+
+* [7] is just a Master's Thesis, so there's nothing particularly significant
+  there. I include it, because it is a nice read for those knowing some algebra
+  and algebraic number theory who want a gentle introduction to the very
+  basic NFS. It is a good source to get the general idea and some of the
+  details. The only ommisions are that it assumes a monic polynomial throughout, 
+  and does not cover in much detail the matrix step, the square root step, or 
+  polynomial selection (with any rigor).
+
+* [13] is a shorter published version, but [12] contains a nice worked
+  example. However, [12] is apparently not a complete paper - there are some
+  ``TBD'' remarks throughout (To Be Done), and he changed the presentation
+  slightly, after making the example. But, it turns out IMO to be easier to
+  just do everything in the maximal order (or, at least a 2^32-maximal order), 
+  carefully handling ramified primes. I tried and tried, but just couldn't get 
+  things to work quite right working only in \Z[\alpha]. [14] is the same
+  algorithm, working in the maximal order.
+

@@ -1,0 +1,86 @@
+CJM, 2/18/05:
+  These scripts were pilfered from elsewhere, and included here
+along with the Readme file I found with them. They are to help
+control the polynomial selection using the programs in the next 
+higher directory.
+----------------------------------------------------------------
+
+Using this script:
+
+You need a common file system for the hosts which should participate!
+copy these 4 files in a directory.
+
+Create a file 'name'.data containing a line "N 'number to factor'"
+Edit the file .searchrc: change the projectname to 'name',
+   adjust the parameters npr, normmax, normmax1, normmax2 and murphymax
+   to the size of your number (see file parameters), and make sure the file
+   search_a5 only contains the digit 0 (This file will be updated as the script runs).
+You may also change search_a5step. This controls the size of the pieces
+the processes get. Each task is logged in the file Start (and also in
+Success). After a while you will see how long a host takes for a task
+too complete. If this is too short or too long adjust search_a5step.
+
+Starting the script:
+Start "search-slave &" at each host (on multi-processor machines you
+can start it multiple times).
+
+Stopping the script:
+Type "killall search-slave" at each host. It will finish the current
+task. If you want to stop it immediately you also have to kill
+pol51m0 or pol51opt at all hosts.
+
+Results:
+The polynomials found are in the files 'name'.'hostname'.'process-id'.cand.
+You have to find the best Murphy_E value, e.g. by typing
+cat *.cand | grep e-12 - | sort -k 10 | tail
+(replace e-12 by e-11 etc for smaller numbers).
+
+Below is a set of parameters:
+C110:
+$npr=4;
+$normmax=2e16;
+$normmax1=8e14;
+$normmax2=8e12;
+$murphymax=6e-10;
+
+C120:
+$npr=4;
+$normmax=6e17;
+$normmax1=2e16;
+$normmax2=1.8e14;
+$murphymax=2e-10;
+
+C130:
+$npr=5;
+$normmax=3e19;
+$normmax1=9e17;
+$normmax2=5e15;
+$murphymax=5e-11;
+
+C135:
+$npr=5;
+$normmax=3e20;
+$normmax1=6e18;
+$normmax2=3e16;
+$murphymax=2e-11;
+
+C140:
+$npr=6;
+$normmax=2e21;
+$normmax1=3.5e19;
+$normmax2=1.7e17;
+$murphymax=1.4e-11;
+
+C145:
+$npr=6;
+$normmax=1.8e22;
+$normmax1=2.5e20;
+$normmax2=1.1e18;
+$murphymax=6e-12;
+
+C150:
+$npr=7;
+$normmax=1.2e23;
+$normmax1=1.2e21;
+$normmax2=6e18;
+$murphymax=3e-12; 

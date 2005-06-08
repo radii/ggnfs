@@ -1,0 +1,15 @@
+  This is a template for a small gnfs factorization. Just put the
+number you want to factor in the template.n file and run:
+
+../factLat.pl template.n
+
+(of course, you can and should change the filenames to something
+more descriptive). If you're lucky and the factorization completes,
+you can clean the directory with:
+
+make squeaky
+
+  This will delete all/most interediate files produced during the
+factorization. Of course, doing this in the middle of a factorization
+would be an extremely bad idea and you would have to completely restart.
+So, by all means, don't do that.

@@ -1,0 +1,36 @@
+This is a table containing reasonable parameters for the programs
+pol51m0 and pol51opt. It is under construction.
+Each lines contains the values:
+nbit nprimes a5max normmax normmax1 normmax2 murphye e
+where nbit is the number of bits of the input number,
+  nprimes and normmax are parameters for pol51m0,
+  normmax1, normmax2 and murphye parameters for pol51opt
+  (see Readme).
+a5max is upper bound on the interval you choose for a5 in pol51m0 with
+the options '-a a5begin -A a5end'. CAVE: a5begin and a5end are scaled
+(currently by 10^3) so for 350 bit you should stop at a5end=100 etc.
+e is the best Murphy_E-value found using these parameters.
+Since only one number was tested for each line you may sometimes
+get Murphy_E-values which are a bit higher or lower.
+
+350 4 100000 6e15 2e14 2e12 1e-09 1.69e-09
+360 4 200000 1.5e16 5e14 5e12 7.5e-10 1.13e-09
+370 4 200000 4e16 1.5e15 1.5e13 5e-10 7.75e-10
+380 4 500000 8e16 4e15 3e13 3.5e-10 5.02e-10
+390 4 500000 3e17 1e16 1e14 2.5e-10 3.53e-10
+400 4 500000 9e17 3e16 2.5e14 2e-10 2.89e-10
+410 4/5 2000000 3e18 1e17 7e14 1.4e-10 1.71e-10
+420 5 2000000 1e19 3e17 2e15 9e-11 1.10e-10
+430 5 2000000 3e19  9e17  5e15 5e-11 7.12e-11
+440 5 2000000 1e20  2.5e18  1.5e16 3e-11 5.26e-11
+450 5 2000000 4e20 7e18 4e16 2e-11 3.16e-11
+460 6 10000000 1e21 2e19 1e17 1.8e-11 2.14e-11
+470 6 10000000 4e21 6e19 3e17 1e-11 1.63e-11
+480 6 10000000 1.5e22 2e20  9e17 7e-12 9.14e-12
+490 ? ? 5e22  5e20  2.5e18
+500 7 100000000 1.5e23 1.5e21 7e18 3e-12 >3.44e-12
+510 ? ? 5e23  4e21  2e19
+520 ? ? 2e24  1.5e22  5e19
+530 ? ? 6e24  4e22  1.5e20
+540 ? ? 2e25  1e23  4e20
+

@@ -1,0 +1,8 @@
+  This is a plundered version of an old version of gmp-ecm,
+specifically for use in GGNFS.
+  At the time of this writing, the current release of gmp-ecm
+is 5.0.3. If you are interested in using ECM to factor something, 
+please go get the latest official release from:
+
+http://www.loria.fr/~zimmerma/records/ecmnet.html
+

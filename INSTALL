@@ -1,0 +1,104 @@
+=================================================================
+Hardware requirements:
+  Right now, the only hardware that is explicitly supported is
+x86. However, with a good amount of work, you can probably get
+it to compile on many other machines so long as a recent release
+of GMP is available. Franke's lattice siever explicitly supports
+several different platforms and has pure-c files as well, but you'll
+have to move some symbolic links and expect to need some minor
+tweaks to the source code. There are several tweaks that the rest
+of the GGNFS code will need as well - replace blanczos64.c with the
+non-mmx version, and replace the two small assembler files with 
+C equivalents or assembler for your machine (neither are available,
+and I have no plans to make either available, as I am using this
+software soley on x86 and do not have the time to support other
+machines).
+
+  Although some folks have managed to tweak the source code and
+do general c100 factorizations with as little as 128MB RAM, the
+bare minimum amount of RAM is probably about 256MB for small
+factorizations (say, GNFS <= 100, SNFS <= 130), 512MB for
+small-medium sized (say, GNFS <= 120, SNFS <= 155), and 1GB 
+for larger. Sieving can be done on nearly any box, but relation
+processing and the matrix code definitely need at least these
+amounts of RAM (although, if you know what you're doing with
+parameter choices and such, there are clever ways to reduce the
+RAM needed by the matrix step at the expense of needing more 
+sieving).
+  Finally, you'll need a good amount of free disk space - HDs
+are so cheap now, you have no excuse for not having several GB
+of free space, but you'll surely need at least 500 MB for small
+factorizations, 1GB for medium sized.
+
+=================================================================
+OS Requirements:
+  You'll need a Linux or *nix-like environment to compile 
+this code in any straightforward way. Right now, (v.0.50-ish) 
+it is known to compile ok under Fedora Core 2 and Cygwin. Please
+note: Greg Childers points out that under Cygwin, text-file mode
+must be set to UNIX; otherwise, the compilation may appear fine,
+but it will most likely be broken! (Ok - I'm not sure if this is
+the case anymore - I think the MingW32 fixes may have also fixed
+this problem).
+
+  If you are fortunate enough to be running Linux and have a recent
+(say, 4.1+) release of GMP already installed, just do `make' from
+the toplevel and you should be good to go. You'll also need Perl
+installed to run the Perl script (which is recommended, at least while
+you're getting started). The script is known to work with version 5.8,
+and is known not to work with 5.2. 
+
+  Before doing a `make', have a look at the choices of Makefiles
+available; right now, they are just Makefile.athlon and Makefile.x86.
+The only difference is the -march flag to gcc which will try to schedule
+instructions in a good order for your processor (according to the
+man pages, these options may also use processor-specific instructions,
+but I haven't seen this happen; that is, I haven't witnessed gcc using
+any MMX or SSE/2 instructions, so I suspect that a compilation done
+with Makefile.athlon should work fine on a PII for example). This
+also will not affect sieving speed, as the important stuff there is coded
+in assembly already - but the compiler options will affect relation
+processing speed, Lanczos speed and the final square root speed. So
+it's worth taking a look if you know what you're doing with those options.
+
+  Finally, and most importantly: You need to have GMP 4.x installed
+on your system, and you need the standard development stuff
+(gcc, make,...). There are a few scripts around that automatically
+run the binaries to factor an integer, and plot data and such 
+using gnuplot. For these, you need to have bash installed, and if you
+want the plots you need gnuplot.
+
+  That said, you should be able to do a `make' in the toplevel directory.
+But the Makefile's are kinda funny: if it fails from the toplevel,
+try going into the src/ directory and doing a `make'. In either case,
+nothing will be installed system wide - it will just build binaries and 
+leave them (or links to them) in the src/ directory.
+
+No Symbolic links?
+  If your platform does not support symbolic links in any usual way
+(i.e., Win2k users seem to have some problems with this), you'll need
+to account for this:
+(1) Rename the directory "src/lasieve4/piii/" to "src/lasieve4/asm".
+(2) Rename one of the "Makefile.*" files to be simply "Makefile".
+(2) After compilation, you'll probably need to copy or move the lattice
+    siever binaries (src/lasieve4/gnfs-lasieve4I12e and similar)
+    to the directory src/ , so that the factorization scripts will be
+    able to find them.
+
+===================================================================
+USAGE:
+  Read the documentation for the maximum amount of available information.
+  But for a quick start,
+  (1) Compile.
+  (2) Adjust the GGNFS_BIN_PATH variable in tests/factLat.pl.
+  (3) Look in the tests/tst250 directory for an example of a small gnfs
+      factorization or in tests/testS1 for a small snfs example.
+  (4) Run some slightly larger numbers, experimenting with parameter
+      choices while simultaneously reading/skimming relevent parts
+      of the documentation to get a feel for how everything works.
+
+  Also, note: it's not entirely clear to me what the minimum version
+of Perl should be (since I have only used the script with one version). 
+But it's known NOT to work with 5.2, and it DOES work with 5.8.3.
+
+

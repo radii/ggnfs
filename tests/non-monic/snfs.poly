@@ -1,0 +1,22 @@
+# This is a small test case for non-monic linear polynomials.
+name: snfs
+type: snfs
+n: 6336348260440219970725096108505792822584894566369686935367355504409
+deg: 3
+c3: 1
+c2: 1
+c1: -2
+c0: -1
+Y0: -3211838877954855105157370
+Y1: 1792160394037
+skew: 3.000
+
+rlim: 50000
+alim: 50000
+lpbr: 25
+lpba: 25
+mfbr: 43
+mfba: 43
+rlambda: 2.2
+alambda: 2.2
+qintsize: 5000

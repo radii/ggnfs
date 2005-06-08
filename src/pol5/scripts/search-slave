@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+require(".searchrc");
+$hostname=`hostname`;
+chop($hostname);
+$pid="$hostname.$$";
+$pname="$projectname.$pid";
+sub terminate_search {
+    $terminate_job=1;
+    system("echo -n Terminated on $hostname by SIGTERM ' ' >> terminated");
+}
+sub search_message {
+    local($msg,$filename)=@_;
+    system("echo -n $hostname $msg ' ' >> $filename; date >> $filename");
+}
+
+system("cp $projectname.data $pname.data");
+$terminate_job=0;
+$SIG{'TERM'}='terminate_search';
+for($nerr=0;$terminate_job==0 && $nerr<2;) {
+# get H
+    open(hs,"./search-a5server|") || die "Could not get a5\n";
+    $H=<hs>;
+    $H+=0;
+    &search_message("$H","Start");
+    $HH=$H+$search_a5step;
+    die "Error reading a5\n" unless $H>=0;
+    $cmd="./pol51m0 -b $pname -v -v -p $npr -n $normmax -a $H -A $HH > $pid.log";
+printf("Executing: $cmd\n");
+    $res=system($cmd);
+    if($res/256==0 && $terminate_job==0) {
+	&search_message("$H","Success");
+	$nerr=0;
+        open(gr,"grep -c success $pid.log|");
+        $suc=<gr>;
+        if($suc!=0) {
+          $cmd="./pol51opt -b $pname -v -v -n $normmax1 -N $normmax2 -e $murphymax > $pid.log";
+          $res=system($cmd);
+          if($res/256==0 && $terminate_job==0) {
+            &search_message("$H","Success.rs");
+            $nerr=0;
+          }
+          system("cat $pname.51.m >> $pname.51.m.all");
+        }
+        close(gr);
+        system("touch $pname.51.m");
+        system("rm $pid.log $pname.51.m");
+    } else {
+	if($terminate_job==0) {
+	    &search_message("$H","Error");
+	    $nerr++;
+	} else {
+	    &search_message("$H SIGTERM","Error");
+	    exit(0);
+	}
+    }
+}
+system("rm $pname.data");

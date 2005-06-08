@@ -1,0 +1,1 @@
+#define GGNFS_VERSION "0.77.1"

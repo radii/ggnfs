@@ -1,0 +1,80 @@
+This is a preliminary version and perhaps not very user friendly.
+
+Installation: 
+There is a Makefile. 
+If typing make does not produce the executables
+pol51m0[bn] and pol51opt you have to edit it. 
+On intel or alpha you can also make pol51m0[bn]-intel, pol51opt-intel or
+pol51m0[bn]-alpha which should be a bit faster.
+
+So far the programs have been installed on the following architectures:
+  Pentium(-compatible) CPU's under linux using GCC
+  alpha, GCC or ccc
+  MIPS
+
+
+Programs:
+The programs pol51m0[bn] and pol51opt are used to generate polynomial
+pairs (f,g) of degree 5 and 1 such that they have a common root
+modulo N but no common root over Z.
+The number N must be given in the file basename.data. This file should
+contain a line of the form
+N number
+where number is the number N (see file rsa512.data).
+The polynomial selection will be done in two steps:
+
+
+pol51m0[bn]:
+These two programs should (almost) produce the same output, pol51m0n being
+a bit faster for very large numbers (nprimes>=10). In what follows we will
+call these programs pol51m0.
+This program produces triples (a5,p,d) which will be appended to
+the file basename.51.m . Such a triple corresponds to the pair of
+polynomials (f(x)=a5*x^5+...,g(x)=p*x-d).
+The parameters of this program are as follows:
+pol51m0 -b basename -p nprimes -n normmax -a a5begin -A a5end [ -v -z ]
+   [ -l limit ]
+where:
+nprimes: number of primes =1 mod 5 in p
+normmax: search for polynomials of sup-norm <normmax
+a5begin, a5end: search for a5 between a5begin*10^3+1 and a5end*10^3, where
+  0<=a5begin<a5end<2^64. Only a5 which are multiples of MULTIPLIER are
+  considered where MULTIPLIER is defined in pol51m.c as 60.
+Attention: for pol51m0n the search interval is a5begin*10^6+1 and a5end*10^6.
+           
+-v: increase verbosity
+-z: compress output (i.e. write to basename.51.m.gz) (not necessary) 
+-l: product of primes not =1 mod 5 in p is <=limit (l=1 will only consider
+  p's which are a product of primes =1 mod 5)
+
+
+pol51opt:
+This program reads the triples from basename.51.m . Each triple will
+be processed as follows:
+1) (f,g) will be expanded to a polynomial pair (f,g) and the L^2-norm
+   of f will be optimized; the projective alpha-value of f will be
+   computed.
+2) a root sieve will be performed and for each survivor its alpha-value
+   will be computed.
+3) for each survivor an optimization using the Murphy-E-value will be done.
+The output will be written to the file basename.cand.
+
+The parameters of this program are as follows:
+pol51opt -b basename -n normmax1 -N normmax2 -e murphye [ -v -z ]
+  [ -A area -F fbbound0 -f fbbound1 ]
+where:
+normmax1: only for polynomials with exp(alpha_proj)* L^2-norm < normmax1 
+  at the end of step 1 the root sieve (step 2) will be done
+normmax2: only polynomials with exp(alpha)*L^2-norm < normmax2 will 
+  survive the root sieve and go to step 3
+murphye: only polynomial pairs with Murphy-E>murphye will be written
+  to the output file, default 0
+-v: increase verbosity 
+-z: compress output (i.e. write to basename.cand.gz)
+area, fbbound0, fbbound1: used for the Murphy-E computation (= sieving
+  area, factor base bound for f, factor base bound for g)
+
+
+Parameters:
+See file parameters.
+
