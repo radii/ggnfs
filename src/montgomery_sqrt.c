@@ -101,7 +101,7 @@ typedef struct {
 
 /* Prototypes for locally used stuff. */
 s32    locateP(s32 p, msqrt_t *M);
-void   updateEps_ab(msqrt_t *M, s32 a, s32 b, int exponent);
+void   updateEps_ab(msqrt_t *M, s64 a, s32 b, int exponent);
 void   updateEps(msqrt_t *M, mpz_poly delta, int exponent);
 void   updateCRT(msqrt_t *M, mpz_poly delta, mpz_t denom, int exponent);
 void   updateFactorization_ab(msqrt_t *M, relation_t *R, int sl);
@@ -779,7 +779,7 @@ int initMsqrt(msqrt_t *M,  s32 *relsInDep, multi_file_t *prelF, multi_file_t *lp
 /* M->N and M->FB must already be set.                               */
 /*********************************************************************/
 { s32        i, j, k, depSize, R0, R1, Rindex;
-  s32        a, b, rel;
+  s64        a, b, rel;
   int         d=M->N->degree, e, fileNum;
   double      xr, xi, zr, zi, zpr, zpi, tr, ti, c;
   mpz_t       cd, tmp, Zsquare, tmp2, tmp3, bmultiplier;
@@ -974,9 +974,9 @@ ABexponentSum=0;
     for (j=0; j<MAX_LARGE_RAT_PRIMES; j++) {
       mpz_mul_ui(tmp2, tmp2, R.p[j]);
     }
-    mpz_set_si(tmp, b);
+    mpz_set_si64(tmp, b);
     mpz_mul(tmp, tmp, M->FB->y0);
-    mpz_set_si(tmp3, a);
+    mpz_set_si64(tmp3, a);
     mpz_mul(tmp3, tmp3, M->FB->y1);
     mpz_sub(tmp, tmp3, tmp);
     mpz_abs(tmp, tmp);
@@ -1005,9 +1005,9 @@ ABexponentSum=0;
     /* tpol1 <-- (a+b\alpha) = (c_d*a + b*\hat{alpha})/c_d     */
     /*                       = c_d*a + b*bmultiplier* omega_1  */
     /***********************************************************/
-    mpz_set_si(&tpol1->coef[0], a); 
+    mpz_set_si64(&tpol1->coef[0], a); 
     mpz_mul(&tpol1->coef[0], &tpol1->coef[0], cd);
-    mpz_set_si(&tpol1->coef[1], b);
+    mpz_set_si64(&tpol1->coef[1], b);
     mpz_mul(&tpol1->coef[1], &tpol1->coef[1], bmultiplier);
     tpol1->degree = 1;
 //    e *= -1;
@@ -1025,16 +1025,16 @@ ABexponentSum += e;
     /* Keep track of what the final square should be. */
 #if 1
   /* This is the original code: */
-    mpz_set_si(tmp, b);
+    mpz_set_si64(tmp, b);
     mpz_mul(tmp, tmp, M->FB->y0);
-    mpz_set_si(tmp2, a);
+    mpz_set_si64(tmp2, a);
     mpz_mul(tmp2, tmp2, M->FB->y1);
     mpz_sub(tmp, tmp2, tmp);
 mpz_abs(tmp, tmp);
 #else
-    mpz_set_si(tmp, b);
+    mpz_set_si64(tmp, b);
     mpz_mul(tmp, tmp, M->FB->y0);
-    mpz_set_si(tmp2, a);
+    mpz_set_si64(tmp2, a);
     mpz_mul(tmp2, tmp2, M->FB->y1);
     mpz_sub(tmp, tmp2, tmp);
     
@@ -1135,7 +1135,7 @@ mpz_abs(tmp, tmp);
 }
 
 /***************************************************************************/
-void updateEps_ab(msqrt_t *M, s32 a, s32 b, int exponent)
+void updateEps_ab(msqrt_t *M, s64 a, s32 b, int exponent)
 /***************************************************************************/
 /* Update the embedding sizes with gamma <-- gamma*(a-b\alpha)^{exponent}. */
 /***************************************************************************/

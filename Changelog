@@ -1,3 +1,12 @@
+6/12/05 (asl)
+  * Extended 'a' field of relations to 64 bit. This seems to be enough
+    to all decent middle-size factorizations. Big thanks to Andrei Belenko
+    for this code.
+  * Added custom malloc code (glibc dlmalloc). Now only for Mingw32.
+    If anyone will test it on other platforms - let me know, or fix
+    include by yourself.
+  * Fixed makefiles for 'ln' under WinNT
+
 0.77.1, 5/4/05
   * Two more little BSD fixes that I missed last time.
 

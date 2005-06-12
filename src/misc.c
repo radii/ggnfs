@@ -31,7 +31,11 @@
 #include "ggnfs.h"
 
 #ifdef MALLOC_REPORTING
+#ifdef __MINGW32__
+#include "malloc.h"
+#else
 #include <malloc.h>
+#endif
 #endif
 
 #define MAX_MSG_SIZE 256
@@ -241,8 +245,37 @@ C1_5_1_DONE_mp:
   
 }
 
+void   mpz_set_si64( mpz_t rop, s64 a)
+{
+  if( a < 0 )
+  {
+    a = -a;
+    mpz_import( rop, 1, -1, sizeof(s64), -1, 1, &a );
+    mpz_neg( rop, rop );
+  }
+  else
+  {
+    mpz_import( rop, 1, -1, sizeof(s64), -1, 1, &a );
+  }
+}
+
 /****************************************************/
-int mpz_evalF(mpz_t res, s32 a, s32 b, mpz_poly f)
+void    mpz_mul_si64( mpz_t rop, mpz_t op1, s64 a)
+{
+  //printf("mpz_mul_si64(): a=%I64d\n", a );
+
+  mpz_t temp;
+  mpz_init( temp );
+  mpz_set_si64( temp, a);
+
+  //gmp_printf("mpz_mul_si64(): temp=%Zd\n", temp );
+
+  mpz_mul( rop, op1, temp );
+  mpz_clear( temp );
+}
+
+/****************************************************/
+int mpz_evalF(mpz_t res, s64 a, s32 b, mpz_poly f)
 /****************************************************/
 /* Input: integers a, b with b>0, and the poly f.   */
 /* Output: res = F(a, b).                           */
@@ -258,12 +291,12 @@ int mpz_evalF(mpz_t res, s32 a, s32 b, mpz_poly f)
   }
 
   mpz_set(res, &f->coef[0]);
-  mpz_set_si(apow, a);
+  mpz_set_si64(apow, a);
   for (i=1; i<= f->degree; i++) {
     mpz_mul_si(res, res, b);
     mpz_mul(tmp, apow, &f->coef[i]);
     mpz_add(res, res, tmp);
-    mpz_mul_si(apow, apow, a);
+    mpz_mul_si64(apow, apow, a);
   }
   return 0;
 }
@@ -1012,6 +1045,12 @@ void *lxmalloc(size_t n, int fatal)
 
   mi_allocs++;
   p = malloc(n);
+#ifdef MALLOC_DEBUG
+  FILE* f;
+  f = fopen ("m_info.txt","a+");
+  fprintf(f,"malloc: %ld\n",n);
+  fclose(f);
+#endif
   if (p==NULL) {
     mi_errs++;
     msgLog("", "Memory allocation error (%ld bytes requested).", (long)n);
@@ -1032,6 +1071,12 @@ void *lxcalloc(size_t n, int fatal)
 
   mi_allocs++;
   p = malloc(n);
+#ifdef MALLOC_DEBUG
+  FILE* f;
+  f = fopen ("m_info.txt","a+");
+  fprintf(f,"calloc: %ld\n",n);
+  fclose(f);
+#endif
   if (p==NULL) {
     mi_errs++;
     msgLog("", "Memory allocation error (%ld bytes requested).", (long)n);
@@ -1053,6 +1098,12 @@ void *lxrealloc(void *x, size_t n, int fatal)
   int   hu;
 
   mi_reallocs++;
+#ifdef MALLOC_DEBUG
+  FILE* f;
+  f = fopen ("m_info.txt","a+");
+  fprintf(f,"realloc: %ld\n",n);
+  fclose(f);
+#endif
   p = realloc(x, n);
   if (p==NULL) {
     mi_errs++;
@@ -1080,7 +1131,7 @@ int getHeapStats(int *maxUseage, int *errs, int *allocs, int *reallocs)
 /*****************************************************************/
 void logHeapStats()
 {
-  msgLog("", "Max heap useage: %d MB", mi_maxHeapUseage);
+  msgLog("", "Max heap usage: %d MB", mi_maxHeapUseage);
   msgLog("", "malloc/realloc errors: %d ", mi_errs);
   msgLog("", "total malloc's : %d ", mi_allocs);
   msgLog("", "total realloc's: %d ", mi_reallocs);

@@ -232,11 +232,11 @@ int removeLPSingletons(llist_t *R, llist_t *P)
       if (h%2==0) {
         ct = (counter[h/2]&0x0F);
         if (ct < 2)
-          counter[h/2] += 0x01; 
+          counter[h/2] += 0x01;
       } else {
           ct = (counter[h/2]&0xF0)>>4;
         if (ct < 2) 
-          counter[h/2] += 0x10; 
+          counter[h/2] += 0x10;
       }
     }
   }

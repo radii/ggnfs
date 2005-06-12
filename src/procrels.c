@@ -389,8 +389,8 @@ long countLP(multi_file_t *prelF)
       sF = RL->relData[RL->relIndex[j]];
       numLR = GETNUMLRP(sF);
       numLA = GETNUMLAP(sF);
-      lrpi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
-      lapi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
+      lrpi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
+      lapi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
       totalLP += numLR + numLA;
       for (k=0; k<numLR; k++) {
         p = RL->relData[RL->relIndex[j] + lrpi + k];
@@ -456,7 +456,8 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
   s32   maxSize=0, where;
   s32   k;
   rel_list   *RL;
-  s32   bufSize, a, b, size, relsInFile;
+  s32   bufSize, b, size, relsInFile;
+  s64   a;
   s32  *newData[256], newDataIndex[256], newRels[256];
   int    fileno;
   char   prelname[256];
@@ -506,8 +507,8 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
 
     for (k=0; k<RL->numRels; k++) {
       where = RL->relIndex[k];
-      a = RL->relData[where+1];
-      b = RL->relData[where+2];
+      a = *((s64*) &(RL->relData[where+1]) );
+      b = RL->relData[where+3];
       fileno = NFS_HASH(b, b, newFiles);
       size = RL->relIndex[k+1]-where;
       memcpy(&newData[fileno][newDataIndex[fileno]], &RL->relData[where], size*sizeof(s32));
@@ -720,7 +721,8 @@ s32 makeABLookup(multi_file_t *prelF)
 /*****************************************************************/
 { int  i;
   char prelname[256];
-  s32  r, loc, a, b;
+  s32  r, loc, b;
+  s64  a;
   u32  s;
   u32  h0, h1;
   rel_list RL;
@@ -762,8 +764,8 @@ s32 makeABLookup(multi_file_t *prelF)
       loc = RL.relIndex[r];
       s = RL.relData[loc];
       relsNumLP[GETNUMLRP(s)+GETNUMLAP(s)] += 1;
-      a = RL.relData[loc+1];
-      b = RL.relData[loc+2];
+      a = *( (s64*)&(RL.relData[loc+1]) );
+      b = RL.relData[loc+3];
       h0 = REL_HASH0(a, b, abHashSize);
       h1 = REL_HASH1(a, b, abHashSize);
       abHash0[h0/32] |= BIT(h0&0x0000001F);
@@ -809,7 +811,7 @@ void clearABLookup()
 
 s32 sortOps=0;
 /*****************************************************************/
-int checkAB(s32 a, s32 b)
+int checkAB(s64 a, s32 b)
 /*****************************************************************/
 /* Is this an already-processed (a,b) pair? If not, we add it to */
 /* the list of processed pairs and return 0. Otherwise, return   */
@@ -1066,7 +1068,8 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
   }
   startTime = sTime();
   for (;;) {
-    s32 p, r, k;
+    s32 r, k;
+    s64 p;
     int c, m;
 
 
@@ -1176,6 +1179,9 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
       }
     }
     numRead++;
+
+//    printf("Read (%I64d, %ld) from file\n", R.a, R.b );
+
     if (checkAB(R.a, R.b)==0) {
       fileno = NFS_HASH(R.b, R.b, prelF->numFiles);
       factRes = completePartialRelFact(&R, N, CLIENT_SKIP_R_PRIMES, CLIENT_SKIP_A_PRIMES);
@@ -1219,7 +1225,7 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
         numNew++;
       } else {
 #ifdef _DEBUG
-        printf("Relation (%ld, %ld) bad : return value %d.\n", R.a, R.b, factRes);
+        printf("Relation (%I64d, %ld) bad : return value %d.\n", R.a, R.b, factRes);
 #endif
         ;
       }
@@ -1334,8 +1340,8 @@ int fsingleVerbose(nf_t *N, char *line)
 { relation_t R;
   int res, i, n;
 
-  sscanf(line, "%ld,%ld", &R.a, &R.b);
-  printf("Attempting to factor relation (%ld, %ld)\n", R.a, R.b);
+  sscanf(line, "%I64d,%ld", &R.a, &R.b);
+  printf("Attempting to factor relation (%I64d, %ld)\n", R.a, R.b);
   if (R.b <= 0) {
     printf("Error: 'b' should be positive!\n");
     return -1;

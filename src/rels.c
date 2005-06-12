@@ -59,7 +59,7 @@
   #define SETNUMSPB(_s,_n) (_s = (_s&0xFFFF00FF)^((((s32)(_n)&0x000000FF)<<8)))
   #define SETNUMLRP(_s,_n) (_s = (_s&0xFFFFFF3F)^((((s32)(_n)&0x00000003)<<6)))
   #define SETNUMLAP(_s,_n) (_s = (_s&0xFFFFFFCF)^((((s32)(_n)&0x00000003)<<4)))
-  #define S32S_IN_ENTRY(_s) (2*GETNUMRFB(_s)+2*GETNUMAFB(_s)+2*GETNUMSPB(_s)+GETNUMLRP(_s)+2*GETNUMLAP(_s) + 5)
+  #define S32S_IN_ENTRY(_s) (2*GETNUMRFB(_s)+2*GETNUMAFB(_s)+2*GETNUMSPB(_s)+GETNUMLRP(_s)+2*GETNUMLAP(_s) + 6)
   
 */
 
@@ -166,7 +166,9 @@ int relConvertToData(s32 *data, relation_t *R)
 
   size=1;
   sF = 0;
-  data[size++] = R->a; 
+  *( (s64*)&data[size]) = R->a;
+  //data[size++] = R->a;
+  size += 2;
   data[size++] = R->b;
   for (i=0; i<R->rFSize; i++) {
     data[size++] = R->rFactors[i];
@@ -209,7 +211,9 @@ int dataConvertToRel(relation_t *R, s32 *data)
 
   sF = data[0];
   size=1;
-  R->a = data[size++];
+  R->a = *( (s64*) &data[size] );
+  size += 2;
+
   R->b = data[size++];
   /** Read RFB entries **/
   R->rFSize = (int)GETNUMRFB(sF);
@@ -444,7 +448,8 @@ int factRel(relation_t *R, nf_t *N)
   static mpz_t     temp1, temp2, norm;
   static mpz_poly  delta;
   static mpz_mat_t deltaHNF;
-  s32   i, factors[MAX_FACTORS+1], a, b;
+  s32   i, factors[MAX_FACTORS+1], b;
+  s64   a;
   s32   *loc, locIndex, r;
   s32   pFacts[10*MAX_FACTORS], p;
   int    numpFacts;
@@ -475,7 +480,7 @@ int factRel(relation_t *R, nf_t *N)
   /********** Get the RFB part. **********/  
   /* Do temp1 <-- a - bm  */
   a = R->a; b = R->b;
-  mpz_mul_si(temp2,FB->y1,a);
+  mpz_mul_si64(temp2,FB->y1,a);
   mpz_mul_si(temp1,FB->y0,b);
   mpz_add(temp1,temp2,temp1);
   mpz_abs(temp1,temp1);
@@ -660,7 +665,7 @@ int factRel(relation_t *R, nf_t *N)
   for (i=0; i<FB->qcb_size; i++) {
     mpz_set_si(temp1, R->b);
     mpz_mul_ui(temp1, temp1, FB->qcb[2*i+1]);
-    mpz_set_si(temp2, R->a);
+    mpz_set_si64(temp2, R->a);
     mpz_sub(temp2, temp2, temp1);
     mpz_set_si(temp1, FB->qcb[2*i]);
     e = mpz_legendre(temp2, temp1);
@@ -669,7 +674,7 @@ int factRel(relation_t *R, nf_t *N)
   }
 mpz_set_si(temp1, R->b);
 mpz_mul(temp1, temp1, FB->y0);
-mpz_set_si(temp2, R->a);
+mpz_set_si64(temp2, R->a);
 mpz_mul(temp2, temp2, FB->y1);
 mpz_sub(temp1, temp2, temp1);
 if (mpz_sgn(temp1)<0)
@@ -698,7 +703,8 @@ int completeRelFact(relation_t *R, nf_t *N)
   static mpz_poly  delta;
   static mpz_mat_t deltaHNF;
   static s32 maxRFBPrime, maxAFBPrime, rfbSize, afbSize;
-  s32   i, factors[MAX_FACTORS+1], a, b, fact;
+  s32   i, factors[MAX_FACTORS+1], b, fact;
+  s64   a;
   s32   *loc, locIndex, r;
   s32   pFacts[10*MAX_FACTORS], p;
   int    numpFacts;
@@ -729,7 +735,7 @@ int completeRelFact(relation_t *R, nf_t *N)
   /********** Get the RFB part. **********/  
   /* Do temp1 <-- a - bm  */
   a = R->a; b = R->b;
-  mpz_mul_si(temp2,FB->y1,a);
+  mpz_mul_si64(temp2,FB->y1,a);
   mpz_mul_si(temp1,FB->y0,b);
   mpz_add(temp1,temp2,temp1);
   mpz_abs(temp1,temp1);
@@ -877,7 +883,7 @@ exit(-1);
   for (i=0; i<FB->qcb_size; i++) {
     mpz_set_si(temp1, R->b);
     mpz_mul_ui(temp1, temp1, FB->qcb[2*i+1]);
-    mpz_set_si(temp2, R->a);
+    mpz_set_si64(temp2, R->a);
     mpz_sub(temp2, temp2, temp1);
     mpz_set_si(temp1, FB->qcb[2*i]);
     e = mpz_legendre(temp2, temp1);
@@ -886,7 +892,7 @@ exit(-1);
   }
 mpz_set_si(temp1, R->b);
 mpz_mul(temp1, temp1, FB->y0);
-mpz_set_si(temp2, R->a);
+mpz_set_si64(temp2, R->a);
 mpz_mul(temp2, temp2, FB->y1);
 mpz_sub(temp1, temp2, temp1);
 if (mpz_sgn(temp1)<0)
@@ -1107,7 +1113,8 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   static mpz_poly  delta;
   static mpz_mat_t deltaHNF;
   static s32 maxRFBPrime, maxAFBPrime, rfbSize, afbSize;
-  s32   i, factors[MAX_FACTORS+1], a, b, fact, r;
+  s32   i, factors[MAX_FACTORS+1], b, fact, r;
+  s64   a;
   s32   locIndex;
   s32   pFacts[10*MAX_FACTORS], p;
   int    numpFacts, numFactors, kk;
@@ -1143,11 +1150,20 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   /********** Get the RFB part. **********/  
   /* Do temp1 <-- a - bm  */
   a = R->a; b = R->b;
-  mpz_mul_si(temp2,FB->y1,a);
+  mpz_mul_si64(temp2,FB->y1,a);
+  //printf("a = %I64d\n", a );
+  //gmp_printf("y1*a=%Zd\n", temp2 );
+ 
   mpz_mul_si(temp1,FB->y0,b);
-  mpz_add(temp1,temp2,temp1);
-  mpz_abs(temp1,temp1);
+  //gmp_printf("y0*b=%Zd\n", temp1 );
 
+  mpz_add(temp1,temp2,temp1);
+  //gmp_printf("sum=%Zd\n", temp1 );
+
+  mpz_abs(temp1,temp1);
+  //gmp_printf("abs=%Zd\n", temp1 );
+
+ 
   /* Trial division to find the small factors: */
   numFactors=0;
   for (i=0; i<rTDiv; i++) {
@@ -1195,7 +1211,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       numpFacts += (pFacts[j]>1);
       kk += (pFacts[j]>1);
       if (pFacts[j]==0) pFacts[j]=1;
-      if (mpz_fdiv_ui(temp1, pFacts[j]) != 0) return -191;
+      if (mpz_fdiv_ui(temp1, pFacts[j]) != 0) { gmp_printf("temp1=%Zd, pFacts[%d]=%ld\n", temp1, j, pFacts[j]); return -191; }
       mpz_tdiv_q_ui(temp1, temp1, pFacts[j]);
     }
     if (mpz_cmp_ui(temp1, 1)) {
@@ -1251,7 +1267,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   mpz_evalF(norm, R->a, R->b, FB->f);
   mpz_abs(norm, norm);
 
-  mpz_set_si(temp1, R->a);
+  mpz_set_si64(temp1, R->a);
   mpz_mul(temp1, temp1, &FB->f->coef[FB->f->degree]);
   mpz_mul_ui(temp2, bMult, R->b);
 
@@ -1327,7 +1343,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       numpFacts += (pFacts[j]>1);
       kk += (pFacts[j] > 1);
       if (pFacts[j]==0) pFacts[j]=1;
-      if (mpz_fdiv_ui(norm, pFacts[j]) != 0) return -291;
+      if (mpz_fdiv_ui(norm, pFacts[j]) != 0) { gmp_printf("norm=%Zd, pFacts[%d]=%ld\n", norm, j, pFacts[j]); return -291; }
       mpz_tdiv_q_ui(norm, norm, pFacts[j]);
     }
     if (mpz_cmp_ui(norm, 1)) {
@@ -1340,7 +1356,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
         numpFacts++;
         mpz_set_ui(norm, 1);
       } else {
-        printf("Algebraic failure: (%ld, %ld)\n", R->a, R->b);
+        printf("Algebraic failure: (%I64d, %ld)\n", R->a, R->b);
         printf("  leftover norm is: "); mpz_out_str(stdout, 10, norm); printf("\n");
         printf("The following were the siever-supplied primes (norms):\n");
         for (i=0; i<R->aFSize; i++)
@@ -1403,7 +1419,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   for (i=0; i<FB->qcb_size; i++) {
     mpz_set_si(temp1, R->b);
     mpz_mul_ui(temp1, temp1, FB->qcb[2*i+1]);
-    mpz_set_si(temp2, R->a);
+    mpz_set_si64(temp2, R->a);
     mpz_sub(temp2, temp2, temp1);
     mpz_set_si(temp1, FB->qcb[2*i]);
     e = mpz_legendre(temp2, temp1);
@@ -1412,7 +1428,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   }
   mpz_set_si(temp1, R->b);
   mpz_mul(temp1, temp1, FB->y0);
-  mpz_set_si(temp2, R->a);
+  mpz_set_si64(temp2, R->a);
   mpz_mul(temp2, temp2, FB->y1);
   mpz_sub(temp1, temp2, temp1);
   if (mpz_sgn(temp1)<0)
@@ -1439,7 +1455,7 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%ld,%ld:", R->a, R->b);
+  sprintf(str, "%I64d,%ld:", R->a, R->b);
   for (i=0; i<R->rFSize; i++) {
     if (R->rFactors[i] >= CLIENT_SKIP_R_PRIMES) {
       if (numR==0)
@@ -1522,7 +1538,7 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
     afb[j++] = str[i++];
   afb[j]=0; i++;
 
-  if (sscanf(ab, "%ld,%ld", &R->a, &R->b) != 2) return -1;
+  if (sscanf(ab, "%I64d,%ld", &R->a, &R->b) != 2) return -1;
 
   /* Rational primes: */
   largeRat=0;

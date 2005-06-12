@@ -507,8 +507,8 @@ llist_t *getLPList(multi_file_t *prelF)
       sF = RL->relData[RL->relIndex[j]];
       numLR = GETNUMLRP(sF);
       numLA = GETNUMLAP(sF);
-      lrpi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
-      lapi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
+      lrpi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
+      lapi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
       totalLP += numLR + numLA;
       for (k=0; k<numLR; k++) {
         p = RL->relData[RL->relIndex[j] + lrpi + k];
@@ -648,8 +648,8 @@ llist_t *getLPList(multi_file_t *prelF)
       sF = RL->relData[RL->relIndex[j]];
       numLR = GETNUMLRP(sF);
       numLA = GETNUMLAP(sF);
-      lrpi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
-      lapi = 3 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
+      lrpi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2;
+      lapi = 4 + 2*(GETNUMRFB(sF) + GETNUMAFB(sF) + GETNUMSPB(sF)) + 2 + numLR;
       buf[bufSize++]=numLR+numLA;
       for (k=0; k<numLR; k++) {
         p = RL->relData[RL->relIndex[j] + lrpi + k];

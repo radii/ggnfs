@@ -1,6 +1,12 @@
 INC=-I../include
 CC=gcc
 DEBUGOPT=-Wall -g -pg 
+DLMALLOC=0
+
+#Hope, we're running Mingw32 ;)
+ifeq ($(OSTYPE),msys)
+DLMALLOC=1
+endif
 
 LANCZOS=blanczos64
 # Choose one of these for some more optimization for
@@ -20,12 +26,22 @@ OPT=-Wall -O $(ALLOPT)
 #OPT2=$(DEBUGOPT) $(ALLOPT)
 #OPT3=$(DEBUGOPT) $(ALLOPT) 
 
+ifeq ($(DLMALLOC),1)
+OBJS=getprimes.o \
+     fbmisc.o mulmod32.s squfof.o rels.o \
+     $(LANCZOS).o poly.o mpz_poly.o \
+     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
+     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
+     modinv1002.S llist.o combparts.o dlmalloc.o
+else
 OBJS=getprimes.o \
      fbmisc.o mulmod32.s squfof.o rels.o \
      $(LANCZOS).o poly.o mpz_poly.o \
      mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
      montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
      modinv1002.S llist.o combparts.o
+endif
+
 BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
 #LSBINS=lasieve4/gnfs-lasieve4I12e lasieve4/gnfs-lasieve4I13e \
 #       lasieve4/gnfs-lasieve4I14e
@@ -56,10 +72,17 @@ latsieve.o : latsieve.c ;
 sieve : sieve.c clsieve.c $(OBJS) ;
 	gcc $(INC) $(OPT3) -o sieve sieve.c clsieve.c $(OBJS) -lgmp -lm 
 
+ifeq ($(DLMALLOC),1)
+makefb : makefb.c $(OBJS) ;
+	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
+             misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o dlmalloc.o -lgmp -lm
+else
 makefb : makefb.c $(OBJS) ;
 	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
              fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o -lgmp -lm
+endif
 
 procrels : procrels.c $(OBJS) ;
 	gcc $(INC) $(OPT3) -o procrels procrels.c $(OBJS) -lgmp -lm 
@@ -81,15 +104,27 @@ polyselect : polyselect.c $(OBJS) ;
 
 latsiever : ;
 	cd lasieve4; make
+ifeq ($(OS),Windows_NT)
+	ln -fs lasieve4/gnfs-lasieve4I12e.exe gnfs-lasieve4I12e.exe
+	ln -fs lasieve4/gnfs-lasieve4I13e.exe gnfs-lasieve4I13e.exe
+	ln -fs lasieve4/gnfs-lasieve4I14e.exe gnfs-lasieve4I14e.exe
+else
 	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
 	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
 	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
+endif
 
 polsel : ;
 	cd pol5; make intel
+ifeq ($(OS),Windows_NT)
+	ln -fs pol5/pol51m0b-intel.exe pol51m0b.exe
+	ln -fs pol5/pol51m0n-intel.exe pol51m0n.exe
+	ln -fs pol5/pol51opt-intel.exe pol51opt.exe
+else
 	ln -fs pol5/pol51m0b-intel pol51m0b
 	ln -fs pol5/pol51m0n-intel pol51m0n
 	ln -fs pol5/pol51opt-intel pol51opt
+endif
 
 clean : lasieve-clean polsel-clean ;
 	rm -f *.o core $(BINS)

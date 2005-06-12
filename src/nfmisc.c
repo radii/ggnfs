@@ -363,7 +363,7 @@ void idealHNF_ib(mpz_mat_t *H, mpz_poly a, nf_t *N)
 }
 
 /****************************************************************/
-void idealHNF_ib_ab(mpz_mat_t *H, s32 a, s32 b, nf_t *N)
+void idealHNF_ib_ab(mpz_mat_t *H, s64 a, s32 b, nf_t *N)
 /****************************************************************/
 /* Compute the HNF representation, wrt the integral basis, of   */
 /* the principal ideal <a*c_d-b\hat{\alpha}>O.                  */
@@ -396,7 +396,7 @@ void idealHNF_ib_ab(mpz_mat_t *H, s32 a, s32 b, nf_t *N)
 /* CJM, 12/1. */
 mpz_mul_si(tmp2, bmultiplier, -b);
 
-  mpz_mul_si(tmp, &N->f->coef[n], a);
+  mpz_mul_si64(tmp, &N->f->coef[n], a);
   for (i=0; i<n; i++) {
     /* Set the i-th column of H equal to             */
     /* omega_i*(a - b*bmultiplier\omega_1) =         */

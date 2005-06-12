@@ -87,10 +87,12 @@
 
 #ifndef LONG64
 typedef long s32;
+typedef long long s64;
 typedef unsigned long u32;
 typedef unsigned long long u64;
 #else
 typedef int s32;
+typedef long s64;
 typedef unsigned int u32;
 typedef unsigned long u64;
 #endif
@@ -136,7 +138,8 @@ typedef struct {
 /* the `rel_list' is for.                                        */
 /*****************************************************************/
 typedef struct {
-  s32 a;
+//  s32 a;
+  s64 a;
   s32 b;
   /* The fields below are filled n by getRFact() */
   s32  rFactors[MAX_RAT_FACTORS]; /* Rational factors dividing (a+bm). */
@@ -445,7 +448,12 @@ s32   powMod(s32 op, s32 n, s32 p);
 s32   inverseModP(s32 n, s32 p);
 s32   gcd(s32 x, s32 y);
 int    sqrtModP(mpz_t res, mpz_t x2, mpz_t p);
-int    mpz_evalF(mpz_t res, s32 a, s32 b, mpz_poly f);
+
+//int    mpz_evalF(mpz_t res, s32 a, s32 b, mpz_poly f);
+int    mpz_evalF(mpz_t res, s64 a, s32 b, mpz_poly f);
+void   mpz_mul_si64( mpz_t rop, mpz_t op1, s64 a);
+void   mpz_set_si64( mpz_t rop, s64 a);
+
 double mpz_evalF_d(double x, double y, mpz_poly f);
 int    fplog_evalF(s32 a, s32 b, nfs_fb_t *FB);
 int    fplog_mpz(mpz_t k, double log_of_base);
@@ -586,8 +594,8 @@ s32 combParts(llist_t *R, llist_t *P, int maxRelsInFF, s32 minFF);
 #define SETNUMSPB(_s,_n) (_s = (_s&0xFFFF00FF)^((((s32)(_n)&0x000000FF)<<8)))
 #define SETNUMLRP(_s,_n) (_s = (_s&0xFFFFFF3F)^((((s32)(_n)&0x00000003)<<6)))
 #define SETNUMLAP(_s,_n) (_s = (_s&0xFFFFFFCF)^((((s32)(_n)&0x00000003)<<4)))
-#define S32S_IN_ENTRY(_s) (2*GETNUMRFB(_s)+2*GETNUMAFB(_s)+2*GETNUMSPB(_s)+GETNUMLRP(_s)+2*GETNUMLAP(_s) + 5)
-/* In the above, the +5 is to count also the: (1 size field) + (a,b fields) + (2 qcb fields) */
+#define S32S_IN_ENTRY(_s) (2*GETNUMRFB(_s)+2*GETNUMAFB(_s)+2*GETNUMSPB(_s)+GETNUMLRP(_s)+2*GETNUMLAP(_s) + 6)
+/* In the above, the +6 is to count also the: (1 size field) + (a,b fields) + (2 qcb fields) */
 int   factRel(relation_t *R, nf_t *N);
 int   factRelQ(relation_t *R, nf_t *N, s32 FBIndex);
 int   factRels_clsieved(relation_t *R, int numRels, nf_t *N);
@@ -645,7 +653,7 @@ void   getIdealHNF_ib(mpz_mat_t *H, mpz_t p, mpz_poly a, s32 e, nf_t *N);
 void   norm_std(mpz_t n, mpz_poly a, nf_t *N);
 void   norm_ib(mpz_t n, mpz_poly a, nf_t *N);
 void   idealHNF_ib(mpz_mat_t *H, mpz_poly a, nf_t *N);
-void   idealHNF_ib_ab(mpz_mat_t *H, s32 a, s32 b, nf_t *N);
+void   idealHNF_ib_ab(mpz_mat_t *H, s64 a, s32 b, nf_t *N);
 int    stdtoib(mpz_poly res, mpz_poly op, nf_t *N);
 void   getTrace_ib(mpz_t t, mpz_poly a, nf_t *N);
 
