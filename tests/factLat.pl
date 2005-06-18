@@ -4,7 +4,7 @@ $GGNFS_BIN_PATH="/home/cmonico/Public/src/ggnfs/src";
 # And some other popular choices:
 #$GGNFS_BIN_PATH="../../src";
 #$GGNFS_BIN_PATH="../ggnfs.vc/bin";
-#$GGNFS_BIN_PATH="c:/mingw/msys/1.0/home/SamAdmin/ggnfs-0.73.1/src";
+#$GGNFS_BIN_PATH="c:/mingw/msys/1.0/home/SamAdmin/ggnfs-0.77.1/src";
 ########################################################################
 # factLat.pl
 # Copyright 2004, Chris Monico.
@@ -40,6 +40,10 @@ $PROMPTS=0;
 $DOCLASSICAL=0;
 $CHECK_BINARIES=1;
 $ECHO_CMDLINE=1;
+$CHECK_POLY=1;
+# If this is zero, the lattice siever will sieve q-values on the algebraic side.
+# Otherwise, it will sieve rational q-values.
+$LATSIEVE_SIDE=0;
 
 # If this is zero, the GGNFS polynomial selection code will be used (when needed).
 # But the Kleinjung/Franke code is better, so you should use it if you can.
@@ -234,12 +238,12 @@ if (eval('use GMP::Mpz;1;')) {
     $n = new Math::BigInt($n);  #new object
     $n->is_negative() and $n->babs();
     $start > 0 and $n->brsft($start, 2);
-    $n->is_zero() and return 0xffffffff;
+    $n->is_zero() and return 0x7fffffff;
     my $q;
-    ($n, $q) = $n->bdiv(0x100000000);
+    ($n, $q) = $n->bdiv(0x40000000);
     until ($q) {
-      $start += 32;
-      ($n, $q) = $n->bdiv(0x100000000);
+      $start += 30;
+      ($n, $q) = $n->bdiv(0x40000000);
     }
     until ($q & 1) {
       $start++;
@@ -274,10 +278,10 @@ if (eval('use GMP::Mpz;1;')) {
   #  Generate a random integer in the range 0 to 2^size-1, inclusive.
   *urandomb = sub {
     my ($size) = @_;
-    my $n = new Math::BigInt(int(rand(1 << ($size & 31))));
-    while ($size >= 32) {
-      $n->bmul(0x100000000)->bior(int(rand(0x100000000)));  #don't use blsft
-      $size -= 32;
+    my $n = new Math::BigInt(int(rand(1 << ($size % 30))));
+    while ($size >= 30) {
+      $n->bmul(0x40000000)->bior(int(rand(0x40000000)));  #don't use blsft
+      $size -= 30;
     }
     $n;
   };
@@ -482,7 +486,7 @@ sub runPol5 {
     $cmd="$NICE \"$POL51M0\" -b $pname -v -v -p $npr -n $normmax -a $H -A $HH > $pname.log";
     printf("=> $cmd\n");
     my $res=system($cmd);
-    die "Return value $res. Terminating...\n" if ($res);
+    print "Abnormal return value $res. Continuing...\n" if ($res);
     $nerr=0;
     open(GR,"$pname.log");
     my @logout=<GR>;
@@ -492,7 +496,7 @@ sub runPol5 {
       $cmd="$NICE \"$POL51OPT\" -b $pname -v -v -n $normmax1 -N $normmax2 -e $murphymax > $pname.log";
       printf("=> $cmd\n");
       $res=system($cmd);
-      die "Return value $res. Terminating...\n" if ($res);
+      print "Abnormal return value $res. Continuing...\n" if ($res);
       system("\"$CAT\" $pname.51.m >> $projectname.51.m.all");
       open(GR,"<$pname.cand");
       my %polyinf = ();
@@ -942,14 +946,29 @@ sub makeJobFile {
     print OUTF "${COEF[$i]} ${COEF[${i}+1]}\n";
   }
   print OUTF "skew: $SKEW\n";
-  print OUTF "rlim: $RLIM\n";
-
-  if (($sieveType==1) && ($ALIM > $q0)) { 
-    $sieverAL = $q0-1; 
-    unlink <$JOBNAME.afb.*>;
+  if ($sieveType==1) {
+    if ($LATSIEVE_SIDE) {
+      if ($RLIM > $q0) {
+        $sieverRL = $q0-1;
+        unlink <$JOBNAME.afb.1>;
+      }
+      else { $sieverRL = $RLIM; }
+      $sieverAL = $ALIM;
+    } else { 
+      if ($ALIM > $q0) {
+        $sieverAL = $q0-1;
+        unlink <$JOBNAME.afb.0>;
+      }
+      else { $sieverAL = $ALIM; }
+      $sieverRL = $RLIM;
+    }
+    print OUTF "rlim: $sieverRL\n";
+    print OUTF "alim: $sieverAL\n";
   }
-  else { $sieverAL = $ALIM; }
-  print OUTF "alim: $sieverAL\n";
+  else {
+    print OUTF "rlim: $RLIM\n";
+    print OUTF "alim: $ALIM\n";
+  }
   print OUTF "lpbr: $LPBR\n";
   print OUTF "lpba: $LPBA\n";
   print OUTF "mfbr: $MFBR\n";
@@ -969,6 +988,18 @@ sub makeJobFile {
   close(OUTF); 
 }
 
+###########################################################
+sub get_parm_int($$)
+###########################################################
+{
+  my $data = shift;
+  my $parm = shift;
+
+  my @PARMLINES=grep(/^$parm:/, @$data);
+  if (@PARMLINES and $PARMLINES[0] =~ /^$parm:\s*(-?\d+)/) { return $1; }
+  return undef;
+}
+
 ######################################################
 sub readParams {
 ######################################################
@@ -978,9 +1009,8 @@ sub readParams {
   open(PF, $NAME.".poly");
   my @thisData=<PF>;
   close(PF);
-  my @NLINE=grep(/^n:/, @thisData);
-  $NLINE[0] =~ /n:\s*(\d+)/;
-  $N=$1;
+
+  $N = get_parm_int(\@thisData, 'n');
 
   # Find the polynomial degree.
   my %COEFVALS = ();
@@ -992,12 +1022,76 @@ sub readParams {
     my ($key, $val) = /^(c\d+):\s*(-?\d+)/;
     $key =~ s/c//;
     if ($key > $D) { $D=$key; }
+    print "-> Warning: redefining c$key\n" if (defined $COEFVALS{$key});
     $COEFVALS{$key} = $val;
   }
-  $DEGREE=$D;
-#  foreach my $key (reverse sort keys %COEFVALS) {
+  $DEGREE = get_parm_int(\@thisData, 'deg');
+  $DEGREE = $D if (!defined $DEGREE);
+  if ($DEGREE != $D) {
+    print "-> Error: poly file specifies degree $DEGREE but highest poly\n";
+    print "->   coefficient given is c$D!\n";
+    exit;
+  }
+  my $commonfac = new Math::BigInt '0';
+  foreach my $key (reverse sort keys %COEFVALS) {
 #    print "-> c$key: $COEFVALS{$key}\n";
-#  }
+    $commonfac = $commonfac->bgcd($COEFVALS{$key});
+  }
+  unless (!$CHECK_POLY or $commonfac->is_one()) {
+     print "-> Error: poly coefficients have a common factor $commonfac. Please divide it out.\n";
+     exit;
+  }
+  my ($numer, $denom);
+  $denom = get_parm_int(\@thisData, 'Y1');
+  $numer = get_parm_int(\@thisData, 'Y0');
+  $M = get_parm_int(\@thisData, 'm');
+  if ($denom && $numer) {
+    $numer = new Math::BigInt $numer;
+    $denom = new Math::BigInt $denom;
+    if ($denom->is_neg()) { $denom = -$denom; }
+    else { $numer = -$numer; }
+#    print "-> Common root is $numer / $denom\n";
+    # paranoia if CHECK_POLY is set
+    unless (!$CHECK_POLY or (my $Ygcd = Math::BigInt::bgcd ($numer, $denom))->is_one()) {
+      print "-> Error: Y1 and Y0 have a common factor $Ygcd. Please divide it out.\n";
+      exit;
+    }
+    if ($M) {
+      my $Yval = $denom->copy();
+      $Yval->bmul($M);
+      $Yval->bsub($numer);
+      $Yval->bmod($N);
+      unless (!$CHECK_POLY or $Yval->is_zero()) {
+        print "-> Error: Y1*m + Y0 != 0 mod n!\n";
+        exit;
+      }
+    } else { undef $M; }
+  }
+  my $polyval = new Math::BigInt '0';
+  if ($denom && $numer) {
+    my $subtotal = new Math::BigInt;
+    for my $i (0..$DEGREE) {
+      $subtotal = $COEFVALS{$i} * $numer**$i * $denom**($DEGREE - $i);
+      $polyval->badd($subtotal);
+    }
+  } else {
+#    print "-> Common root is $M\n";
+    for my $i (reverse 0..$DEGREE) {
+      $polyval->bmul($M);
+      $polyval->badd($COEFVALS{$i});
+    }
+  }
+  unless (!$CHECK_POLY or $polyval > 0) {
+    print "-> Warning: evaluated polynomial value $polyval is negative or zero.\n";
+    print "->   This is at least a little strange.\n";
+  }
+  my $remainder = $polyval->copy();
+  $remainder->bmod($N);
+  unless (!$CHECK_POLY or $remainder->is_zero()) {
+    print "-> Error: evaluated polynomial value $polyval is not a multiple of n!\n";
+    exit;
+  }
+#  print "-> Evaluated value is $polyval\n";
 
   my @TYPELINE=grep(/type:/, @thisData);
   $TYPE=$TYPELINE[0];
@@ -1006,37 +1100,14 @@ sub readParams {
   if ($TYPE =~ /snfs/) {
     # We need the difficulty level of the number, which may be
     # noticably larger than the number of digits.
-    my $polyval = new Math::BigInt '0';
-    my @MLINE=grep(/^m:/, @thisData);
-    $MLINE[0] =~ /m:\s*(\d+)/;
-    $M=$1;
-    unless(defined $M) {
-      @MLINE=grep(/^Y1:/, @thisData);
-      $MLINE[0] =~ /Y1:\s*(-?\d+)/;
-      my $denom = new Math::BigInt $1;
-      @MLINE=grep(/^Y0:/, @thisData);
-      $MLINE[0] =~ /Y0:\s*(-?\d+)/;
-      my $numer = new Math::BigInt $1;
-      $numer = -$numer; 
-#      print "-> Common root is $numer / $denom\n";
-      my $subtotal = new Math::BigInt;
-      for my $i (0..$DEGREE) {
-        $subtotal = $COEFVALS{$i} * $numer**$i * $denom**($DEGREE - $i);
-        $polyval->badd($subtotal);
-      }
-    } else {
-#      print "-> Common root is $M\n";
-      for my $i (reverse 0..$DEGREE) {
-        $polyval->bmul($M);
-        $polyval->badd($COEFVALS{$i});
-      }
-    }
-#    print "-> Evaluated value is $polyval\n";
-    $SNFS_DIFFICULTY = (new Math::BigFloat $polyval)->blog(10);
+    $SNFS_DIFFICULTY = (new Math::BigFloat $polyval)->babs->blog(10);
 
     printf "-> SNFS_DIFFICULTY is about $SNFS_DIFFICULTY.\n";
     loadDefaultParams($SNFS_DIFFICULTY->bstr(), "snfs");
   } elsif ($TYPE =~ /gnfs/) {
+    my $logN = (new Math::BigFloat $N)->babs->blog(10);
+#    print "-> Log N is about $logN.\n";
+
     loadDefaultParams(length($N), $TYPE);
   } else {
     printf "-> Error: poly file should contain one of the following lines:\n";
@@ -1079,7 +1150,7 @@ sub readParams {
   }
   if ($KNOWNDIV) { $KNOWNDIV="-knowndiv ".$KNOWNDIV; }
   if ($Q0==0) {
-    $Q0 = $ALIM/2;
+    $Q0 = ($LATSIEVE_SIDE) ? $RLIM/2 : $ALIM/2;
   }
   $QSTART=$Q0;
   checkParamFile;
@@ -1228,6 +1299,7 @@ if ($#ARGV == 2) {
     print "-> Error: client id should be between 1 and the number of clients ($NUM_CLIENTS)\n";
     exit -1;
   }
+  $PNUM += $CLIENT_ID;
 } else {
   # Single processor.
   $NUM_CLIENTS=1;
@@ -1241,9 +1313,11 @@ $NAME =~ s/\.n//;
 print "-> Working with NAME=$NAME...\n";
 $JOBNAME=$NAME.".job";
 $SIEVER_OUTPUTNAME="spairs.out";
+$SIEVER_ADDNAME="spairs.add";
 if ($CLIENT_ID > 1) {
   $JOBNAME .= ".$CLIENT_ID";
   $SIEVER_OUTPUTNAME .= "$CLIENT_ID";
+  $SIEVER_ADDNAME .= ".$CLIENT_ID";
 }
 $psTime=0;
 
@@ -1311,19 +1385,23 @@ close(OF);
 
 # Do some classical sieving, if needed/applicable.
 # This is broken - it is still a work in progress!
- classicalSieve($classicalA, 1, $classicalB);
- rename "spairs.out","spairs.add"; 
+if ($DOCLASSICAL) {
+  classicalSieve($classicalA, 1, $classicalB);
+  rename $SIEVER_OUTPUTNAME, $SIEVER_ADDNAME;
+}
 
 ####################################################
 # Finally, sieve until `matbuild' creates a        #
 # spmat file, signalling that sieving is done and  #
 # we have reached the desired min # of FF's.       #
 ####################################################
+$sieveSideOpt = ($LATSIEVE_SIDE) ? '-r' : '-a';
+$sieveSide = ($LATSIEVE_SIDE) ? 'rational' : 'algebraic';
 while (!(-e $SPMAT)) {
   printf "-> Q0=$Q0, QSTEP=$QSTEP.\n";
   # Create a job file.
   makeJobFile($JOBNAME, $Q0, $QSTEP, $CLIENT_ID, $NUM_CLIENTS);
-  printf("-> Lattice sieving q-values from q=$Q0 to %d.\n", $Q0+$thisQRSize);
+  printf("-> Lattice sieving $sieveSide q-values from q=$Q0 to %d.\n", $Q0+$thisQRSize);
   if ($Q0 >= 2**$LPBA) {
     printf "-> $0 : Severe error!\n";
     printf("->     Current special q=$Q0 has exceeded max. large alg. prime = %d !\n", 2**$LPBA);
@@ -1336,15 +1414,18 @@ while (!(-e $SPMAT)) {
 
   # It's very important to call like this, so that if the user CTRL-C's,
   # or otherwise kills the process, we see it and terminate as well.
-  $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME -v -n$PNUM -a $JOBNAME";
+  $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME -v -n$PNUM $sieveSideOpt $JOBNAME";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);
   # If we are sieving below the AFB limit, we need to delete the
   # siever's factor base file to make it create a new one. This is
   # a dirty hack - what we should do is modify Franke's code to
   # explicitly allow it.
-  if ($sieverAL == ($Q0-1)) {
-    unlink <$JOBNAME.afb.*>;
+  if ($LATSIEVE_SIDE) {
+    unlink <$JOBNAME.afb.1> if ($sieverRL == ($Q0-1));
+  }
+  else {
+    unlink <$JOBNAME.afb.0> if ($sieverAL == ($Q0-1));
   }
   if ($res) {
     print "-> Return value $res. Updating job file and terminating...\n";
@@ -1357,15 +1438,9 @@ while (!(-e $SPMAT)) {
       $lastSPQ = $Q0;
     }
     # Move the new relations so they won't be wiped on restart.
-    if ($CLIENT_ID == 1) {
-      $cmd="\"$CAT\" $SIEVER_OUTPUTNAME >> spairs.add";
-      print "=>$cmd\n" if($ECHO_CMDLINE);
-      system($cmd);
-    } else {
-      $cmd="\"$CAT\" $SIEVER_OUTPUTNAME >> spairs.add.$CLIENT_ID";
-      print "=>$cmd\n" if($ECHO_CMDLINE);
-      system($cmd);
-    }
+    $cmd="\"$CAT\" $SIEVER_OUTPUTNAME >> $SIEVER_ADDNAME";
+    print "=>$cmd\n" if($ECHO_CMDLINE);
+    system($cmd);
     unlink "$SIEVER_OUTPUTNAME";
     # And update the job file accordingly:
     makeJobFile($JOBNAME, $lastSPQ, $QSTEP, $CLIENT_ID, $NUM_CLIENTS);
@@ -1581,8 +1656,10 @@ close(PARS);
 print "Factor base limits: $RLIM/$ALIM\n";
 print "Large primes per side: $LARGEP\n";
 print "Large prime bits: $LPBR/$LPBA\n";
-print "Sieved special-q in [$QSTART, $Q0)\n";
+print "Max factor residue bits: $MFBR/$MFBA\n";
+print "Sieved $sieveSide special-q in [$QSTART, $Q0)\n";
 print "Relations: $rels\n";
+print "Max relations in full relation-set: $maxRelsInFF\n";
 print "Initial matrix: $initmat\n";
 print "Pruned matrix : $prunedmat\n";
 if ($psTime > 0) {

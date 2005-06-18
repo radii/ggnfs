@@ -3176,7 +3176,7 @@ int main(int argc, char **argv)
         Usage();
       }
       if (FB_bound[special_q_side] > first_spq) {
-        complain("Special q lower bound %u below rFB bound %g\n", 
+        complain("Special q lower bound %u below FB bound %g\n", 
                   first_spq, FB_bound[special_q_side]);
       }
     }
