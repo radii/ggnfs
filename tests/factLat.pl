@@ -1599,6 +1599,9 @@ while (<INFO>) {
   if ($_[2] eq "RelProcTime:") { $relprocT += $_[3]; }
   if ($_[2] eq "BLanczosTime:") { $matT = $_[3]; }
   if ($_[2] eq "sqrtTime:") { $sqrtT = $_[3]; }
+  if (/RFBsize:/) { $rprimes=$_[2].$_[3]; }
+  if (/AFBsize:/) { $aprimes=$_[2].$_[3]; }
+  if (/largePrimes:/) { $lprimes=$_[2].$_[3].' encountered'; }
   if (/rels:/) { $rels=$_[2]." ".$_[4]; }
   if (/Initial matrix/) { s/\[.*\] Initial matrix is //; $initmat=$_; }
   if (/Matrix pruned/) { s/\[.*\] Matrix pruned to //; $prunedmat=$_; }
@@ -1658,6 +1661,7 @@ print "Large primes per side: $LARGEP\n";
 print "Large prime bits: $LPBR/$LPBA\n";
 print "Max factor residue bits: $MFBR/$MFBA\n";
 print "Sieved $sieveSide special-q in [$QSTART, $Q0)\n";
+print "Primes: $rprimes, $aprimes, $lprimes\n";
 print "Relations: $rels\n";
 print "Max relations in full relation-set: $maxRelsInFF\n";
 print "Initial matrix: $initmat\n";
