@@ -1837,7 +1837,7 @@ void flushCache(update_t *cache, hashtable_t *hash, script_t **mempool)
         "movntq %%mm0, 0(%0,%2,8) "
         ::"r"(update_base), "r"(cache_base), "r"(i): "memory");
   }
-  asm("femms");
+  asm("emms");
 
 #else
   for (i=0; i<(used & ~7); i+=8) {
@@ -1923,7 +1923,7 @@ void clMakeOutputLine(char *str, relation_t *R)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%ld,%ld:", R->a, R->b);
+  sprintf(str, "%ld,%ld:", (int)R->a, (int)R->b);
   for (i=0; i<R->rFSize; i++) {
     if (numR==0)
       sprintf(s, "%lx", R->rFactors[i]);

@@ -1,5 +1,30 @@
 6/26/05 (asl)
+  * Applied some patches by Jason Papadopoulos to classic siever .
   * Fixed missing -wt command line flag for matbuild reported by G.W.Reynolds.
+
+6/25/05 (trilliwig)
+  * Added factorbase sizes and number of large primes encountered to summary
+    file.
+
+6/19/05 (trilliwig)
+  * Fixed typo in error message in the lattice siever.
+  * Applied Makoto Kamada's patch to suppress warnings in Miller-Rabin
+    code if the Perl interpreter does not support 64-bit integers.
+  * If M, Y1, and Y0 are all specified in the .poly file, the script
+    will now properly use Y1 and Y0 to calculate the SNFS difficulty.
+    It will also properly handle negative evaluated polynomial values.
+  * Added much more paranoia in polynomial checking in the Perl script.
+    It can be disabled by setting $CHECK_POLY to 0.
+  * Added support for lattice sieving on the rational side.  This is
+    controlled by the $LATSIEVE_SIDE setting.
+  * Added some interesting information to the summary file.
+  * Add client id to $PNUM, so if multiple clients are lattice sieving
+    in the same directory, they don't all write to the same .last_spq*
+    file.
+  * Added Geoffrey Reynold's fix for bug when classical sieving is not
+    done in multi-client mode. 
+  * Fixed runPol5() so it tolerates abnormal exits in the polynomial
+    search programs.
 
 6/12/05 (asl)
   * Extended 'a' field of relations to 64 bit. This seems to be enough
