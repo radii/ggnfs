@@ -58,6 +58,7 @@
 #define USAGE " -fb <fname> -prel <fname> -newrel <fname> [-qs <qcb size>] [-v]\n"\
 "-fb <fname>           : Factor base.\n"\
 "-prel <file prefix>   : File name prefix for input of processed relations.\n"\
+"-wt <float>           : Weight factor (for pruning; higher means matrix\n"\
 "-minff <int>          : Minimum number of FF's (prevent R-S wt. reduction and\n"\
 "                        writing of the column files if there are fewer than this).\n"\
 "-maxrelsinff <int>    : Max relation-set weight.\n"
@@ -1239,6 +1240,9 @@ lxmalloc(4000000,0);
       if ((++i) < argC) {
         seed = atoi(args[i]);
       }
+    } else if (strcmp(args[i], "-wt")==0) {
+      if ((++i) < argC)
+        wtFactor = atof(args[i]);
     } else if (strcmp(args[i], "-v")==0) {
       verbose++;
     } else if (strcmp(args[i], "-maxrelsinff")==0) {
