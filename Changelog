@@ -1,5 +1,6 @@
 6/26/05 (frmky)
-  * Add missing link in src/lasieve4.
+  * Added makesymlinks.sh to recreate the missing symbolic links after
+    a CVS checkout.
 
 6/26/05 (asl)
   * Applied some patches by Jason Papadopoulos to classic siever .

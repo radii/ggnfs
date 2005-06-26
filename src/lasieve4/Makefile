@@ -9,6 +9,8 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
+asm=piii
+
 CFLAGS= -O3 -Wall
 #CFLAGS= -g -Wno-strict-aliasing
 CC=gcc $(CFLAGS)
