@@ -1,3 +1,6 @@
+6/26/05 (frmky)
+  * Add missing link in src/lasieve4.
+
 6/26/05 (asl)
   * Applied some patches by Jason Papadopoulos to classic siever .
   * Fixed missing -wt command line flag for matbuild reported by G.W.Reynolds.
