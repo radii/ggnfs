@@ -1,3 +1,11 @@
+6/30/05 (trilliwig)
+  * Smoothed out polynomial selection times for GNFS factorizations from 100
+    to 135 digits.  The new default times range from 30 minutes for 100-digit
+    factorizations to about 2 days for 135-digit factorizations.  The times
+    for 136-155 digit factorizations are pegged at 2 days for now.  We don't 
+    actually expect people to use the script anyway for GNFS factorizations
+    that large.
+
 6/26/05 (frmky)
   * Added makesymlinks.sh to recreate the missing symbolic links after
     a CVS checkout.
