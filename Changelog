@@ -1,3 +1,9 @@
+7/2/05 (frmky)
+  * Modified makesymlinks.sh to restore execute permissions to 
+    src/autogplot.sh and tests/factLat.pl
+  * Applied a patch by Jason Papadopoulos to fix potential problems with
+    64-bit 'a' values.
+
 6/30/05 (trilliwig)
   * Smoothed out polynomial selection times for GNFS factorizations from 100
     to 135 digits.  The new default times range from 30 minutes for 100-digit

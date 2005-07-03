@@ -451,8 +451,14 @@ int    sqrtModP(mpz_t res, mpz_t x2, mpz_t p);
 
 //int    mpz_evalF(mpz_t res, s32 a, s32 b, mpz_poly f);
 int    mpz_evalF(mpz_t res, s64 a, s32 b, mpz_poly f);
+
+#ifdef LONG64
+#define mpz_mul_si64(mp1, mp2, x) mpz_mul_si(mp1, mp2, x)
+#define mpz_set_si64(mp, x) mpz_set_si(mp, x)
+#else
 void   mpz_mul_si64( mpz_t rop, mpz_t op1, s64 a);
 void   mpz_set_si64( mpz_t rop, s64 a);
+#endif
 
 double mpz_evalF_d(double x, double y, mpz_poly f);
 int    fplog_evalF(s32 a, s32 b, nfs_fb_t *FB);

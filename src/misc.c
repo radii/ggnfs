@@ -245,34 +245,35 @@ C1_5_1_DONE_mp:
   
 }
 
-void   mpz_set_si64( mpz_t rop, s64 a)
+#ifndef LONG64
+void mpz_set_si64( mpz_t rop, s64 a)
 {
   if( a < 0 )
   {
     a = -a;
-    mpz_import( rop, 1, -1, sizeof(s64), -1, 1, &a );
+    mpz_import( rop, 1, -1, sizeof(s64), 0, 0, &a );
     mpz_neg( rop, rop );
   }
   else
   {
-    mpz_import( rop, 1, -1, sizeof(s64), -1, 1, &a );
+    mpz_import( rop, 1, -1, sizeof(s64), 0, 0, &a );
   }
 }
 
 /****************************************************/
-void    mpz_mul_si64( mpz_t rop, mpz_t op1, s64 a)
+void mpz_mul_si64( mpz_t rop, mpz_t op1, s64 a)
 {
-  //printf("mpz_mul_si64(): a=%I64d\n", a );
+  static int initialized = 0;
+  static mpz_t temp;
 
-  mpz_t temp;
-  mpz_init( temp );
+  if (initialized == 0) {
+    mpz_init(temp);
+    initialized = 1;
+  }
   mpz_set_si64( temp, a);
-
-  //gmp_printf("mpz_mul_si64(): temp=%Zd\n", temp );
-
   mpz_mul( rop, op1, temp );
-  mpz_clear( temp );
 }
+#endif /* !LONG64 */
 
 /****************************************************/
 int mpz_evalF(mpz_t res, s64 a, s32 b, mpz_poly f)
