@@ -9,8 +9,10 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
-CFLAGS= -O3 -Wall
+# passed in from higher-level directory now
+#CFLAGS= -O3 -Wall
 #CFLAGS= -g -Wno-strict-aliasing
+#LIBFLAGS=-L/usr/local/lib
 CC=gcc $(CFLAGS)
 MAKE=make
 
@@ -32,7 +34,7 @@ list_asm_files = \
 ASMFILES=$(foreach asm_dir,$(ASMDIRS),$(list_asm_files))
 
 asm/%:	force
-	$(MAKE) -C asm $*
+	CFLAGS="$(CFLAGS)" $(MAKE) -C asm $*
 
 %.o: %.c lasieve.h asm/lasieve-asm.h
 	$(CC) -c -o $@ $<
@@ -71,21 +73,25 @@ gnfs-lasieve4I12e: gnfs-lasieve4eI12.o if.o input-poly.o redu2.o \
 	recurrence6.o fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI12.a $(FACT)
-	$(CC)  -o $@ $^ -lgmp -lm
+	$(CC) $(LIBFLAGS) -o $@ $^ -lgmp -lm
 
 gnfs-lasieve4I13e: gnfs-lasieve4eI13.o if.o input-poly.o redu2.o \
 	recurrence6.o fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI13.a $(FACT)
-	$(CC) -o $@ $^ -lgmp -lm
+	$(CC) $(LIBFLAGS) -o $@ $^ -lgmp -lm
 
 gnfs-lasieve4I14e: gnfs-lasieve4eI14.o if.o input-poly.o redu2.o \
 	recurrence6.o fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI14.a $(FACT)
-	$(CC) -o $@ $^ -lgmp -lm
+	$(CC) $(LIBFLAGS) -o $@ $^ -lgmp -lm
 
 clean : ;
+ifeq ($(OS),Windows_NT)
+	rm -f *.o *.a gnfs-lasieve4I1?e.exe
+else
 	rm -f *.o *.a gnfs-lasieve4I1?e 
-	make -C asm clean
+endif
+	$(MAKE) -C asm clean
 

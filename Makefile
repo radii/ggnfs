@@ -8,10 +8,10 @@ EXCLUDE=$(foreach opt,$(EXCLUDE_FILES),--exclude $(opt))
 
 all : src ;
 	echo "#define GGNFS_VERSION \"$(VERSION)\"" > include/version.h
-	make -C src
+	$(MAKE) -C src
 
 clean : ;
-	make -C src clean
+	$(MAKE) -C src clean
 	rm -f core ggnfs-*.tar.gz
 	cd ./tests; ./cleanup.sh
 

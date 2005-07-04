@@ -1,4 +1,8 @@
-INC=-I../include
+ARCH=athlon
+LOCALINC=-I/usr/local/include
+INC=-I../include $(LOCALINC)
+LIBFLAGS=-L/usr/local/lib
+MAKE=make
 CC=gcc
 DEBUGOPT=-Wall -g -pg 
 DLMALLOC=0
@@ -14,9 +18,14 @@ LANCZOS=blanczos64
 # -DL2_CACHE_SIZE=512 works well on some Pentium 4 processors.
 # It brings the opposite effect on AMD chips and some Pentium 4 processors.
 #ALLOPT=-march=athlon-xp
-ALLOPT=-march=athlon -DMALLOC_REPORTING
+#ALLOPT=-DMALLOC_REPORTING
 #ALLOPT=-march=pentium4 -DL2_CACHE_SIZE=512
 #ALLOPT=-march=pentium3
+ifeq ($(ARCH),pentium4)
+    ALLOPT=-DMALLOC_REPORTING -march=$(ARCH) -DL2_CACHE_SIZE=512 -ftracer -pipe
+else
+    ALLOPT=-DMALLOC_REPORTING -march=$(ARCH) -ftracer -pipe
+endif
 
 OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
 OPT3=-O3 -fomit-frame-pointer -Wall $(ALLOPT)
@@ -49,7 +58,8 @@ LSBINS=latsiever polsel
 TESTBIN=./tsrc
 TESTCODE=./tsrc
 
-all : $(OBJS) $(BINS) $(LSBINS) ;
+all : $(OBJS) $(BINS) $(LSBINS) strip ;
+# all : $(OBJS) $(BINS) $(LSBINS) ;
 tests: $(TESTS) ;
 bins: $(BINS) ;
 
@@ -58,52 +68,52 @@ bins: $(BINS) ;
 	$(CC) $(INC) $(OPT3) -c $*.c
 
 smintfact.o : smintfact.c ;
-	gcc $(INC) $(OPT3) -c smintfact.c
+	$(CC) $(INC) $(OPT3) -c smintfact.c
 
 fbmisc.o : fbmisc.c ;
-	gcc $(INC) $(OPT3) -c fbmisc.c
+	$(CC) $(INC) $(OPT3) -c fbmisc.c
 
 rels.o : rels.c ;
-	gcc $(INC) $(OPT3) -c rels.c
+	$(CC) $(INC) $(OPT3) -c rels.c
 
 latsieve.o : latsieve.c ;
-	gcc $(INC) $(OPT3) -c latsieve.c 
+	$(CC) $(INC) $(OPT3) -c latsieve.c 
 
 sieve : sieve.c clsieve.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o sieve sieve.c clsieve.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o sieve sieve.c clsieve.c $(OBJS) -lgmp -lm 
 
 ifeq ($(DLMALLOC),1)
 makefb : makefb.c $(OBJS) ;
-	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
              fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o dlmalloc.o -lgmp -lm
 else
 makefb : makefb.c $(OBJS) ;
-	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
              fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o -lgmp -lm
 endif
 
 procrels : procrels.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o procrels procrels.c $(OBJS) -lgmp -lm 
-#	gcc $(INC) $(DEBUGOPT) -o procrels procrels.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o procrels procrels.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o procrels procrels.c $(OBJS) -lgmp -lm 
 
 matbuild : matbuild.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
-#	gcc $(INC) $(DEBUGOPT) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
 
 matsolve : matsolve.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o matsolve matsolve.c $(OBJS) -lgmp -lm 
-#	gcc $(INC) $(OPT3) -g -o matsolve matsolve.c $(OBJS) -lgmp -lm -lefence
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matsolve matsolve.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -g -o matsolve matsolve.c $(OBJS) -lgmp -lm -lefence
 
 sqrt : sqrt.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o sqrt sqrt.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o sqrt sqrt.c $(OBJS) -lgmp -lm 
 
 polyselect : polyselect.c $(OBJS) ;
-	gcc $(INC) $(OPT3) -o polyselect polyselect.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o polyselect polyselect.c $(OBJS) -lgmp -lm 
 
 latsiever : ;
-	cd lasieve4; make
+	cd lasieve4; LIBFLAGS="$(LIBFLAGS)" CFLAGS="$(OPT3) $(LOCALINC)" $(MAKE)
 ifeq ($(OS),Windows_NT)
 	ln -fs lasieve4/gnfs-lasieve4I12e.exe gnfs-lasieve4I12e.exe
 	ln -fs lasieve4/gnfs-lasieve4I13e.exe gnfs-lasieve4I13e.exe
@@ -115,7 +125,7 @@ else
 endif
 
 polsel : ;
-	cd pol5; make intel
+	cd pol5; CFLAGS="$(OPT3) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) intel
 ifeq ($(OS),Windows_NT)
 	ln -fs pol5/pol51m0b-intel.exe pol51m0b.exe
 	ln -fs pol5/pol51m0n-intel.exe pol51m0n.exe
@@ -126,15 +136,23 @@ else
 	ln -fs pol5/pol51opt-intel pol51opt
 endif
 
+strip : ;
+ifeq ($(OS),Windows_NT)
+	strip *.exe
+else
+	strip $(BINS)
+endif
+
 clean : lasieve-clean polsel-clean ;
 	rm -f *.o core $(BINS)
 	rm -f gnfs-lasieve4I1?e
+	rm -f *.exe
 
 lasieve-clean: ;
-	make -C lasieve4 clean
+	$(MAKE) -C lasieve4 clean
 
 polsel-clean : ;
-	make -C pol5 clean
+	$(MAKE) -C pol5 clean
 
 squeaky : clean ;
 	

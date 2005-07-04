@@ -1,3 +1,17 @@
+7/3/05 (trilliwig)
+  * Used suggestion by G.W. Reynolds to raise murphymax values for pol5 to
+    avoid memory issues in pol51opt.  It should have the added bonus of
+    getting to the good polynomials faster.  However, there are still many
+    instances remaining where pol51m0b dies with the message "lambda-comp"
+    or "ull5a5p-comp".
+  * Moved -wt option help text from matsolve to matbuild.  Also updated the
+    Perl script to use the -wt option with matbuild, not matsolve.  Allowed
+    "matsolve --help" to print help text if a depinf file does not exist.
+  * Added support in the Perl script of lss and mrif parameters in the .poly
+    file.  They correspond to $LATSIEVE_SIDE and $maxRelsInFF settings.
+  * Tweaked some Makefiles so I don't always have to edit them extensively
+    to use them in my environment. :)
+
 7/2/05 (frmky)
   * Modified makesymlinks.sh to restore execute permissions to 
     src/autogplot.sh and tests/factLat.pl

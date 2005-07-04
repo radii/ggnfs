@@ -39,9 +39,6 @@
 
 #define USAGE "[OPTIONS]\n"\
 "-v           : verbose.\n"\
-"-wt <float>  : Weight factor (for pruning; higher means matrix\n"\
-"               should be kept as sparse as possible, while lower\n"\
-"               means to shrink the matrix dimensions as much as possible.\n"\
 "-seed <int>  : Set the seed for the PRNG.\n"\
 "--help       : Show this help and quit.\n"
 
@@ -337,7 +334,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
 int main(int argC, char *args[])
 /****************************************************/
 { char       colName[64], depName[64], str[1024];
-  double     startTime, stopTime, wtFactor=DEFAULT_WT_FACTOR;
+  double     startTime, stopTime;
   s32       *deps, origC, seed=DEFAULT_SEED;
   struct stat fileInfo;
   nfs_sparse_mat_t M;
@@ -348,10 +345,6 @@ int main(int argC, char *args[])
   strcpy(colName, DEFAULT_COLNAME);
   strcpy(depName, DEFAULT_DEPNAME);
   printf(START_MSG, GGNFS_VERSION);
-  if (stat("depinf", &fileInfo)) {
-    printf("Could not stat depinf! Are you trying to run %s to soon?\n", args[0]);
-    return -1;
-  }
   time(&seed);
   /* This probably shouldn't be needed, but whatever. */
   seed = ((seed % 1001)*seed) ^ (171*seed);
@@ -363,15 +356,16 @@ int main(int argC, char *args[])
       if ((++i) < argC) {
         seed = atol(args[i]);
       }
-    } else if (strcmp(args[i], "-wt")==0) {
-      if ((++i) < argC)
-        wtFactor = atof(args[i]);
     } else if (strcmp(args[i], "--help")==0) {
       printf("USAGE: %s %s\n", args[0], USAGE);
       exit(0);
     }
   }
   srand(seed);
+  if (stat("depinf", &fileInfo)) {
+    printf("Could not stat depinf! Are you trying to run %s to soon?\n", args[0]);
+    return -1;
+  }
   seedBlockLanczos(seed);
   startTime = sTime();
   msgLog("", "GGNFS-%s : matsolve (seed=%ld)", GGNFS_VERSION,seed);

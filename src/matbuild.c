@@ -55,13 +55,15 @@
 #define DEFAULT_COLNAME "cols"
 #define DEFAULT_WT_FACTOR 0.7
 
-#define USAGE " -fb <fname> -prel <fname> -newrel <fname> [-qs <qcb size>] [-v]\n"\
-"-fb <fname>           : Factor base.\n"\
-"-prel <file prefix>   : File name prefix for input of processed relations.\n"\
-"-wt <float>           : Weight factor (for pruning; higher means matrix\n"\
-"-minff <int>          : Minimum number of FF's (prevent R-S wt. reduction and\n"\
-"                        writing of the column files if there are fewer than this).\n"\
-"-maxrelsinff <int>    : Max relation-set weight.\n"
+#define USAGE " -fb <fname> -prel <fname> -newrel <fname> [-qs <qcb size>] [-wt <wtFactor>] [-v]\n"\
+"-fb <fname>         : Factor base.\n"\
+"-prel <file prefix> : File name prefix for input of processed relations.\n"\
+"-wt <float>         : Weight factor (for pruning; higher means matrix\n"\
+"                      should be kept as sparse as possible, while lower\n"\
+"                      means to shrink the matrix dimensions as much as possible.\n"\
+"-minff <int>        : Minimum number of FF's (prevent R-S wt. reduction and\n"\
+"                      writing of the column files if there are fewer than this).\n"\
+"-maxrelsinff <int>  : Max relation-set weight.\n"
 
 #define START_MSG \
 "\n"\

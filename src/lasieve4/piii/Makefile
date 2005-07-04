@@ -9,7 +9,8 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
-CFLAGS= -O3 
+# passed in from higher-level directory now
+#CFLAGS= -O3 
 #CFLAGS= -O3 -march=athlon
 #CFLAGS= -g
 CC=gcc
@@ -19,8 +20,8 @@ SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c mpqs-hack.c montgomery_mul.c \
 	Makefile siever-config.c lasieve-asm.h
 
 %.o: %.s
-#	$(CC) -c $^
-	$(CC) -g -c $^
+	$(CC) -c $^
+#	$(CC) -g -c $^
 
 .SECONDARY:  *.s
 

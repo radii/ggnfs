@@ -985,7 +985,7 @@ ABexponentSum=0;
       s32 pFacts[128];
       int numpFacts;
       printf("Factorization of relation %ld is wrong:\n", i);
-      printf("a=%ld, b=%ld\n", a, -b);
+      printf("a=%ld, b=%ld\n", (s32)a, (s32)-b);
       printf("a-bm = "); mpz_out_str(stdout, 10, tmp); printf("\n");
       printf("Stored large primes are: %ld %ld.\n", (u32)R.p[0], (u32)R.p[1]);
       printf("Product of factors gives:\n       ");

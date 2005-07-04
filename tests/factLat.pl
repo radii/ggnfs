@@ -1141,6 +1141,8 @@ sub readParams {
       elsif ($token eq "skew") { $SKEW=$val; }
       elsif ($token eq "q0") { $Q0=$val; }
       elsif ($token eq "qintsize") { $QSTEP=$val; }
+      elsif ($token eq "lss") { $LATSIEVE_SIDE=$val; }
+      elsif ($token eq "mrif") { $maxRelsInFF=$val; }
       elsif (($token =~ /c./) || ($token =~ /Y./)) {
         push(@COEF, $token.":");
         push(@COEF, $val);
@@ -1512,7 +1514,7 @@ while (!(-e $SPMAT)) {
     } else {
       print "-> Found $tlp total LP vs. $trel relations.\n";
       if ((($tlp - $trel) < 0.8*$trel)||($FORCECC=="on")) {
-        $cmd="$NICE \"$MATBUILD\" -fb $NAME.fb -prel $RELSBIN -maxrelsinff $maxRelsInFF -minff $minFF";
+        $cmd="$NICE \"$MATBUILD\" -fb $NAME.fb -prel $RELSBIN -maxrelsinff $maxRelsInFF -minff $minFF -wt $matWtFactor";
         print "=>$cmd\n" if($ECHO_CMDLINE);
         $res=system($cmd);
         die "Return value $res. Terminating...\n" if ($res);
@@ -1551,7 +1553,7 @@ if ($CLIENT_ID > 1) {
 ###############################
 if (!(-e $DEPFILE)) {
   print "-> Doing matrix step...\n";
-  $cmd="$NICE \"$MATSOLVE\""." -wt ".$matWtFactor; 
+  $cmd="$NICE \"$MATSOLVE\"";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);
   die "Return value $res. Terminating...\n" if ($res);

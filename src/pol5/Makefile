@@ -1,7 +1,8 @@
 
 CC = gcc 
-CFLAGS = -Wall -O2 -g
-LIBFLAGS = -I. -I/usr/local/include -L/usr/local/lib
+# passed in from higher-level directory now
+#CFLAGS = -Wall -O2 -I/usr/local/include
+#LIBFLAGS = -I. -I/usr/local/include -L/usr/local/lib
 LIBS       = -lm -lgmp
 LIBSPARI       = -lm -lgmp -lpari
 #CFLAGS = -g -Wall -Wno-implicit
@@ -82,4 +83,9 @@ dist:
 	Makefile | gzip --best --stdout > pol5.tar.gz
 
 clean : ;
+ifeq ($(OS),Windows_NT)
+	rm -f *.exe *.o core
+else
 	rm -f $(BINS) $(BINS_INTEL) *.o core
+endif
+

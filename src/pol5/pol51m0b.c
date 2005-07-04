@@ -27,7 +27,7 @@
 #endif
 
 /* We need to write a floorl() for Cygwin. In the meantime: */
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(MINGW32)
 #undef HAVE_FLOAT64
 #endif
 
