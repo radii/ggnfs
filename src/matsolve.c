@@ -441,7 +441,7 @@ int main(int argC, char *args[])
 
   stopTime = sTime();
   printf("Total elapsed time: %1.2lf seconds.\n", stopTime-startTime);
-  msgLog("", "Heap stats for matbuild run:");
+  msgLog("", "Heap stats for matsolve run:");
   logHeapStats();
 
 
