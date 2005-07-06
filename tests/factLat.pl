@@ -1341,7 +1341,7 @@ if (!(-e $NAME.".poly")) {
     if (length($N)>0) {
       printf("-> Found n=$N.\n");
       printf("-> Attempting to run polyselect...\n");
-      if (length($N)<100) { $USE_KLEINJUNG_FRANKE_PS=0; }
+      if (length($N)<98) { $USE_KLEINJUNG_FRANKE_PS=0; }
       $psTime=time;
       if ($USE_KLEINJUNG_FRANKE_PS) {
         runPol5;

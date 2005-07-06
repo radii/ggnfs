@@ -140,7 +140,7 @@ strip : ;
 ifeq ($(OS),Windows_NT)
 	strip *.exe
 else
-	strip $(BINS)
+	strip $(BINS) gnfs-lasieve4I1?e pol51m0? pol51opt
 endif
 
 clean : lasieve-clean polsel-clean ;

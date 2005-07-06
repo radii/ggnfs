@@ -10,6 +10,8 @@
 # there, but they should not be taken as absolute in any sense. In particular,
 # on the high end for example, I'm sure that 7 hours is not enough for a C145!
 
+98,24,1,4,2.60E+014,1.40E+013,1.86E+011,3.45E-009
+99,27,1,4,3.80E+014,2.00E+013,2.57E+011,3.10E-009
 100,30,1,4,5.56E+014,2.86E+013,3.56E+011,2.80E-009
 101,33,1,4,8.13E+014,4.08E+013,4.92E+011,2.50E-009
 102,37,1,4,1.19E+015,5.82E+013,6.81E+011,2.21E-009
