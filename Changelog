@@ -1,3 +1,8 @@
+7/5/05 (trilliwig)
+  * Moved crossover for the Kleinjung/Franke poly tool a little lower, so
+    Monico's poly tool doesn't try to make a quintic poly for 98-99 digit
+    numbers.  Added Kleinjung/Franke parameters for 98-99 digits.
+
 7/3/05 (trilliwig)
   * Used suggestion by G.W. Reynolds to raise murphymax values for pol5 to
     avoid memory issues in pol51opt.  It should have the added bonus of
