@@ -261,13 +261,13 @@ int clSieve(nfs_sieve_job_t *J)
     if (conf.rfb[i].p>TINY_R_CUTOFF)
       break;
   }
-  conf.tiny_rfb_size = i+1;
+  conf.tiny_rfb_size = MIN(conf.rfb_size, i+1);
 
   for (i=0; i<conf.rfb_size; i++) {
     if (conf.rfb[i].p>BLOCK_SIZE)
       break;
   }
-  conf.med_rfb_size = i+1;
+  conf.med_rfb_size = MIN(conf.rfb_size, i+1);
 
   /************************************
    * fill in RFB large prime cutoffs  *
@@ -332,7 +332,7 @@ int clSieve(nfs_sieve_job_t *J)
         break;
     }
   }
-  conf.tiny_afb_size = i+1;
+  conf.tiny_afb_size = MIN(conf.afb_size, i+1);
 
   for (i=1,j=0; i<conf.afb_size; i++) {
     if (conf.afb[i].p!=conf.afb[i-1].p) {
@@ -340,7 +340,7 @@ int clSieve(nfs_sieve_job_t *J)
         break;
     }
   }
-  conf.med_afb_size = i+1;
+  conf.med_afb_size = MIN(conf.afb_size, i+1);
 
   mpz_init_set_si(conf.LP1_max_a, FB->maxP_a);
   mpz_init_set_si(conf.LP2_max_a, FB->maxP_a);

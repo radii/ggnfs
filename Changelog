@@ -1,3 +1,8 @@
+7/6/05 (frmky)
+  * Applied a patch by Jason Papadopoulos to the classical sieve to fix an
+    incorrect initialization when the factor base is very small (under 
+    65536). 
+
 7/5/05 (trilliwig)
   * Moved crossover for the Kleinjung/Franke poly tool a little lower, so
     Monico's poly tool doesn't try to make a quintic poly for 98-99 digit
