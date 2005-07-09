@@ -1,3 +1,11 @@
+7/9/05 (jasonp_sf)
+  * Free unneeded arrays before the classical siever starts; reduces
+    memory use by more than half for large factorizations
+  * For the classical siever, set up each large factor base prime for
+    the next sieve line immediately after the prime is used. Also 
+    collapse some operations scanning the sieve array. These two combine 
+    for a small speedup (~5%).
+
 7/6/05 (frmky)
   * Applied a patch by Jason Papadopoulos to the classical sieve to fix an
     incorrect initialization when the factor base is very small (under 
