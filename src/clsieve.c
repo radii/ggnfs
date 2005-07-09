@@ -482,6 +482,15 @@ int clSieve(nfs_sieve_job_t *J)
               mpz_sizeinbase(conf.LP2_max_a,2)-1);
   msgLog("", "");
 
+  /************************
+   * free unneeded arrays *
+   ************************/
+  
+  free(FB->rfb); FB->rfb = NULL;
+  free(FB->afb); FB->afb = NULL;
+  free(FB->rfb_log); FB->rfb_log = NULL;
+  free(FB->afb_log); FB->afb_log = NULL;
+
   /**********************
    * do all the work :) *
    **********************/
@@ -515,11 +524,11 @@ int doSieve(nfs_fb_t *FB, sieve_conf_t *conf, s32 b0, s32 b1)
  * Sieve lines for b = b0 to b1                            *
  ***********************************************************/
 { s32   i, j, k;
-  s32 rfb_size = conf->rfb_size;
-  s32 afb_size = conf->afb_size;
+  s32 med_rfb_size = conf->med_rfb_size;
+  s32 med_afb_size = conf->med_afb_size;
   sieve_fb_t *rfb = conf->rfb;
   sieve_fb_t *afb = conf->afb;
-  int old_rels = 0, rels = 0;
+  s32 old_rels = 0, rels = 0;
   double startTime = sTime();
   double currTime;
 
@@ -539,10 +548,12 @@ int doSieve(nfs_fb_t *FB, sieve_conf_t *conf, s32 b0, s32 b1)
     else
       rels += do1SieveEven(FB, conf, i);
 
-    /**************************************
-     * update the roots for each FB prime *
-     **************************************/
-    for (j=0; j<rfb_size; j++) {
+    /*********************************************
+     * update the roots for the next sieve line; *
+     * note that this has already happened for   *
+     * the large FB primes                       *
+     *********************************************/
+    for (j=0; j<med_rfb_size; j++) {
       s32 p = rfb[j].p;
       s32 root = rfb[j].root + rfb[j].r;
       if (root>=p)
@@ -550,7 +561,7 @@ int doSieve(nfs_fb_t *FB, sieve_conf_t *conf, s32 b0, s32 b1)
       rfb[j].root = root;
       rfb[j].next = root;
     }
-    for (j=0; j<afb_size; j++) {
+    for (j=0; j<med_afb_size; j++) {
       s32 p = afb[j].p;
       s32 root = afb[j].root + afb[j].r;
       if (root>=p)
@@ -723,45 +734,60 @@ void fillHashtableOdd(sieve_conf_t *conf, s32 b, s32 sign)
     for (i=med_rfb_size; i<rfb_size; i++) {
       sieve_fb_t *fb = rfb + i;
       s32 p = fb->p;
-      s32 off = fb->next;
+      s32 off = fb->root;
       u8 logp = fb->logp;
 
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->rcache, conf->cache_max,
                       rhash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
     }
     for (i=med_afb_size; i<afb_size; i++) {
       sieve_fb_t *fb = afb + i;
       s32 p = fb->p;
-      s32 off = fb->next;
+      s32 off = fb->root;
       u8 logp = fb->logp;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->acache, conf->cache_max,
                       ahash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
     }
   }
   else {
     for (i=med_rfb_size; i<rfb_size; i++) {
       sieve_fb_t *fb = rfb + i;
       s32 p = fb->p;
-      s32 off = p - fb->next;
+      s32 off = p - fb->root;
       u8 logp = fb->logp;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->rcache, conf->cache_max,
                       rhash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
+
+      /* set up the next sieve line while the FB
+         structure is in cache */
+      off = fb->root + fb->r;
+      if (off>=p)
+        off -= p;
+      fb->root = off;
     }
     for (i=med_afb_size; i<afb_size; i++) {
       sieve_fb_t *fb = afb + i;
       s32 p = fb->p;
-      s32 off = p - fb->next;
+      s32 off = p - fb->root;
       u8 logp = fb->logp;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->acache, conf->cache_max,
                       ahash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
+      off = fb->root + fb->r;
+      if (off>=p)
+        off -= p;
+      fb->root = off;
     }
   }
 }
@@ -788,56 +814,68 @@ void fillHashtableEven(sieve_conf_t *conf, s32 b, s32 sign)
     for (i=med_rfb_size; i<rfb_size; i++) {
       sieve_fb_t *fb = rfb + i;
       s32 p = fb->p;
-      s32 off = fb->next;
+      s32 off = fb->root;
       u8 logp = fb->logp;
       if (off%2==0)
         off += p;
       off = off/2;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->rcache, conf->cache_max,
                       rhash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
     }
     for (i=med_afb_size; i<afb_size; i++) {
       sieve_fb_t *fb = afb + i;
       s32 p = fb->p;
-      s32 off = fb->next;
+      s32 off = fb->root;
       u8 logp = fb->logp;
       if (off%2==0)
         off += p;
       off = off/2;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->acache, conf->cache_max,
                       ahash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
     }
   }
   else {
     for (i=med_rfb_size; i<rfb_size; i++) {
       sieve_fb_t *fb = rfb + i;
       s32 p = fb->p;
-      s32 off = p - fb->next;
+      s32 off = p - fb->root;
       u8 logp = fb->logp;
       if (off%2==0)
         off += p;
       off = off/2;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->rcache, conf->cache_max,
                       rhash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
+      off = fb->root + fb->r;
+      if (off>=p)
+        off -= p;
+      fb->root = off;
     }
     for (i=med_afb_size; i<afb_size; i++) {
       sieve_fb_t *fb = afb + i;
       s32 p = fb->p;
-      s32 off = p - fb->next;
+      s32 off = p - fb->root;
       u8 logp = fb->logp;
       if (off%2==0)
         off += p;
       off = off/2;
-      if (off<sieve_size)
+      if (off<sieve_size) {
         add2Hashtable(conf->acache, conf->cache_max,
                       ahash+BLOCK_HASH(off), 
                       p, off, logp, &conf->mempool);
+      }
+      off = fb->root + fb->r;
+      if (off>=p)
+        off -= p;
+      fb->root = off;
     }
   }
 }
@@ -1200,16 +1238,12 @@ int doFactoringOdd(nfs_fb_t *FB, sieve_conf_t *conf,
     logTarget_a = conf->logTarget_a[i/A_NORM_INTERVAL];
 
     for (j=0; j<blocksize; j++) {
-      s32 off = i+j;
-      s32 rbits = rblock[off];
-      s32 abits = ablock[off];
-
-      if (abits>logTarget_a &&
-          rbits>logTarget_r &&
-          gcd(block_start+off, b)==1) {
-        rels += do1Factoring(FB, conf, off, b, 
-                            rbits, abits, block, 
-                            first_block, sign);
+      if (ablock[i+j]>logTarget_a &&
+          rblock[i+j]>logTarget_r &&
+          gcd(block_start+i+j, b)==1) {
+        rels += do1Factoring(FB, conf, i+j, b, 
+                            rblock[i+j], ablock[i+j], 
+			    block, first_block, sign);
       }
     }
   }
@@ -1300,15 +1334,11 @@ int doFactoringEven(nfs_fb_t *FB, sieve_conf_t *conf,
     logTarget_a = conf->logTarget_a[i/(A_NORM_INTERVAL/2)];
 
     for (j=0; j<blocksize; j++) {
-      s32 off = i+j;
-      s32 rbits = rblock[off];
-      s32 abits = ablock[off];
-
-      if (abits>logTarget_a &&
-          rbits>logTarget_r &&
-          gcd(2*(block_start+off)+1, b)==1) {
-        rels += do1Factoring(FB, conf, off, b, 
-                            rbits, abits, block, 
+      if (ablock[i+j]>logTarget_a &&
+          rblock[i+j]>logTarget_r &&
+          gcd(2*(block_start+i+j)+1, b)==1) {
+        rels += do1Factoring(FB, conf, i+j, b, 
+                            rblock[i+j], ablock[i+j], block, 
                             first_block, sign);
       }
     }
