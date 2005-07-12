@@ -536,7 +536,8 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
 /* prandseed() should be used first, if you want to set it. */
 /* Return value: 0 <==> factored completely.                */
 /* If doRealWork=0, we will not try too hard. If it is -1   */
-/* we will do only trial division and divisors in ggnfs.log.*/
+/* we will do only trial division and divisors in ggnfs.log */
+/* ... and a power check                                    */
 /************************************************************/
 { int        e, giveUp, retVal, iter, level;
   u32        numSmallP, *smallP;
@@ -594,6 +595,7 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
     i++;
   }
   
+
   /***************************************************/
   /* First, scan the log file to see if we'd already */
   /* factored this number. i.e., just scan through   */
@@ -606,13 +608,18 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
       loc = strstr(str, "DISC_P_DIV=");
       if (loc != NULL) {
         mpz_set_str(tmp1, &loc[11], 10);
-        mpz_mod(tmp2, F->unfactored, tmp1);
-        if (mpz_sgn(tmp2)==0) {
-          mpz_fact_add_factor(F, tmp1, 1);
-          mpz_div(F->unfactored, F->unfactored, tmp1);
-        }
-        if (mpz_cmp_ui(F->unfactored, 1)==0) {
-          msgLog(GGNFS_LOG_NAME, "Discriminant factorization re-read from log file.");
+        if (mpz_probab_prime_p(tmp1, 20)) {
+          e = 0;
+          mpz_mod(tmp2, F->unfactored, tmp1);
+          while (mpz_sgn(tmp2)==0) {
+            e++;
+            mpz_divexact(F->unfactored, F->unfactored, tmp1);
+            mpz_mod(tmp2, F->unfactored, tmp1);
+          }
+          if (e) mpz_fact_add_factor(F, tmp1, e);
+          if (mpz_cmp_ui(F->unfactored, 1)==0) {
+            msgLog(GGNFS_LOG_NAME, "Discriminant factorization re-read from log file.");
+          }
         }
       }
     }
@@ -620,6 +627,46 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
   }
 
 
+  /** Do a power check; avoid mpz_perfect_power_p() because it redoes trial **/
+  /** division (as of GMP 4.1.4) */
+  if (mpz_cmp_ui(F->unfactored, 1)) {
+    if (mpz_probab_prime_p(F->unfactored, 20)) {
+      msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s", 
+             mpz_get_str(str, 10, F->unfactored));
+      mpz_fact_add_factor(F, F->unfactored, 1);
+      mpz_set_ui(F->unfactored, 1);
+    } else { 
+      e = 1;
+      while (mpz_perfect_square_p(F->unfactored)) {
+        e *= 2;
+        mpz_sqrt(F->unfactored, F->unfactored);
+      }
+      for (i=1; i<numSmallP; i++) {
+        while (mpz_root(tmp1, F->unfactored, smallP[i])) {
+          e *= smallP[i];
+          mpz_set (F->unfactored, tmp1);
+        }
+        if (mpz_cmp_ui(tmp1, smallP[numSmallP-1]) < 0) break;
+      } 
+      if (e > 1) {
+        if (mpz_probab_prime_p(F->unfactored, 20)) {
+//        printf("found factor with multiplicity %ld\n", e);
+          msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
+                 mpz_get_str(str, 10, F->unfactored));
+          mpz_fact_add_factor(F, F->unfactored, e);
+          mpz_set_ui(F->unfactored, 1);
+        } else {
+          mpz_fact_init(&TmpF);
+	  retVal = mpz_fact_factorEasy(&TmpF, F->unfactored, doRealWork);
+          if (retVal==0) {
+            for (i=0; i<TmpF.size; i++)
+              mpz_fact_add_factor(F, &TmpF.factors[i], e*TmpF.exponents[i]);
+          } else doRealWork = 0;
+          mpz_fact_clear(&TmpF);
+        }
+      }
+    }
+  }
 
   free(smallP);  
   if (mpz_cmp_ui(F->unfactored, 1)==0) {
@@ -636,7 +683,6 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
   }
 
 
-
   /** Do ECM on the remaining part **/
   mpz_fact_init(&TmpF);
   giveUp = 0;
@@ -647,8 +693,21 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
   mpz_set_ui(s, 0);
   while ((!giveUp) && mpz_cmp_ui(F->unfactored, 1)) {
     if (mpz_probab_prime_p(F->unfactored, 20)) {
+      msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
+             mpz_get_str(str, 10, F->unfactored));
       mpz_fact_add_factor(F, F->unfactored, 1);
       mpz_set_ui(F->unfactored, 1);
+    } else if (mpz_perfect_power_p(F->unfactored)) { /* inefficient? oh well */
+      retVal = mpz_fact_factorEasy(&TmpF, F->unfactored, doRealWork);
+      if (retVal==0) {
+        for (i=0; i<TmpF.size; i++)
+          mpz_fact_add_factor(F, &TmpF.factors[i], TmpF.exponents[i]);
+        mpz_set_ui(F->unfactored, 1);
+        mpz_fact_clear(&TmpF);
+        mpz_fact_init(&TmpF);
+      }
+      else
+        giveUp = 1;
     } else {
       mpz_set(tmp2, F->unfactored);
       i=0;
@@ -667,10 +726,17 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
 	else
           giveUp = 1;
       } else {
-        mpz_div(F->unfactored, F->unfactored, tmp1);
+        mpz_divexact(F->unfactored, F->unfactored, tmp1);
         if (mpz_probab_prime_p(tmp1, 20)) {
+          e = 1;
+          mpz_mod(tmp2, F->unfactored, tmp1);
+          while (mpz_sgn(tmp2)==0) {
+            e++;
+            mpz_divexact(F->unfactored, F->unfactored, tmp1);
+            mpz_mod(tmp2, F->unfactored, tmp1);
+          }
           msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s", mpz_get_str(str, 10, tmp1));
-          mpz_fact_add_factor(F, tmp1, 1);
+          mpz_fact_add_factor(F, tmp1, e);
 	} else {
 	  retVal = mpz_fact_factorEasy(&TmpF, tmp1, doRealWork);
           if (retVal==0) {
@@ -678,9 +744,9 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
               mpz_fact_add_factor(F, &TmpF.factors[i], TmpF.exponents[i]);
             mpz_fact_clear(&TmpF);
             mpz_fact_init(&TmpF);
-          } else {
+          }
+          else
             giveUp = 1;
-	  }
         }
       }	  
     }

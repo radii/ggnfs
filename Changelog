@@ -1,3 +1,11 @@
+7/12/05 (trilliwig)
+  * Updated mpz_fact_factorEasy() to check for higher multiplicity of prime
+    factors above the trial division limit.  The DISC_P_DIV lines in
+    ggnfs.log will also be written/interpreted accordingly.  This should
+    fix some instances where procrels did not factor the discriminant of the
+    polynomial as well as it could.
+  * Added .params to the list of files cleaned in the gnfs-template Makefile.
+
 7/9/05 (jasonp_sf)
   * Free unneeded arrays before the classical siever starts; reduces
     memory use by more than half for large factorizations
