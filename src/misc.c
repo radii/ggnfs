@@ -529,6 +529,129 @@ const int  _numLevels=1;
 #endif
 const s32 _B1Sizes[]={2000, 5000, 10000, 50000, 250000, 1000000, 3000000};
 const s32 _numCurves[]={50, 150, 200, 400, 600, 1000, 1000};
+
+static int mpz_fact_factorRealWork_rec(mpz_fact_t *F, int doRealWork,
+                                       u32 numSmallP, u32 *smallP,
+                                       mpz_t tmp1, mpz_t tmp2, char str[256])
+/****************************************************/
+/* Recursive routine meant to be called from        */
+/* mpz_fact_factorEasy().  Does a power check and,  */
+/* if doRealWork is positive, ECM.  Assumes that    */
+/* trial division and DISC_P_DIV factors have       */
+/* already been divided out (so no need to repeat)  */
+/****************************************************/
+{
+  int        top_e, e, giveUp, retVal, iter, level;
+  mpz_t      s;
+  s32        i, B1;
+  double     B2;
+
+  if (doRealWork < 0) return -1;
+
+  mpz_init(s);
+
+  giveUp = 0;
+  iter=10;
+  level=0;
+  B1 = _B1Sizes[0];
+  B2 = 0;
+  mpz_set_ui(s, 0);
+  top_e = 1;
+  while ((!giveUp) && mpz_cmp_ui(F->unfactored, 1)) {
+    if (mpz_probab_prime_p(F->unfactored, 20)) {
+      msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
+             mpz_get_str(str, 10, F->unfactored));
+      mpz_fact_add_factor(F, F->unfactored, 1);
+      mpz_set_ui(F->unfactored, 1);
+    } else {
+      /** Do a power check; avoid mpz_perfect_power_p() because **/
+      /** it redoes trial division (as of GMP 4.1.4)            **/
+      e = 1;
+      while (mpz_perfect_square_p(F->unfactored)) {
+        e *= 2;
+        mpz_sqrt(F->unfactored, F->unfactored);
+      }
+      for (i=1; i<numSmallP; i++) {
+        while (mpz_root(tmp1, F->unfactored, smallP[i])) {
+          e *= smallP[i];
+          mpz_set (F->unfactored, tmp1);
+        }
+        if (mpz_cmp_ui(tmp1, smallP[numSmallP-1]) < 0) break;
+      } 
+      if (e > 1) {
+        top_e *= e;
+        if (mpz_probab_prime_p(F->unfactored, 20)) {
+//        printf("found factor with multiplicity %ld\n", e);
+          msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
+                 mpz_get_str(str, 10, F->unfactored));
+          mpz_fact_add_factor(F, F->unfactored, top_e);
+          mpz_set_ui(F->unfactored, 1);
+        }
+      }
+      /** Now do ECM on the remaining part **/
+      if (mpz_cmp_ui(F->unfactored, 1) && (doRealWork > 0)) {
+        mpz_set(tmp2, F->unfactored);
+        i=0;
+        do {
+          retVal = ecmFactor(tmp1, tmp2, B1, B2, iter, s);
+          i++;
+          if ((i%10)== 0) {
+            printf("Attempt %ld / %ld for: ", i, _numCurves[level]); 
+            mpz_out_str(stdout, 10, tmp2); 
+            printf("\n");
+          }
+          /* if ECM found input number, try again */
+          if ((retVal > 0) && (mpz_cmp(tmp1, F->unfactored) == 0)) retVal = 0;
+        } while ((retVal==0) && (i<_numCurves[level]));
+        if (retVal <= 0) {
+          if (++level < _numLevels)
+            B1 = _B1Sizes[level];
+	  else
+            giveUp = 1;
+        } else {
+          mpz_divexact(F->unfactored, F->unfactored, tmp1);
+          if (mpz_probab_prime_p(tmp1, 20)) {
+            e = 1;
+            mpz_mod(tmp2, F->unfactored, tmp1);
+            while (mpz_sgn(tmp2)==0) {
+              e++;
+              mpz_divexact(F->unfactored, F->unfactored, tmp1);
+              mpz_mod(tmp2, F->unfactored, tmp1);
+            }
+            msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s", mpz_get_str(str, 10, tmp1));
+            mpz_fact_add_factor(F, tmp1, top_e*e);
+	  } else {
+            mpz_fact_t TmpF;
+
+            mpz_fact_init(&TmpF);
+            mpz_set(TmpF.N, tmp1);
+            mpz_set(TmpF.unfactored, tmp1);
+            TmpF.sign = 1;
+	    retVal = mpz_fact_factorRealWork_rec(&TmpF, doRealWork, numSmallP,
+                                                 smallP, tmp1, tmp2, str);
+            if (retVal==0) {
+              for (i=0; i<TmpF.size; i++)
+                mpz_fact_add_factor(F, &TmpF.factors[i],
+                                    top_e*TmpF.exponents[i]);
+            }
+            else
+              doRealWork = 0; /* give up on ECM, but do one more power check */
+            mpz_fact_clear(&TmpF);
+          }
+        }  
+      } /* end ECM block */
+      else
+        giveUp = 1; /* no more power checks, no more ECM */ 
+    }
+  }
+
+  mpz_clear(s);
+  if (mpz_cmp_ui(F->unfactored, 1)==0)
+    return 0;
+  return -1;
+
+}
+
 int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
 /************************************************************/
 /* Attempt to factor N using trial division and ECM.        */
@@ -537,20 +660,16 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
 /* Return value: 0 <==> factored completely.                */
 /* If doRealWork=0, we will not try too hard. If it is -1   */
 /* we will do only trial division and divisors in ggnfs.log */
-/* ... and a power check                                    */
 /************************************************************/
-{ int        e, giveUp, retVal, iter, level;
+{ int        e;
   u32        numSmallP, *smallP;
-  mpz_t      tmp1, tmp2, s;
-  mpz_fact_t TmpF;
-  s32       i, B1;
-  double     B2;
+  mpz_t      tmp1, tmp2;
+  s32        i;
   FILE       *fp;
   char       str[256], *loc;
   
   mpz_init(tmp1);
   mpz_init(tmp2);
-  mpz_init(s);
 
   mpz_set(F->N, N);
   mpz_set(F->unfactored, N);
@@ -626,138 +745,17 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
     fclose(fp);
   }
 
-
-  /** Do a power check; avoid mpz_perfect_power_p() because it redoes trial **/
-  /** division (as of GMP 4.1.4) */
-  if (mpz_cmp_ui(F->unfactored, 1)) {
-    if (mpz_probab_prime_p(F->unfactored, 20)) {
-      msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s", 
-             mpz_get_str(str, 10, F->unfactored));
-      mpz_fact_add_factor(F, F->unfactored, 1);
-      mpz_set_ui(F->unfactored, 1);
-    } else { 
-      e = 1;
-      while (mpz_perfect_square_p(F->unfactored)) {
-        e *= 2;
-        mpz_sqrt(F->unfactored, F->unfactored);
-      }
-      for (i=1; i<numSmallP; i++) {
-        while (mpz_root(tmp1, F->unfactored, smallP[i])) {
-          e *= smallP[i];
-          mpz_set (F->unfactored, tmp1);
-        }
-        if (mpz_cmp_ui(tmp1, smallP[numSmallP-1]) < 0) break;
-      } 
-      if (e > 1) {
-        if (mpz_probab_prime_p(F->unfactored, 20)) {
-//        printf("found factor with multiplicity %ld\n", e);
-          msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
-                 mpz_get_str(str, 10, F->unfactored));
-          mpz_fact_add_factor(F, F->unfactored, e);
-          mpz_set_ui(F->unfactored, 1);
-        } else {
-          mpz_fact_init(&TmpF);
-	  retVal = mpz_fact_factorEasy(&TmpF, F->unfactored, doRealWork);
-          if (retVal==0) {
-            for (i=0; i<TmpF.size; i++)
-              mpz_fact_add_factor(F, &TmpF.factors[i], e*TmpF.exponents[i]);
-          } else doRealWork = 0;
-          mpz_fact_clear(&TmpF);
-        }
-      }
-    }
+  if (mpz_cmp_ui(F->unfactored, 1) && (doRealWork >= 0)) {
+    mpz_fact_factorRealWork_rec(F, doRealWork, numSmallP, smallP, tmp1, tmp2, str);
   }
-
   free(smallP);  
-  if (mpz_cmp_ui(F->unfactored, 1)==0) {
-    mpz_clear(tmp1);
-    mpz_clear(tmp2);
-    mpz_clear(s);
-    return 0;
-  } 
-  if (doRealWork <= 0) {
-    mpz_clear(tmp1);
-    mpz_clear(tmp2);
-    mpz_clear(s);
-    return -1;
-  }
-
-
-  /** Do ECM on the remaining part **/
-  mpz_fact_init(&TmpF);
-  giveUp = 0;
-  iter=10;
-  level=0;
-  B1 = _B1Sizes[0];
-  B2 = 0;
-  mpz_set_ui(s, 0);
-  while ((!giveUp) && mpz_cmp_ui(F->unfactored, 1)) {
-    if (mpz_probab_prime_p(F->unfactored, 20)) {
-      msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s",
-             mpz_get_str(str, 10, F->unfactored));
-      mpz_fact_add_factor(F, F->unfactored, 1);
-      mpz_set_ui(F->unfactored, 1);
-    } else if (mpz_perfect_power_p(F->unfactored)) { /* inefficient? oh well */
-      retVal = mpz_fact_factorEasy(&TmpF, F->unfactored, doRealWork);
-      if (retVal==0) {
-        for (i=0; i<TmpF.size; i++)
-          mpz_fact_add_factor(F, &TmpF.factors[i], TmpF.exponents[i]);
-        mpz_set_ui(F->unfactored, 1);
-        mpz_fact_clear(&TmpF);
-        mpz_fact_init(&TmpF);
-      }
-      else
-        giveUp = 1;
-    } else {
-      mpz_set(tmp2, F->unfactored);
-      i=0;
-      do {
-        retVal = ecmFactor(tmp1, tmp2, B1, B2, iter, s);
-        i++;
-	if ((i%10)== 0) {
-          printf("Attempt %ld / %ld for: ", i, _numCurves[level]); 
-          mpz_out_str(stdout, 10, tmp2); 
-          printf("\n");
-        }
-      } while ((retVal==0) && (i<_numCurves[level]));
-      if (retVal <= 0) {
-        if (++level < _numLevels)
-          B1 = _B1Sizes[level];
-	else
-          giveUp = 1;
-      } else {
-        mpz_divexact(F->unfactored, F->unfactored, tmp1);
-        if (mpz_probab_prime_p(tmp1, 20)) {
-          e = 1;
-          mpz_mod(tmp2, F->unfactored, tmp1);
-          while (mpz_sgn(tmp2)==0) {
-            e++;
-            mpz_divexact(F->unfactored, F->unfactored, tmp1);
-            mpz_mod(tmp2, F->unfactored, tmp1);
-          }
-          msgLog(GGNFS_LOG_NAME, "DISC_P_DIV=%s", mpz_get_str(str, 10, tmp1));
-          mpz_fact_add_factor(F, tmp1, e);
-	} else {
-	  retVal = mpz_fact_factorEasy(&TmpF, tmp1, doRealWork);
-          if (retVal==0) {
-            for (i=0; i<TmpF.size; i++)
-              mpz_fact_add_factor(F, &TmpF.factors[i], TmpF.exponents[i]);
-            mpz_fact_clear(&TmpF);
-            mpz_fact_init(&TmpF);
-          }
-          else
-            giveUp = 1;
-        }
-      }	  
-    }
-  }
-  mpz_fact_clear(&TmpF);
   mpz_clear(tmp1);
   mpz_clear(tmp2);
-  mpz_clear(s);
   if (mpz_cmp_ui(F->unfactored, 1)==0)
     return 0;
+
   return -1;
+
 }
 	
 

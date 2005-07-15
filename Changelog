@@ -1,3 +1,9 @@
+7/14/05 (trilliwig)
+  * Patched factLat.pl so it automatically applies more generous parameters
+    for SNFS factorizations where the polynomial degree is not optimal.
+  * Reorganized mpz_fact_factorEasy() so the control flow makes more sense
+    and doesn't repeat operations like trial division unnecessarily.
+
 7/12/05 (trilliwig)
   * Updated mpz_fact_factorEasy() to check for higher multiplicity of prime
     factors above the trial division limit.  The DISC_P_DIV lines in

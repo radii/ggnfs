@@ -37,7 +37,7 @@ $FORCECC="on"; # on | off | auto
 $SAVEPAIRS=0;
 $CLEANUP=0;
 $PROMPTS=0;
-$DOCLASSICAL=0;
+$DOCLASSICAL=1;
 $CHECK_BINARIES=1;
 $ECHO_CMDLINE=1;
 $CHECK_POLY=1;
@@ -346,6 +346,7 @@ sub sigDie {
   die "Signal caught. Terminating...\n";
 }
 
+my $nonPrefDegAdjust = 12;
 ######################################################
 sub loadDefaultParams {
 ######################################################
@@ -358,14 +359,21 @@ sub loadDefaultParams {
 # where 'type' is gnfs or snfs.
 # arg0 = number of digits in N.
 # arg1 = type
+# 
+# The parameter actual_degree, if nonzero, will let this function adjust
+# parameters for SNFS factorizations with a predetermined polynomial
+# of degree that is not the optimal degree.
 
   die("loadDefaultParams(): Insufficient arguments!\n") 
-      unless ($#_ >=1);
-  my $DIGS=$_[0];
-  my $type=$_[1];
+      unless ($#_ >= 2);
+  my $realDIGS=$_[0];
+  my $realDEG=$_[1];
+  my $type=$_[2];
   die("Could not find default parameter file $DEFAULT_PAR_FILE!\n") 
       unless (-e $DEFAULT_PAR_FILE);
   open(IF, $DEFAULT_PAR_FILE);
+  my $paramDIGS=0;
+  my $paramDEG=0;
   my $howClose=1000;
   while (<IF>) {
     s/#.*//; # Remove comments
@@ -374,15 +382,22 @@ sub loadDefaultParams {
       @_ = split /,/;
       my $t=$_[0];
       if ($t eq $type) {
-        my $d=$_[1];
-        if (abs($d-$DIGS)<$howClose) {
-          $o=2;
-          $howClose=abs($d-$DIGS);
-          $digLevel=$d;
-          $DEG=$_[$o+0]; 
+        my $o=2;
+        my $candDIGS=$_[1];
+	my $candDEG=$_[$o+0];
+# try to properly handle crossover from degree 4 to degree 5
+        if ( ($type eq "gnfs" or ! $realDEG or $realDEG == $candDEG or $paramDEG == $candDEG-1)
+             ? abs($candDIGS-$realDIGS)<$howClose
+             : (abs($candDIGS-$nonPrefDegAdjust-$realDIGS)+$nonPrefDegAdjust)<$howClose )
+        {
+          $howClose=($type ne "gnfs" and $realDEG and $candDEG != $realDEG)
+                    ? abs($candDIGS-$nonPrefDegAdjust-$realDIGS)+$nonPrefDegAdjust
+                    : abs($candDIGS-$realDIGS);
+          $paramDIGS=$candDIGS;
+          $paramDEG=$_[$o+0]; 
           $MAXS1=$_[$o+1]; 
-          $MAXSKEW=$_[$o+2];
-          $GOODSCORE=$_[$o+3];  
+          $MAXSKEW=$_[$o+2]; 
+          $GOODSCORE=$_[$o+3]; 
           $EFRAC=$_[$o+4];
           $J0=$_[$o+5]; $J1=$_[$o+6];
           $ESTEPSIZE=$_[$o+7]; 
@@ -400,18 +415,21 @@ sub loadDefaultParams {
     }
   }
   close(IF);
-  printf "-> Selected default factorization parameters for $digLevel digit level.\n";
+  $DEG = $paramDEG;
+  printf "-> Selected default factorization parameters for $paramDIGS digit level.\n";
   if ($type eq "gnfs") {
-    if ($DIGS < 110) { $LATSIEVER=$LATSIEVER_L1; }
-    elsif ($DIGS < 135) { $LATSIEVER=$LATSIEVER_L2; }
+    if ($realDIGS < 110) { $LATSIEVER=$LATSIEVER_L1; }
+    elsif ($realDIGS < 135) { $LATSIEVER=$LATSIEVER_L2; }
     else { $LATSIEVER=$LATSIEVER_L3; }
   } else {
-    if ($DIGS < 150) { $LATSIEVER=$LATSIEVER_L1; }
-    elsif ($DIGS < 180) { $LATSIEVER=$LATSIEVER_L2; }
+    $realDIGS += $nonPrefDegAdjust if ($realDEG and ($paramDEG != $realDEG));
+    if ($realDIGS < 150) { $LATSIEVER=$LATSIEVER_L1; }
+    elsif ($realDIGS < 180) { $LATSIEVER=$LATSIEVER_L2; }
     else { $LATSIEVER=$LATSIEVER_L3; }
   }
   printf "-> Selected lattice siever: $LATSIEVER\n";
 }
+
 
 ######################################################
 sub loadPolselParamsPol5 {
@@ -421,9 +439,10 @@ sub loadPolselParamsPol5 {
 # Kleinjung/Franke tool. 
 # arg0 = number of digits in N.
 
-  die("loadDefaultParams(): Insufficient arguments!\n") 
+  die("loadPolselParamsPol5(): Insufficient arguments!\n") 
       unless ($#_ >=0);
-  my $DIGS=$_[0];
+  my $realDIGS=$_[0];
+  my $paramDIGS=0;
   die("Could not find default parameter file $DEFAULT_POLSEL_PAR_FILE!\n") 
       unless (-e $DEFAULT_POLSEL_PAR_FILE);
   open(IF, $DEFAULT_POLSEL_PAR_FILE);
@@ -434,10 +453,10 @@ sub loadPolselParamsPol5 {
     if (length($_)>0) {
       @_ = split /,/;
       my $d=$_[0];
-      if (abs($d-$DIGS)<$howClose) {
+      if (abs($d-$realDIGS)<$howClose) {
         $o=1;
-        $howClose=abs($d-$DIGS);
-        $digLevel=$d;
+        $howClose=abs($d-$realDIGS);
+        $paramDIGS=$d;
         $maxPSTime=60*$_[$o+0];
         $search_a5step=$_[$o+1]; 
         $npr=$_[$o+2]; 
@@ -449,7 +468,7 @@ sub loadPolselParamsPol5 {
     }
   }
   close(IF);
-  printf "-> Selected default polsel parameters for $digLevel digit level.\n";
+  printf "-> Selected default polsel parameters for $paramDIGS digit level.\n";
 }
 
 #######################################################
@@ -474,7 +493,7 @@ sub runPol5 {
   loadPolselParamsPol5(length($N));
   $maxPSTime *= $polySelTimeMultiplier;
   my $hmult=1e3;
-  loadDefaultParams(length($N), "gnfs");
+  loadDefaultParams(length($N), 5, "gnfs");
   my %bestpolyinf = ();
   $bestpolyinf{Murphy_E} = 0;
 
@@ -600,7 +619,7 @@ sub runPolyselect {
   my $firstGoodTime=0;
   printf "-> Starting search with leading coefficient divisor $lcdChoices[$lcdLevel].\n";
 
-  loadDefaultParams(length($N), "gnfs");
+  loadDefaultParams(length($N), 0, "gnfs");
   $MAXTIME *= $polySelTimeMultiplier;
   my $E1=$E0+$ESTEPSIZE;
   my $goodPFound=0;
@@ -1103,12 +1122,12 @@ sub readParams {
     $SNFS_DIFFICULTY = (new Math::BigFloat $polyval)->babs->blog(10);
 
     printf "-> SNFS_DIFFICULTY is about $SNFS_DIFFICULTY.\n";
-    loadDefaultParams($SNFS_DIFFICULTY->bstr(), "snfs");
+    loadDefaultParams($SNFS_DIFFICULTY->bstr(), $DEGREE, $TYPE);
   } elsif ($TYPE =~ /gnfs/) {
     my $logN = (new Math::BigFloat $N)->babs->blog(10);
 #    print "-> Log N is about $logN.\n";
 
-    loadDefaultParams(length($N), $TYPE);
+    loadDefaultParams(length($N), $DEGREE, $TYPE);
   } else {
     printf "-> Error: poly file should contain one of the following lines:\n";
     printf "-> type: snfs\n";
@@ -1387,6 +1406,7 @@ close(OF);
 
 # Do some classical sieving, if needed/applicable.
 # This is broken - it is still a work in progress!
+$DOCLASSICAL = 0 if ($CLIENT_ID > 1);
 if ($DOCLASSICAL) {
   classicalSieve($classicalA, 1, $classicalB);
   rename $SIEVER_OUTPUTNAME, $SIEVER_ADDNAME;
