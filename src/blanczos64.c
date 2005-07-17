@@ -56,10 +56,10 @@
 
 #if defined( USE_MMX_GCC )
 #if defined(__MINGW32__) || defined(MINGW32)
-#define malloc_aligned64(p,a,n) (!((p) = (u64*)__mingw_aligned_malloc((n)*sizeof(u64),(a))))
+#define malloc_aligned64(p,a,n) (!((p) = (u64*)__mingw_aligned_malloc((n)*sizeof(u64),(a))) || ((uintptr_t)(p)%(a)))
 #define free_aligned64(x) __mingw_aligned_free(x)
 #else
-#define malloc_aligned64(p,a,n) (!((p) = (u64*)memalign((a),(n)*sizeof(u64))))
+#define malloc_aligned64(p,a,n) (!((p) = (u64*)memalign((a),(n)*sizeof(u64))) || ((uintptr_t)(p)%(a)))
 #define free_aligned64(x) free(x)
 #endif
 #define XEMMS asm("emms")
@@ -70,7 +70,7 @@
                                   "movq %%mm0, (%0)\n" \
                                   : : "r"(_a), "r"(_b) : "memory" ); } 
 #elif defined( USE_MMX_MSC )
-#define	malloc_aligned64(p,a,n)  (!(p = (u64*)_aligned_malloc((n) * sizeof(u64), (a))))
+#define	malloc_aligned64(p,a,n)  (!((p) = (u64*)_aligned_malloc((n) * sizeof(u64), (a))) || ((uintptr_t)(p)%(a)))
 #define free_aligned64(x)      _aligned_free(x)
 #define	XEMMS                  __asm	emms
 #define XOR64(_a, _b)          __asm {				\
@@ -80,7 +80,7 @@
                                __asm	pxor mm0,[edx]		\
                                __asm	movq [eax],mm0	}
 #else
-#define	malloc_aligned64(p,a,n)	(!(p = (u64*)malloc((n) * sizeof(u64))))
+#define	malloc_aligned64(p,a,n)	(!((p) = (u64*)malloc((n) * sizeof(u64))) || ((uintptr_t)(p)%(a)))
 #define free_aligned64(x)	        free(x)
 #define	XEMMS
 #define XOR64(_a, _b)           { *(_a) ^= *(_b); }
@@ -550,8 +550,10 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   if (malloc_aligned64(tmp_n, 16, n)) errs++;
   if (malloc_aligned64(tmp2_n, 16, n)) errs++;
   if (malloc_aligned64(tmp3_n, 16, n)) errs++;
-  if (errs)
+  if (errs) {
+    fprintf(stderr, "blanczos(): Memory allocation error!\n");
     goto SHORT_CIRC_STOP;
+  }
   
   /******************************************************************/
   /* Throughout, 'A' means the matrix A := (B^T)B. In fact, all the */

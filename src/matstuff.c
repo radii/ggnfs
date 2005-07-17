@@ -1090,6 +1090,7 @@ int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps)
   blstop = sTime();
   printf("Returned %d. Block Lanczos took %1.2lf seconds.\n", res, blstop-blstart);
   msgLog("", "BLanczosTime: %1.1lf", blstop-blstart);
+  if (res < 0) return res;
 
   /******************************************************/
   /* Now, we need to translate the dependencies back to */

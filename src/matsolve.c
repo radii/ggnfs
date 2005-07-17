@@ -1,5 +1,5 @@
 /**************************************************************/
-/* matolve.c                                                  */
+/* matsolve.c                                                 */
 /* Copyright 2004, Chris Monico.                              */
 /**************************************************************/
 /*  This file is part of GGNFS.
@@ -412,31 +412,32 @@ int main(int argC, char *args[])
     printf("Could not allocate %ld bytes for the dependencies.\n", origC*sizeof(s32));
     free(M.cEntry); free(M.cIndex); return -1;
   }
-  getDependencies(&M, &C, deps);
 
-
-  if (!(ifp = fopen("depinf", "rb"))) {
-    fprintf(stderr, "Error opening depinf for read!\n");
-    exit(-1);
-  }
-  printf("Writing dependencies to file %s.\n", depName);
-  if (!(fp = fopen(depName, "wb"))) {
-    fprintf(stderr, "Error opening %s for write!\n", depName);
-  } else {
-    /* Get the header information from depinf. */
-    readBinField(str, 1024, ifp);
-    while (!(feof(ifp)) && strncmp(str, "END_HEADER",10)) {
+  if (getDependencies(&M, &C, deps) == 0) {
+    if (!(ifp = fopen("depinf", "rb"))) {
+      fprintf(stderr, "Error opening depinf for read!\n");
+      exit(-1);
+    }
+    printf("Writing dependencies to file %s.\n", depName);
+    if (!(fp = fopen(depName, "wb"))) {
+      fprintf(stderr, "Error opening %s for write!\n", depName);
+      fclose(ifp);
+    } else {
+      /* Get the header information from depinf. */
+      readBinField(str, 1024, ifp);
+      while (!(feof(ifp)) && strncmp(str, "END_HEADER",10)) {
+        writeBinField(fp, str);
+        readBinField(str,1024,ifp);
+      }
+      if (strncmp(str, "END_HEADER",10)) {
+        fprintf(stderr, "Error: depinf is corrupt!\n");
+        fclose(ifp); fclose(fp); exit(-1);
+      }
       writeBinField(fp, str);
-      readBinField(str,1024,ifp);
+      fclose(ifp);
+      fwrite(deps, sizeof(s32), origC, fp);
+      fclose(fp);
     }
-    if (strncmp(str, "END_HEADER",10)) {
-      fprintf(stderr, "Error: depinf is corrupt!\n");
-      fclose(ifp); fclose(fp); exit(-1);
-    }
-    writeBinField(fp, str);
-    fclose(ifp);
-    fwrite(deps, sizeof(s32), origC, fp);
-    fclose(fp);
   }
 
   stopTime = sTime();
