@@ -289,19 +289,19 @@ int createFB(nfs_fb_t *FB, char *ofname)
 
     msgLog("", "name: %s", FB->name);
     mpz_get_str(str, 10, FB->n);
-    msgLog("", "n=%s (%d digits)", str, strlen(str));
+    msgLog("", "n=%s (%ld digits)", str, strlen(str));
     for (i=0; i<=FB->f->degree; i++) {
       mpz_get_str(str, 10, &FB->f->coef[i]);
       msgLog("", "c%d: %s", i, str);
     }
-    msgLog("", "RFBsize: %ld (upto %ld)", FB->rfb_size, 
+    msgLog("", "RFBsize: %" PRId32 " (upto %" PRId32 ")", FB->rfb_size, 
            FB->rfb[2*(FB->rfb_size-1)]);
-    msgLog("", "AFBsize: %ld (upto %ld)", FB->afb_size,
+    msgLog("", "AFBsize: %" PRId32 " (upto %" PRId32 ")", FB->afb_size,
            FB->afb[2*(FB->afb_size-1)]);
     msgLog("", "maxNumLargeRatPrimes: %d", FB->maxLP);
-    msgLog("", "maxLargeRatPrime: %ld", FB->maxP_r);
+    msgLog("", "maxLargeRatPrime: %" PRId32, FB->maxP_r);
     msgLog("", "maxNumLargeAlgPrimes: %d", FB->maxLPA);
-    msgLog("", "maxLargeAlgPrime: %ld", FB->maxP_a);
+    msgLog("", "maxLargeAlgPrime: %" PRId32, FB->maxP_a);
     
 
 

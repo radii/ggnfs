@@ -911,7 +911,7 @@ void raw_hash_4()
               if (hh>h) {
                 if (hh-h>3) complain("hash4.0\n");
               } else {
-                if (h-hh>3) complain("%u %u %u %u %llu hash4.1\n",h,hh,h1,raw_bound,raw_ull_bound);
+                if (h-hh>3) complain("%u %u %u %u %" PRIu64 " hash4.1\n",h,hh,h1,raw_bound,raw_ull_bound);
               }
               hh=(uint)(sum2>>32);
               if (hh>h1) {
@@ -1333,7 +1333,7 @@ zeitB(19);
   db*=18446744073709551616.;
   raw_ull_bound=(ull)db;
   raw_ull_bound+=(ull)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
-  if (verbose>3) printf("raw_ull_bound: %llu\n",raw_ull_bound);
+  if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
   raw_bound=(uint)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
 zeitB(9);
@@ -1641,7 +1641,7 @@ zeitB(25);
   db*=18446744073709551616.;
   raw_ull_bound=(ull)db;
   raw_ull_bound+=(ull)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
-  if (verbose>3) printf("raw_ull_bound: %llu\n",raw_ull_bound);
+  if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
   raw_bound=(uint)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
 zeitB(9);
@@ -1960,7 +1960,7 @@ void init_knapsack_exact()
     complain("a_n-2-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
   ull_bound=(ull)db;
-  if (verbose>3) printf("ull_bound: %llu\n",ull_bound);
+  if (verbose>3) printf("ull_bound: %" PRIu64 "\n",ull_bound);
 /*  bound=ull_bound+1;*/
 
   for (i=len1; i<npr_in_p; i++)
@@ -2177,7 +2177,7 @@ void init_knapsack_exact_p0(uint p0, uint r0)
     complain("a_n-2-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
   ull_bound=(ull)db;
-  if (verbose>3) printf("ull_bound: %llu\n",ull_bound);
+  if (verbose>3) printf("ull_bound: %" PRIu64 "\n",ull_bound);
 /*  bound=ull_bound+1;*/
 
   for (i=len1; i<npr_in_p; i++)
@@ -2222,9 +2222,9 @@ void check_raw()
     if ((sum1-sum2>ull_bound) && (sum2-sum1>ull_bound)) {
 #if 1
       if (sum1>sum2)
-        printf("%llu %llu! ",sum1-sum2,ull_bound);
+        printf("%" PRIu64 " %" PRIu64 "! ",sum1-sum2,ull_bound);
       else
-        printf("%llu %llu! ",sum2-sum1,ull_bound);
+        printf("%" PRIu64 " %" PRIu64 "! ",sum2-sum1,ull_bound);
 #else
       printf("!");
 #endif
@@ -3019,10 +3019,10 @@ initzeit(26); zeita(0);
   close_outputfile();
   if (verbose) {
     printf("Statistics:\n");
-    printf("a5-values: %llu, suitable for %d primes: %llu\n",stat_n_a5,npr_in_p,stat_n_pr);
-    printf("raw checks of (a5,p): %llu (%llu),  fine checks of (a5,p): %Lu\n",stat_n_p,stat_n_p_p0,stat_n_raw);
-    printf("polynomials computed: %llu,  survivors: %llu\n",stat_n_polexpand,stat_n_survivors);
-    printf("Total number of checked polynomials: %llu\n",(ull)(five_pow(npr_in_p))*stat_n_p);
+    printf("a5-values: %" PRIu64 ", suitable for %d primes: %" PRIu64 "\n",stat_n_a5,npr_in_p,stat_n_pr);
+    printf("raw checks of (a5,p): %" PRIu64 " (%" PRIu64 "),  fine checks of (a5,p): %" PRIu64 "\n",stat_n_p,stat_n_p_p0,stat_n_raw);
+    printf("polynomials computed: %" PRIu64 ",  survivors: %" PRIu64 "\n",stat_n_polexpand,stat_n_survivors);
+    printf("Total number of checked polynomials: %" PRIu64 "\n",(ull)(five_pow(npr_in_p))*stat_n_p);
   }
   if (success) printf("success\n");
 #ifdef ZEIT

@@ -209,9 +209,9 @@ void fix_for_cd(msqrt_t *M)
       
     }
     if (M->Cd.aI[i] > 0)
-      printf("in AFB at index %ld...", M->Cd.aI[i]);
+      printf("in AFB at index %" PRId32 "...", M->Cd.aI[i]);
     if (M->Cd.eI[i] > 0)
-      printf("is exceptional with index %ld...", M->Cd.eI[i]);
+      printf("is exceptional with index %" PRId32 "...", M->Cd.eI[i]);
     printf("\n");
 
   }
@@ -426,9 +426,9 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
     k++;
   }
   M->spSize = k;
-  printf("There are %ld special prime ideals:\n", k);
+  printf("There are %" PRId32 " special prime ideals:\n", k);
   for (i=0; i<k; i++) {
-    printf("Sp. %ld: ", i);
+    printf("Sp. %" PRId32 ": ", i);
     mpz_out_str(stdout, 10, M->sPrimes[i].p); printf(", ");
     mpz_poly_print(stdout, "",M->sPrimes[i].alpha); 
     printf("        Ramification index: %d\n", M->sPrimes[i].e);
@@ -438,7 +438,7 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
   maxSize = 0;
   for (i=0; i<=lpF->numFiles; i++) {
     if (i < lpF->numFiles)
-      sprintf(fName, "%s.%ld", lpF->prefix, i);
+      sprintf(fName, "%s.%" PRId32, lpF->prefix, i);
     else
       sprintf(fName, "%s.L", lpF->prefix);
     if (stat(fName, &fileInfo)) {
@@ -452,7 +452,7 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
   }
   maxSize += 1000; /* For safety. */
   if (!(T1 = (afb_elt_t *)malloc(maxSize*sizeof(afb_elt_t)))) {
-    fprintf(stderr, "setupPrimes() Error allocating %ld bytes for T1!\n", 
+    fprintf(stderr, "setupPrimes() Error allocating %lu bytes for T1!\n", 
             maxSize*sizeof(afb_elt_t));
     exit(-1);
   }
@@ -461,7 +461,7 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
   t1Size = 0;
   for (i=0; i<=lpF->numFiles; i++) {
     if (i < lpF->numFiles)
-      sprintf(fName, "%s.%ld", lpF->prefix, i);
+      sprintf(fName, "%s.%" PRId32, lpF->prefix, i);
     else
       sprintf(fName, "%s.L", lpF->prefix);
     if (!(fp = fopen(fName, "rb"))) {
@@ -490,14 +490,14 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
     fclose(fp);
   }
   if (t1Size >= maxSize) {
-    fprintf(stderr, "setupPrimes() severe error! maxSize=%ld exceeded!\n", maxSize);
+    fprintf(stderr, "setupPrimes() severe error! maxSize=%" PRId32 " exceeded!\n", maxSize);
     exit(-1);
   
   }
   /* And sort them. */
   qsort(T1, t1Size, sizeof(afb_elt_t), afb_elt_cmp);
 
-  printf("Found %ld large primes total.\n", t1Size);
+  printf("Found %" PRId32 " large primes total.\n", t1Size);
   /* Finally, the large primes we needed are in T1 and */
   /* there are t1Size of them.                         */
   M->aSize = t1Size + M->FB->afb_size;
@@ -623,17 +623,17 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
     /**************************************************************************/
     nr = NR_MULTIPLIER*depSize*M->N->FB->maxLP;
     if (!(ratHashList = (rat_p_t *)malloc(2*nr*sizeof(rat_p_t)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %ld bytes for ratHashList!\n",
-              nr*sizeof(rat_p_t));
+      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for ratHashList!\n",
+              2*nr*sizeof(rat_p_t));
       exit(-1);
     }
     if (!(ratLeftoverList = (rat_p_t *)malloc((nr/2)*sizeof(rat_p_t)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %ld bytes for ratLeftoverList!\n",
-              nr*sizeof(rat_p_t));
+      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for ratLeftoverList!\n",
+              (nr/2)*sizeof(rat_p_t));
       free(ratHashList); exit(-1);
     }
     if (!(RFB_exps = (s32 *)malloc(M->N->FB->rfb_size*sizeof(s32)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %ld bytes for RFB_exps!\n", 
+      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for RFB_exps!\n", 
               M->N->FB->rfb_size*sizeof(s32));
       free(ratHashList); free(ratLeftoverList); exit(-1);
     }
@@ -700,7 +700,7 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
     mpz_init_set_ui(M->ratSqrt, 1);
     for (i=0; i<M->FB->rfb_size; i++) {
       if (RFB_exps[i]%2) {
-        fprintf(stderr, "Error: RFB[%ld] has odd exponent %ld!\n",
+        fprintf(stderr, "Error: RFB[%" PRId32 "] has odd exponent %" PRId32 "!\n",
                  i, RFB_exps[i]);
         exit(-1);
       }
@@ -714,7 +714,7 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
           if (mpz_invert(tmp, tmp, M->FB->n))
             mpz_powm_ui(tmp, tmp, -e, M->FB->n);
           else {
-            printf("Error: Inverse of %ld does not exist mod n!", M->FB->rfb[2*i]); 
+            printf("Error: Inverse of %" PRId32 " does not exist mod n!", M->FB->rfb[2*i]); 
             printf("If this is an intentionally placed factor, re-run with -knowndiv.\n");
             exit(-1);
           }
@@ -728,10 +728,10 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
         mpz_set_ui(tmp, ratHashList[i].p);
         e = ratHashList[i].e/2;
         if (ratHashList[i].e%2) {
-          fprintf(stderr, "Error: Rational prime %ld has odd exponent %ld!\n",
-                   ratHashList[i].p, ratHashList[i].e);
-          msgLog(NULL, "Error: Rational prime %ld has odd exponent %ld!\n",
-                   ratHashList[i].p, ratHashList[i].e);
+          fprintf(stderr, "Error: Rational prime %" PRId32 " has odd exponent %" PRId32 "!\n",
+                  ratHashList[i].p, ratHashList[i].e);
+          msgLog(NULL, "Error: Rational prime %" PRId32 " has odd exponent %" PRId32 "!\n",
+                 ratHashList[i].p, ratHashList[i].e);
           res=-1; goto RSQRT_CLEANUP;
         }
         if (e > 1) 
@@ -749,9 +749,9 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
         mpz_set_ui(tmp, ratLeftoverList[i].p);
         e = ratLeftoverList[i].e/2;
         if (ratLeftoverList[i].e%2) {
-          fprintf(stderr, "Error: Rational prime %ld (leftover) has odd exponent %ld!\n",
+          fprintf(stderr, "Error: Rational prime %" PRId32 " (leftover) has odd exponent %" PRId32 "!\n",
                   ratLeftoverList[i].p, ratLeftoverList[i].e);
-          msgLog(NULL, "Error: Rational prime %ld (leftover) has odd exponent %ld!\n",
+          msgLog(NULL, "Error: Rational prime %" PRId32 " (leftover) has odd exponent %" PRId32 "!\n",
                   ratLeftoverList[i].p, ratLeftoverList[i].e);
           res=-1; goto RSQRT_CLEANUP;
         }
@@ -880,7 +880,7 @@ ABexponentSum=0;
 
   printf("The zeros of f have been computed as:\n");
   for (i=0; i<d; i++)
-    printf("z%ld = %1.15lf + I*%1.15lf\n",i,M->N->fZeros[i].r, M->N->fZeros[i].i);
+    printf("z%" PRId32 " = %1.15lf + I*%1.15lf\n",i,M->N->fZeros[i].r, M->N->fZeros[i].i);
 
   /* Some precomputation to save work later. */
   for (i=0; i<d; i++)  {
@@ -927,7 +927,7 @@ ABexponentSum=0;
   mpz_set(cd, &M->FB->f->coef[d]);
 
   printf("Reading relations and computing initial <gamma> factorization...\n");
-  printf("depSize = %ld.\n", depSize);
+  printf("depSize = %" PRId32 ".\n", depSize);
   /* Prime the loop by opening the first relation file. */
   sprintf(fName, "%s.0", prelF->prefix);
   if (!(fp = fopen(fName, "rb"))) {
@@ -984,16 +984,16 @@ ABexponentSum=0;
     if (mpz_cmp(tmp2, tmp)) {
       s32 pFacts[128];
       int numpFacts;
-      printf("Factorization of relation %ld is wrong:\n", i);
-      printf("a=%ld, b=%ld\n", (s32)a, (s32)-b);
+      printf("Factorization of relation %" PRId32 " is wrong:\n", i);
+      printf("a=%" PRId64 ", b=%" PRId64 "\n", a, -b);
       printf("a-bm = "); mpz_out_str(stdout, 10, tmp); printf("\n");
-      printf("Stored large primes are: %ld %ld.\n", (u32)R.p[0], (u32)R.p[1]);
+      printf("Stored large primes are: %" PRIu32 " %" PRIu32 ".\n", (u32)R.p[0], (u32)R.p[1]);
       printf("Product of factors gives:\n       ");
       mpz_out_str(stdout, 10, tmp2); printf("\n");
       numpFacts = factor(pFacts, tmp, 1);
       printf("factor() returned %d and :\n", numpFacts);
       for (j=0; j<numpFacts; j++)
-        printf("%ld ", pFacts[j]);
+        printf("%" PRId32 " ", pFacts[j]);
       printf("\n");
       exit(-1);
     }
@@ -1049,7 +1049,7 @@ mpz_abs(tmp, tmp);
   }
   printf("The final square should be: ");
   mpz_out_str(stdout, 10, Zsquare);
-  printf("\nWe used %ld (a,b) pairs.\n", numPairs);
+  printf("\nWe used %" PRId32 " (a,b) pairs.\n", numPairs);
   if (Rindex < R1) fclose(fp);
   i=M->aSize-1;
   while ((i>=0) && (M->aExp[i]==0))
@@ -1058,14 +1058,14 @@ mpz_abs(tmp, tmp);
 
   for (i=0; i<=M->aExpLast; i++) {
     if (M->aExp[i]%2) {
-      fprintf(stderr, "Error: Odd exponent found: AFB[%ld] has exponent %ld!\n",
+      fprintf(stderr, "Error: Odd exponent found: AFB[%" PRId32 "] has exponent %" PRId32 "!\n",
               i, M->aExp[i]);
       exit(-1);
     }
   }
   for (i=0; i<M->spSize; i++) {
     if (M->spExp[i]%2) {
-      fprintf(stderr, "Error: Odd exponent found: Sp[%ld] has exponent %ld!\n",
+      fprintf(stderr, "Error: Odd exponent found: Sp[%" PRId32 "] has exponent %" PRId32 "!\n",
               i, M->spExp[i]);
       exit(-1);
     }
@@ -1118,10 +1118,10 @@ mpz_abs(tmp, tmp);
 
   i=0;
   j=0;
-  printf("There are %ld exceptional prime ideals:\n", M->spSize);
+  printf("There are %" PRId32 " exceptional prime ideals:\n", M->spSize);
   for (i=0; i<M->spSize; i++) {
     if (M->spExp[i] ) 
-      printf("[Sp. %ld]^%ld * ", i, M->spExp[i]);
+      printf("[Sp. %" PRId32 "]^%" PRId32 " * ", i, M->spExp[i]);
   }
   printf("\n");
   initOmegaEvalM(M); /* Initialize the evaluation constants. */
@@ -1472,7 +1472,7 @@ int choose_ab_exponent(msqrt_t *M, relation_t *R)
     if (p > 1) {
       pLoc = findLP(p, r, M);
       if ((M->AFB[pLoc].p != p)||(M->AFB[pLoc].r != r))  {
-        fprintf(stderr, "Error: Couldn't find (%ld, %ld) in the primes list!\n", p, r);
+        fprintf(stderr, "Error: Couldn't find (%" PRId32 ", %" PRId32 ") in the primes list!\n", p, r);
         exit(-1);
       }
       l = log((double)M->AFB[pLoc].p);
@@ -1515,7 +1515,7 @@ void updateFactorization_ab(msqrt_t *M, relation_t *R, int exponent)
     if (p > 1) {
       pLoc = findLP(p, r, M);
       if ((M->AFB[pLoc].p != p)||(M->AFB[pLoc].r != r))  {
-        fprintf(stderr, "Error: Couldn't find (%ld, %ld) in the primes list!\n", p, r);
+        fprintf(stderr, "Error: Couldn't find (%" PRId32 ", %" PRId32 ") in the primes list!\n", p, r);
         exit(-1);
       }
       M->aExp[pLoc] += exponent;
@@ -1696,7 +1696,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
         p = M->AFB[index].p;
         r = M->AFB[index].r;
         if (M->aExp[index]%2) {
-          printf("chooseIdeal() sever error: odd exponent found: (%ld, %ld) e=%ld!\n",p,r,(s32)M->aExp[index]);
+          printf("chooseIdeal() sever error: odd exponent found: (%" PRId32 ", %" PRId32 ") e=%" PRId32 "!\n",p,r,(s32)M->aExp[index]);
           return -1;
         }
         e=0;
@@ -1726,7 +1726,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
           cont = 0;
         else {
           if (M->spExp[indexE]%2) {
-            printf("chooseIdeal() sever error: odd exponent found! (Special ideal %ld, e=%ld)\n", indexE,M->spExp[indexE]);
+            printf("chooseIdeal() severe error: odd exponent found! (Special ideal %" PRId32 ", e=%" PRId32 ")\n", indexE,M->spExp[indexE]);
             return -1;
           }
           e=0;
@@ -1736,7 +1736,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
             lognormI += _mpz_log(M->sPrimes[indexE].p);
           }
 #ifdef _DEBUG
-        sprintf(tmpStr, "EIdeal %ld : e=%ld/%ld\n",indexE,e,M->spExp[indexE]);
+        sprintf(tmpStr, "EIdeal %" PRId32 " : e=%" PRId32 "/%" PRId32 "\n",indexE,e,M->spExp[indexE]);
         strncat(idealSelStr, tmpStr, MAX_IDEAL_STR-strlen(idealSelStr));
 #endif
           M->spExp[indexE] -= 2*e;
@@ -1755,7 +1755,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
         p = M->AFB[index].p;
         r = M->AFB[index].r;
         if (M->aExp[index]%2) {
-          printf("chooseIdeal() sever error: odd exponent found: (%ld, %ld) e=%ld!\n",p,r,(s32)M->aExp[index]);
+          printf("chooseIdeal() severe error: odd exponent found: (%" PRId32 ", %" PRId32 ") e=%" PRId32 "!\n",p,r,(s32)M->aExp[index]);
           return -1;
         }
         e=0;
@@ -1764,7 +1764,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
           lognormI += log((double)p);
         }
 #ifdef _DEBUG
-        sprintf(tmpStr, "Ideal %ld : (%ld, %ld) e=%ld/%ld\n",index,p,r,e,M->aExp[index]);
+        sprintf(tmpStr, "Ideal %" PRId32 " : (%" PRId32 ", %" PRId32 ") e=%" PRId32 "/%" PRId32 "\n",index,p,r,e,M->aExp[index]);
         strncat(idealSelStr, tmpStr, MAX_IDEAL_STR-strlen(idealSelStr));
 #endif
         if (e > 0 ) {
@@ -1784,7 +1784,7 @@ int chooseIdeal(mpz_mat_t *I, msqrt_t *M, int sl)
           cont=0;
         else {
           if (M->spExp[indexE]%2) {
-            printf("chooseIdeal() sever error: odd exponent found! (Special ideal %ld, e=%ld)\n", indexE,M->spExp[indexE]);
+            printf("chooseIdeal() severe error: odd exponent found! (Special ideal %" PRId32 ", e=%" PRId32 ")\n", indexE,M->spExp[indexE]);
             return -1;
           }
           e=0;
@@ -2145,7 +2145,7 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
 
     if ((now > (lastReportTime + 5.0)) || 
          ((M.logNormGDen < 1000.0) && (M.logNormGNum < 1000.0))) {
-      printf("step %ld, sl=%2d, logGam=%1.2lf/%1.2lf, ", 
+      printf("step %" PRId32 ", sl=%2d, logGam=%1.2lf/%1.2lf, ", 
               l, sl, M.logNormGNum, M.logNormGDen);
       printf("emb: ");
       for (i=0; i<N->degree; i++) 
@@ -2258,7 +2258,7 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   }
   printf("-------------------------------------------------\n");
   printf("Iterative portion of square root computation done.\n");
-  printf("step %ld, sl=%2d, logGam=%1.2lf/%1.2lf, ", 
+  printf("step %" PRId32 ", sl=%2d, logGam=%1.2lf/%1.2lf, ", 
           l, sl, M.logNormGNum, M.logNormGDen);
   printf("emb: ");
   for (i=0; i<N->degree; i++) 
@@ -2280,13 +2280,13 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   empty=1;
   for (i=M.aSize-1; i>=0; i--) {
     if (M.aExp[i] != 0) {
-      printf("(%ld, %ld)^%ld\n", M.AFB[i].p, M.AFB[i].r, M.aExp[i]);
+      printf("(%" PRId32 ", %" PRId32 ")^%" PRId32 "\n", M.AFB[i].p, M.AFB[i].r, M.aExp[i]);
       empty=0;
     }
   }
   for (i=M.spSize-1; i>=0; i--) {
     if (M.spExp[i] != 0) {
-      printf("(EIdeal %d)^%ld\n", i, M.spExp[i]);
+      printf("(EIdeal %d)^%" PRId32 "\n", i, M.spExp[i]);
       empty=0;
     }
   }

@@ -231,7 +231,7 @@ int dataConvertToRel(relation_t *R, s32 *data)
   if (R->aFSize > MAX_ALG_FACTORS) {
     fprintf(stderr, "dataConvertToRel() Error: MAX_ALG_FACTORS too small to hold %d factors!\n",
             R->aFSize);
-    fprintf(stderr, "sF field was: %8.8lx\n", sF);
+    fprintf(stderr, "sF field was: %8.8" PRIx32 "\n", sF);
     return -1;
   }
   for (i=0; i<R->aFSize; i++)  {
@@ -325,7 +325,7 @@ int readRel(relation_t *R, FILE *fp)
   data[0] = sF;
   dataSize = S32S_IN_ENTRY(sF) - 1; /* We already read the first one! */
   if (dataSize > 1024) {
-    fprintf(stderr, "readRel() Error: dataSize = %ld > 1024! Increase and recompile!\n",
+    fprintf(stderr, "readRel() Error: dataSize = %" PRId32 " > 1024! Increase and recompile!\n",
             dataSize);
     return -1;
   }
@@ -386,7 +386,7 @@ int readRelList(rel_list *L, char *fname)
   
   printf("\n");
   if (L->numRels > L->maxRels) {
-    fprintf(stderr, "readRelList() Error: File contains %ld relations vs. maxRels=%ld\n",
+    fprintf(stderr, "readRelList() Error: File contains %" PRId32 " relations vs. maxRels=%" PRId32 "\n",
             L->numRels, L->maxRels);
     fclose(fp);
     return -1;
@@ -424,7 +424,7 @@ int readRelList(rel_list *L, char *fname)
     return -1;
   }
   if (size >= L->maxDataSize) {
-    fprintf(stderr, "  (read %ld of %ld relations).\n", relsRead, L->numRels);
+    fprintf(stderr, "  (read %" PRId32 " of %" PRId32 " relations).\n", relsRead, L->numRels);
     L->numRels = relsRead;
     fprintf(stderr, "readRelList() Error: L->relData is not large enough to handle %s!\n", fname);
     return -1;
@@ -526,7 +526,7 @@ int factRel(relation_t *R, nf_t *N)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
-        fprintf(stderr, "%lu\n", p);
+        fprintf(stderr, "%" PRId32 "\n", p);
         return -177;
       }
     }
@@ -778,7 +778,7 @@ int completeRelFact(relation_t *R, nf_t *N)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< (u32)FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
-        fprintf(stderr, "%lu\n", pFacts[i]);
+        fprintf(stderr, "%" PRId32 "\n", pFacts[i]);
         return -177;
       }
     }
@@ -1151,7 +1151,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
   /* Do temp1 <-- a - bm  */
   a = R->a; b = R->b;
   mpz_mul_si64(temp2,FB->y1,a);
-  //printf("a = %I64d\n", a );
+  //printf("a = %" PRId64 "\n", a );
   //gmp_printf("y1*a=%Zd\n", temp2 );
  
   mpz_mul_si(temp1,FB->y0,b);
@@ -1250,7 +1250,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< (u32)FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
-        fprintf(stderr, "%lu (numLarge=%d)\n", pFacts[i], numLarge);
+        fprintf(stderr, "%" PRId32 " (numLarge=%d)\n", pFacts[i], numLarge);
         return -177;
       }
     }
@@ -1356,13 +1356,13 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
         numpFacts++;
         mpz_set_ui(norm, 1);
       } else {
-        printf("Algebraic failure: (%I64d, %ld)\n", R->a, R->b);
+        printf("Algebraic failure: (%" PRId64 ", %" PRId32 ")\n", R->a, R->b);
         printf("  leftover norm is: "); mpz_out_str(stdout, 10, norm); printf("\n");
         printf("The following were the siever-supplied primes (norms):\n");
         for (i=0; i<R->aFSize; i++)
-          printf("%lx (%ld) ", R->aFactors[i], FB->afb[2*R->aFactors[i]]);
+          printf("%" PRIx32 " (%" PRId32 ") ", R->aFactors[i], FB->afb[2*R->aFactors[i]]);
         for (i=0; i<MAX_LARGE_ALG_PRIMES; i++)
-          printf("(%ld)", R->a_p[i]);
+          printf("(%" PRId32 ")", R->a_p[i]);
         printf("\n");
         return -293;
       }
@@ -1376,7 +1376,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
     for (i=0; i<numpFacts; i++) {
       /* Find this factor in the AFB. */
       p = pFacts[i];
-      if ((u32)p> (u32)FB->maxP_a) { fprintf(stderr, "%lu\n", p); return -1923; }
+      if ((u32)p> (u32)FB->maxP_a) { fprintf(stderr, "%" PRId32 "\n", p); return -1923; }
       /* Find the corresponding 'r': */
       if (R->b%p==0) r=p; /* prime @ infty. */
       else r = mulmod32((p+(R->a%p))%p, inverseModP(R->b, p), p);
@@ -1455,12 +1455,12 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%I64d,%ld:", R->a, R->b);
+  sprintf(str, "%" PRId64 ",%" PRId32 ":", R->a, R->b);
   for (i=0; i<R->rFSize; i++) {
     if (R->rFactors[i] >= CLIENT_SKIP_R_PRIMES) {
       if (numR==0)
-        sprintf(s, "%lx", FB->rfb[2*R->rFactors[i]]);
-      else sprintf(s, ",%lx", FB->rfb[2*R->rFactors[i]]);
+        sprintf(s, "%" PRIx32, FB->rfb[2*R->rFactors[i]]);
+      else sprintf(s, ",%" PRIx32, FB->rfb[2*R->rFactors[i]]);
       strcat(str, s);
       numR++;
     }
@@ -1468,9 +1468,9 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
   for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
     if (R->p[i] > 1) {
       if (numR>0)
-        sprintf(s, ",%lx", R->p[i]);
+        sprintf(s, ",%" PRIx32, R->p[i]);
       else
-        sprintf(s, "%lx", R->p[i]);
+        sprintf(s, "%" PRIx32, R->p[i]);
       strcat(str, s);
       numR++;
     }
@@ -1479,8 +1479,8 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
   for (i=0; i<R->aFSize; i++) {
     if (R->aFactors[i] >= CLIENT_SKIP_A_PRIMES) {
       if (numA==0)
-        sprintf(s, "%lx", FB->afb[2*R->aFactors[i]]);
-      else sprintf(s, ",%lx", FB->afb[2*R->aFactors[i]]);
+        sprintf(s, "%" PRIx32, FB->afb[2*R->aFactors[i]]);
+      else sprintf(s, ",%" PRIx32, FB->afb[2*R->aFactors[i]]);
       strcat(str, s);
       numA++;
     }
@@ -1489,9 +1489,9 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
   for (i=0; i<MAX_LARGE_ALG_PRIMES; i++) {
     if (R->a_p[i] > 1) {
       if (numA>0)
-        sprintf(s, ",%lx", R->a_p[i]);
+        sprintf(s, ",%" PRIx32, R->a_p[i]);
       else
-        sprintf(s, "%lx", R->a_p[i]);
+        sprintf(s, "%" PRIx32, R->a_p[i]);
       strcat(str, s);
       numA++;
     }
@@ -1538,14 +1538,14 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
     afb[j++] = str[i++];
   afb[j]=0; i++;
 
-  if (sscanf(ab, "%I64d,%ld", &R->a, &R->b) != 2) return -1;
+  if (sscanf(ab, "%" SCNd64 ",%" SCNd32, &R->a, &R->b) != 2) return -1;
 
   /* Rational primes: */
   largeRat=0;
   R->p[0]=R->p[1]=1;
   R->rFSize=0; j=0;
   size = strlen(rfb);
-  while ((j<size)&&(sscanf(rfb+j,"%lx", &p)==1)) {
+  while ((j<size)&&(sscanf(rfb+j,"%" SCNd32, &p)==1)) {
     k = lookupRFB(p, FB);
     if (k>=0) {
       R->rFactors[R->rFSize] = k;
@@ -1563,7 +1563,7 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
   R->a_r[0]=R->a_r[1]=1;
   R->aFSize=0; j=0;
   size = strlen(afb);
-  while ((j<size) && (sscanf(afb+j,"%lx", &p)==1)) {
+  while ((j<size) && (sscanf(afb+j,"%" SCNd32, &p)==1)) {
     if (R->b % p) {
       r = mulmod32(p+(R->a%p), inverseModP(R->b, p), p);
       k = lookupAFB(p, r, FB);

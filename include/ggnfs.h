@@ -28,6 +28,8 @@
 
 #include <gmp.h>
 #include <stdarg.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "version.h"
@@ -85,20 +87,15 @@
 #define MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b))
 #define MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
 
-#ifndef LONG64
-typedef long s32;
-typedef long long s64;
-typedef unsigned long u32;
-typedef unsigned long long u64;
-#else
-typedef int s32;
-typedef long s64;
-typedef unsigned int u32;
-typedef unsigned long u64;
-#endif
-
-typedef unsigned char u8;
-typedef unsigned short u16;
+/* should be defined in inttypes.h.  If your system doesn't
+   have this, you'll need to define these and the printf/scanf
+   format specifiers (e.g. PRId32, SCNu64, etc) yourself */
+#define s32 int32_t
+#define s64 int64_t
+#define u32 uint32_t
+#define u64 uint64_t
+#define u8  uint8_t
+#define u16 uint16_t
 
 
 /************************************************/

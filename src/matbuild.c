@@ -182,7 +182,7 @@ int checkMat(nfs_sparse_mat_t *M)
           nz=1;
       }
       if (nz==0) {
-        printf("Warning: column %ld is all zero!\n", c);
+        printf("Warning: column %" PRId32 " is all zero!\n", c);
         if (numDel < 2048) 
           delCols[numDel++]=c;
         warn=1;
@@ -203,7 +203,7 @@ int checkMat(nfs_sparse_mat_t *M)
   for (i=0; i<(M->numCols-1); i++) {
     if (colHash[2*i]==colHash[2*i+2]) {
       if (colsAreEqual(M, colHash[2*i+1], colHash[2*i+3])) {
-        printf("Bad matrix: column %ld = column %ld!\n", 
+        printf("Bad matrix: column %" PRId32 " = column %" PRId32 "!\n", 
                colHash[2*i+1], colHash[2*i+3]);
         if (numDel < 2048) 
           delCols[colHash[2*i+3]]=2*i+1;
@@ -218,7 +218,7 @@ int checkMat(nfs_sparse_mat_t *M)
     printf("This is probably a sign that something has gone horribly wrong\n");
     printf("in the matrix construction (procrels).\n");
     if (numDel < 2048) {
-      printf("However, the number of bad columns is only %ld,\n", numDel);
+      printf("However, the number of bad columns is only %" PRId32 ",\n", numDel);
       printf("so we will delete them and attempt to continue.\n");
     }
   }
@@ -270,7 +270,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* Condition for a block of rows to be considered dense: */
   dW=2.0;
 
-  printf("Matrix scanned: it should be %ld x %ld.\n", M->numRows, M->numCols);
+  printf("Matrix scanned: it should be %" PRId32 " x %" PRId32 ".\n", M->numRows, M->numCols);
   i=0;
   /* This could be made a bit slicker, but whatever. */
   while ((i<nR-bSize) && (M->numDenseBlocks < MAX_DENSE_BLOCKS)) {
@@ -294,10 +294,10 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
       rwt[i++]=0;
     }
   }
-  printf("Found %ld dense blocks. Re-reading matrix...\n", M->numDenseBlocks);
-printf("The dense blocks consist of the following sets of rows:\n");
-for (k=0; k<M->numDenseBlocks; k++) 
-printf("[%ld, %ld]\n", M->denseBlockIndex[k], M->denseBlockIndex[k]+bSize-1);
+  printf("Found %" PRId32 " dense blocks. Re-reading matrix...\n", M->numDenseBlocks);
+  printf("The dense blocks consist of the following sets of rows:\n");
+  for (k=0; k<M->numDenseBlocks; k++) 
+    printf("[%" PRId32 ", %" PRId32 "]\n", M->denseBlockIndex[k], M->denseBlockIndex[k]+bSize-1);
 
   rewind(fp);
   fread(&M->numCols, sizeof(s32), 1, fp);
@@ -308,7 +308,7 @@ printf("[%ld, %ld]\n", M->denseBlockIndex[k], M->denseBlockIndex[k]+bSize-1);
   M->cIndex = (s32 *)lxmalloc((M->numCols+1)*sizeof(s32),1);
   for (i=0; i<M->numDenseBlocks; i++) {
     if (!(M->denseBlocks[i] = (u64 *)lxcalloc((M->numCols+1)*sizeof(u64),0))) {
-      fprintf(stderr, "loadMat() Error allocating %ld bytes for the QCB entries!\n",
+      fprintf(stderr, "loadMat() Error allocating %lu bytes for the QCB entries!\n",
               (M->numCols+1)*sizeof(u64));
       free(M->cIndex); free(M->cEntry); fclose(fp); return -1;
     }
@@ -374,12 +374,12 @@ rel_list *getRelList(multi_file_t *prelF, int index)
   RL->maxRels += 5;
   /* Now allocate for the relations. */
   if (!(RL->relData = (s32 *)lxmalloc(RL->maxDataSize * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %ldMB for reading relation list!\n",
+    fprintf(stderr, "Error allocating %luMB for reading relation list!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     free(RL); return NULL;
   }
   if (!(RL->relIndex = (s32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %ldMB for relation pointers!\n", 
+    fprintf(stderr, "Error allocating %luMB for relation pointers!\n", 
             RL->maxRels * sizeof(s32)/1048576);
     free(RL->relData); free(RL);
     return NULL;
@@ -501,7 +501,7 @@ llist_t *getLPList(multi_file_t *prelF)
   lRSize = lRMax=0;
   lASize = lAMax=0;
   for (i=0; i<prelF->numFiles; i++) {
-    printf("Loading processed file %ld/%d...", i+1, prelF->numFiles);
+    printf("Loading processed file %" PRId32 "/%d...", i+1, prelF->numFiles);
     fflush(stdout);
     RL = getRelList(prelF, i);
     printf("Done. Processing...\n");
@@ -552,7 +552,7 @@ llist_t *getLPList(multi_file_t *prelF)
     printf("Done.\nSorting and filtering LA..."); fflush(stdout);
     lASize = sortRMDups2(lA, lASize);
     printf("Done.\n");
-    printf("Found %ld distinct large rprimes and %ld large aprimes so far.\n",lRSize, lASize); 
+    printf("Found %" PRId32 " distinct large rprimes and %" PRId32 " large aprimes so far.\n",lRSize, lASize); 
   }
 
   bufMax = IO_BUFFER_SIZE;
@@ -563,7 +563,7 @@ llist_t *getLPList(multi_file_t *prelF)
   bufSize=0;
 
 
-  printf("There are %ld large primes versus %ld relations.\n", 
+  printf("There are %" PRId32 " large primes versus %" PRId32 " relations.\n", 
           lRSize+lASize, numRels);
   initialRelations = numRels;
 
@@ -638,7 +638,7 @@ llist_t *getLPList(multi_file_t *prelF)
 
 
   for (i=0; i<prelF->numFiles; i++) {
-    printf("Loading processed file %ld/%d...", i+1, prelF->numFiles);
+    printf("Loading processed file %" PRId32 "/%d...", i+1, prelF->numFiles);
     fflush(stdout);
     RL = getRelList(prelF, i);
     printf("Done. Processing...\n");
@@ -659,7 +659,7 @@ llist_t *getLPList(multi_file_t *prelF)
         /* So p is a large rational prime in this relation: get it's index. */
         loc = bsearch(&p, lR, lRSize, sizeof(s32), cmpS32s);
         if (loc==NULL) {
-          printf("Warning: Could not find large rational prime %ld in lR!\n", p);
+          printf("Warning: Could not find large rational prime %" PRId32 " in lR!\n", p);
           index = BAD_LP_INDEX; /* See the note at top of file. */
         } else {
           index = loc-lR;
@@ -673,7 +673,7 @@ llist_t *getLPList(multi_file_t *prelF)
         key[0]=p; key[1]=r;
         loc = bsearch(key, lA, lASize, 2*sizeof(s32), cmp2S32s);
         if (loc==NULL) {
-          printf("Warning: Could not find large alg prime (%ld,%ld) in lR!\n",p,r);
+          printf("Warning: Could not find large alg prime (%" PRId32 ",%" PRId32 ") in lR!\n",p,r);
           index = BAD_LP_INDEX;
         } else {
           index = lRSize + (loc - lA)/2;
@@ -729,9 +729,10 @@ s32 doRowOps3(llist_t **P, llist_t *R, multi_file_t *prelF, int maxRelsInFF)
   PL = getLPList(prelF);
   numLargeP = totalLargePrimes;
   printf("----------------------------\n");
-  printf("There are %ld large primes versus %ld relations.\n", 
+  printf("There are %" PRId32 " large primes versus %" PRId32 " relations.\n", 
           numLargeP, initialRelations);
-  msgLog(NULL, "largePrimes: %ld , relations: %ld", numLargeP, initialRelations);
+  msgLog(NULL, "largePrimes: %" PRId32 " , relations: %" PRId32,
+         numLargeP, initialRelations);
   printf("----------------------------\n");
 
   *P = PL;
@@ -743,7 +744,7 @@ s32 doRowOps3(llist_t **P, llist_t *R, multi_file_t *prelF, int maxRelsInFF)
   printf("------------------------------\n");
   j=0;
   do {
-    printf("                %ld | %ld\n", j, numLP[j]);
+    printf("                %" PRId32 " | %" PRId32 "\n", j, numLP[j]);
     j++;
   } while ((j<10) && (numLP[j]>0));
   printf("------------------------------\n");
@@ -775,7 +776,7 @@ s32 getCols(char *colName, multi_file_t *prelF, multi_file_t *lpF, nfs_fb_t *FB,
   mpz_init(tmp);
   tPP = approxPi_x(FB->maxP_r) + approxPi_x(FB->maxP_a);
   tPP = tPP - FB->rfb_size - FB->afb_size;
-  printf("Max # of large primes is approximately %ld.\n", tPP);
+  printf("Max # of large primes is approximately %" PRId32 ".\n", tPP);
   numFulls = doRowOps3(&P, &Rl, prelF, maxRelsInFF);
 
   if (numFulls < minFull) {
@@ -867,7 +868,7 @@ s32 getCols(char *colName, multi_file_t *prelF, multi_file_t *lpF, nfs_fb_t *FB,
   ll_clear(P); free(P);
 
 
-  printf("After re-scanning files and building column indicies, numFF=%ld.\n", numFF);
+  printf("After re-scanning files and building column indicies, numFF=%" PRId32 ".\n", numFF);
   bufSize = bufIndex = 0;
   bufSize2 = bufIndex2 = 0;
   /*******************************************************************************/
@@ -879,14 +880,14 @@ s32 getCols(char *colName, multi_file_t *prelF, multi_file_t *lpF, nfs_fb_t *FB,
   aOffset = FB->rfb_size;
   spOffset = aOffset + FB->afb_size;
 
-  printf("Creating %ld matrix columns...\n", numFF);
+  printf("Creating %" PRId32 " matrix columns...\n", numFF);
   strcpy(fName, TMP_FILE);
   R0=R1=0;
   for (i=0; i<prelF->numFiles; i++) {
-    sprintf(prelName, "%s.%ld", prelF->prefix, i);
+    sprintf(prelName, "%s.%" PRId32, prelF->prefix, i);
     RL = getRelList(prelF, i);
     R1 = R0 + RL->numRels;
-    printf("Re-read %ld relations from %s :  [%ld, %ld).\n", RL->numRels, prelName, R0, R1);
+    printf("Re-read %" PRId32 " relations from %s :  [%" PRId32 ", %" PRId32 ").\n", RL->numRels, prelName, R0, R1);
     /* Now, we have in RAM the relations numbered [R0, R1). */
     if (!(fp = fopen(colName, "rb"))) {
       fprintf(stderr, "getCols() Error opening %s for read!\n", colName);
@@ -1036,11 +1037,11 @@ s32 getCols(char *colName, multi_file_t *prelF, multi_file_t *lpF, nfs_fb_t *FB,
     }
 
     if (C.numRels > 0) {
-      printf("Error: relation-set %ld still has %ld unconverted relations!\n",
+      printf("Error: relation-set %" PRId32 " still has %" PRId32 " unconverted relations!\n",
               j,C.numRels);
       printf("They are: ");
       for (i=0; i<C.numRels; i++) 
-        printf("%ld ", C.Rels[i]);
+        printf("%" PRId32 " ", C.Rels[i]);
       printf("\n");
       exit(-1);
     }
@@ -1114,7 +1115,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   RL->numRels = 0;
   RL->maxDataSize = 1000 + maxSize/sizeof(s32);
   if (!(RL->relData = (s32 *)lxmalloc(RL->maxDataSize * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %ldMB for processed relation files!\n",
+    fprintf(stderr, "Error allocating %luMB for processed relation files!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
     exit(-1);
@@ -1122,7 +1123,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   /* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
   RL->maxRels = (u32)RL->maxDataSize/20;
   if (!(RL->relIndex = (s32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %ldMB for relation pointers!\n",
+    fprintf(stderr, "Error allocating %luMB for relation pointers!\n",
             RL->maxRels * sizeof(s32)/1048756);
     free(RL->relData);
     exit(-1);
@@ -1160,9 +1161,9 @@ int buildSparseMat(char *colName, double wtFactor)
 
   printf("Loading matrix into RAM...\n");
   loadMat(&M, colName);
-  printf("Matrix loaded: it is %ld x %ld.\n", M.numRows, M.numCols);
+  printf("Matrix loaded: it is %" PRId32 " x %" PRId32 ".\n", M.numRows, M.numCols);
   if (M.numCols < (M.numRows + 64)) {
-    printf("More columns needed (current = %ld, min = %ld)\n",
+    printf("More columns needed (current = %" PRId32 ", min = %" PRId32 ")\n",
            M.numCols, M.numRows+64);
     free(M.cEntry); free(M.cIndex);
     return 0;
@@ -1187,11 +1188,11 @@ int buildSparseMat(char *colName, double wtFactor)
   pruneMatrix(&M, minExtraCols, wtFactor, &C);
   /* Sanity check: */
   if (M.numCols != C.numFields) {
-    fprintf(stderr, "Error: M.numCols = %ld != %ld = C.numFields.\n",
+    fprintf(stderr, "Error: M.numCols = %" PRId32 " != %" PRId32 " = C.numFields.\n",
             M.numCols, C.numFields);
     exit(-1);
   } else {
-    printf("Sanity check: M.numCols = %ld = C.numFields. passed.\n",
+    printf("Sanity check: M.numCols = %" PRId32 " = C.numFields. passed.\n",
             M.numCols);
   }
   writeSparseMat("spmat", &M);
@@ -1293,10 +1294,10 @@ lxmalloc(4000000,0);
   msgLog("", "Heap stats for matbuild run, after cycle-building");
   logHeapStats();
   if (finalFF > 0)
-    msgLog("", "rels:%ld, initialFF:%ld, finalFF:%ld", 
+    msgLog("", "rels:%" PRId32 ", initialFF:%" PRId32 ", finalFF:%" PRId32, 
            initialRelations, initialFF, finalFF);
   if (finalFF < minFF) {
-    printf("More columns needed (current = %ld, min = %ld)\n",
+    printf("More columns needed (current = %" PRId32 ", min = %" PRId32 ")\n",
            finalFF, minFF);
     exit(0);
   }
@@ -1310,9 +1311,9 @@ lxmalloc(4000000,0);
   if (!(fp = fopen("depinf", "wb"))) {
     fprintf(stderr, "Error opening %s for write!\n", "depinf");
   } else {
-    sprintf(str, "NUMCOLS: %8.8lx", finalFF); writeBinField(fp, str);
+    sprintf(str, "NUMCOLS: %8.8" PRIx32, finalFF); writeBinField(fp, str);
     sprintf(str, "COLNAME: %s.index", colName); writeBinField(fp, str);
-    sprintf(str, "MAXRELS: %8.8lx", totalRels); writeBinField(fp, str);
+    sprintf(str, "MAXRELS: %8.8" PRIx32, totalRels); writeBinField(fp, str);
     sprintf(str, "RELPREFIX: %s", prelF.prefix); writeBinField(fp, str);
     sprintf(str, "RELFILES: %x", prelF.numFiles); writeBinField(fp, str);
     sprintf(str, "LPFPREFIX: %s", lpF.prefix); writeBinField(fp, str);

@@ -427,9 +427,9 @@ void polprintmod32(u32 * P, u32 dP, char *c)
 {
   u32 i;
 
-  printf("\n%s %lu\n", c, dP);
+  printf("\n%s %" PRIu32 "\n", c, dP);
   for (i = 0; i <= dP; i++)
-    printf("%lu ", P[i]);
+    printf("%" PRIu32 " ", P[i]);
   printf("\n");
 }
 
@@ -494,7 +494,7 @@ u32 polrootmod32(__mpz_struct  * A, u32 dT, u32 * r)
     r[i] = 0;
     j = polrootrecmod32(Q, dQ, r + i, S + dS + 1);      /*j=dQ */
     if (j != dQ)
-      fprintf(stderr, "Falsche Nullstellenanzahl Q, P %lu\n", modulo32);
+      fprintf(stderr, "Falsche Nullstellenanzahl Q, P %" PRIu32 "\n", modulo32);
     i += j;
   }
   if (dS > 0) {
@@ -502,7 +502,7 @@ u32 polrootmod32(__mpz_struct  * A, u32 dT, u32 * r)
     r[i] = 0;
     j = polrootrecmod32(S, dS, r + i, S + dS + 1);      /*j=dS */
     if (j != dS)
-      fprintf(stderr, "Falsche Nullstellenanzahl S, P %lu\n", modulo32);
+      fprintf(stderr, "Falsche Nullstellenanzahl S, P %" PRIu32 "\n", modulo32);
     i += j;
   }
   qsort(r, i, sizeof(u32), uintcmp);

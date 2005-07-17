@@ -152,7 +152,7 @@ int checkMat(nfs_sparse_mat_t *M)
           nz=1;
       }
       if (nz==0) {
-        printf("Warning: column %ld is all zero!\n", c);
+        printf("Warning: column %" PRId32 " is all zero!\n", c);
         if (numDel < 2048) 
           delCols[numDel++]=c;
         warn=1;
@@ -173,7 +173,7 @@ int checkMat(nfs_sparse_mat_t *M)
   for (i=0; i<(M->numCols-1); i++) {
     if (colHash[2*i]==colHash[2*i+2]) {
       if (colsAreEqual(M, colHash[2*i+1], colHash[2*i+3])) {
-        printf("Bad matrix: column %ld = column %ld!\n", 
+        printf("Bad matrix: column %" PRId32 " = column %" PRId32 "!\n", 
                colHash[2*i+1], colHash[2*i+3]);
         if (numDel < 2048) 
           delCols[colHash[2*i+3]]=c;
@@ -188,7 +188,7 @@ int checkMat(nfs_sparse_mat_t *M)
     printf("This is probably a sign that something has gone horribly wrong\n");
     printf("in the matrix construction (procrels).\n");
     if (numDel < 2048) {
-      printf("However, the number of bad columns is only %ld,\n", numDel);
+      printf("However, the number of bad columns is only %" PRId32 ",\n", numDel);
       printf("so we will delete them and attempt to continue.\n");
     }
   }
@@ -221,7 +221,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* Scan the file once to find out how many dense rows there are. */
   rwt = (s32 *)malloc(M->numCols*sizeof(s32));
   if (rwt == NULL) {
-    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%ld bytes)\n",
+    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%lu bytes)\n",
             M->numCols*sizeof(s32));
     exit(-1);
   }
@@ -245,7 +245,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* Condition for a block of rows to be considered dense: */
   dW=2.0;
 
-  printf("Matrix scanned: it should be %ld x %ld.\n", M->numRows, M->numCols);
+  printf("Matrix scanned: it should be %" PRId32 " x %" PRId32 ".\n", M->numRows, M->numCols);
   i=0;
   /* This could be made a bit slicker, but whatever. */
   while ((i<nR-bSize) && (M->numDenseBlocks < MAX_DENSE_BLOCKS)) {
@@ -269,10 +269,10 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
       rwt[i++]=0;
     }
   }
-  printf("Found %ld dense blocks. Re-reading matrix...\n", M->numDenseBlocks);
+  printf("Found %" PRId32 " dense blocks. Re-reading matrix...\n", M->numDenseBlocks);
   printf("The dense blocks consist of the following sets of rows:\n");
   for (k=0; k<M->numDenseBlocks; k++) 
-    printf("[%ld, %ld]\n", M->denseBlockIndex[k], M->denseBlockIndex[k]+bSize-1);
+    printf("[%" PRId32 ", %" PRId32 "]\n", M->denseBlockIndex[k], M->denseBlockIndex[k]+bSize-1);
 
   rewind(fp);
   fread(&M->numCols, sizeof(s32), 1, fp);
@@ -280,18 +280,18 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* We could do a little better, by discounting for the QCB and sign entries. */
   M->maxDataSize = 256 + fileSize/sizeof(s32);
   if (!(M->cEntry = (s32 *)malloc(M->maxDataSize*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %ld bytes for the sparse matrix!\n",
+    fprintf(stderr, "loadMat() Error allocating %lu bytes for the sparse matrix!\n",
             M->maxDataSize*sizeof(s32));
     fclose(fp); return -1;
   }
   if (!(M->cIndex = (s32 *)malloc((M->numCols+1)*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %ld bytes for the sparse matrix indicies!\n",
+    fprintf(stderr, "loadMat() Error allocating %lu bytes for the sparse matrix indicies!\n",
             (M->numCols+1)*sizeof(s32));
     free(M->cEntry); fclose(fp); return -1;
   }
   for (i=0; i<M->numDenseBlocks; i++) {
     if (!(M->denseBlocks[i] = (u64 *)calloc((M->numCols+1),sizeof(u64)))) {
-      fprintf(stderr, "loadMat() Error allocating %ld bytes for the QCB entries!\n",
+      fprintf(stderr, "loadMat() Error allocating %lu bytes for the QCB entries!\n",
               (M->numCols+1)*sizeof(u64));
       free(M->cIndex); free(M->cEntry); fclose(fp); return -1;
     }
@@ -368,8 +368,8 @@ int main(int argC, char *args[])
   }
   seedBlockLanczos(seed);
   startTime = sTime();
-  msgLog("", "GGNFS-%s : matsolve (seed=%ld)", GGNFS_VERSION,seed);
-  printf("Using PRNG seed=%ld.\n", seed);
+  msgLog("", "GGNFS-%s : matsolve (seed=%" PRId32 ")", GGNFS_VERSION, seed);
+  printf("Using PRNG seed=%" PRId32 ".\n", seed);
 
 
   readSparseMat(&M, "spmat");
@@ -379,9 +379,9 @@ int main(int argC, char *args[])
   printf("done.\n");
 
 
-  printf("Matrix loaded: it is %ld x %ld.\n", M.numRows, M.numCols);
+  printf("Matrix loaded: it is %" PRId32 " x %" PRId32 ".\n", M.numRows, M.numCols);
   if (M.numCols < (M.numRows + 64)) {
-    printf("More columns needed (current = %ld, min = %ld)\n",
+    printf("More columns needed (current = %" PRId32 ", min = %" PRId32 ")\n",
            M.numCols, M.numRows+64);
     free(M.cEntry); free(M.cIndex);
     exit(-1);
@@ -401,15 +401,15 @@ int main(int argC, char *args[])
   readBinField(str, 1024, ifp);
   while (!(feof(ifp)) && strncmp(str, "END_HEADER",10)) {
     if (strncmp(str, "NUMCOLS: ", 9)==0) {
-      sscanf(&str[9], "%lx", &origC);
+      sscanf(&str[9], "%" SCNx32, &origC);
     }
     readBinField(str, 1024, ifp);
   }
   fclose(ifp); 
-  printf("Original matrix had %ld columns.\n", origC);
+  printf("Original matrix had %" PRId32 " columns.\n", origC);
 
   if (!(deps = (s32 *)malloc(origC*sizeof(s32)))) {
-    printf("Could not allocate %ld bytes for the dependencies.\n", origC*sizeof(s32));
+    printf("Could not allocate %lu bytes for the dependencies.\n", origC*sizeof(s32));
     free(M.cEntry); free(M.cIndex); return -1;
   }
 

@@ -351,9 +351,9 @@ int generateAFB(nfs_fb_t *FB, int verbose)
 
   if (verbose) {
     if (lim > 0) 
-      printf("Generating AFB with norms upto %ld...\n", lim);
+      printf("Generating AFB with norms upto %" PRId32 "...\n", lim);
     else
-      printf("Generating AFB of size %ld...\n", size);
+      printf("Generating AFB of size %" PRId32 "...\n", size);
   }
   mpz_init_set(cd, &(FB->f->coef[d]));
   if (verbose)
@@ -373,7 +373,7 @@ int generateAFB(nfs_fb_t *FB, int verbose)
   cont=1;
   while (cont) {
     if (verbose && ((total%10000)==0)) {
-      sprintf(str, "Checking p=%ld...(total=%ld)", thisP, total);
+      sprintf(str, "Checking p=%" PRId32 "...(total=%" PRId32 ")", thisP, total);
       printf("%s",str); fflush(stdout);
       for (i=0; i<strlen(str); i++)
        printf("\b");
@@ -623,8 +623,8 @@ int saveFB(char *fName, nfs_fb_t *FB)
   sprintf(str, "mpr: %d", (int)(0.5+log((double)FB->maxP_r)/M_LN2)); writeBinField(fp, str);
   sprintf(str, "npa: %d", FB->maxLPA); writeBinField(fp, str);
   sprintf(str, "mpa: %d", (int)(0.5+log((double)FB->maxP_a)/M_LN2)); writeBinField(fp, str);
-  sprintf(str, "RFBsize: %ld", FB->rfb_size); writeBinField(fp, str);
-  sprintf(str, "AFBsize: %ld", FB->afb_size); writeBinField(fp, str);
+  sprintf(str, "RFBsize: %" PRId32, FB->rfb_size); writeBinField(fp, str);
+  sprintf(str, "AFBsize: %" PRId32, FB->afb_size); writeBinField(fp, str);
   sprintf(str, "END_HEADER"); writeBinField(fp, str);
   /*******************/
   /* output the RFB. */

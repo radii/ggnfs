@@ -84,7 +84,7 @@ double _mpz_log(mpz_t k)
 /* Approximate log(|k|).                          */
 /**************************************************/
 { double res;
-  s32 e;
+  long e;
   static mpz_t _absk;
   static int initialized=0;
 
@@ -596,7 +596,7 @@ static int mpz_fact_factorRealWork_rec(mpz_fact_t *F, int doRealWork,
           retVal = ecmFactor(tmp1, tmp2, B1, B2, iter, s);
           i++;
           if ((i%10)== 0) {
-            printf("Attempt %ld / %ld for: ", i, _numCurves[level]); 
+            printf("Attempt %" PRId32 " / %" PRId32 " for: ", i, _numCurves[level]); 
             mpz_out_str(stdout, 10, tmp2); 
             printf("\n");
           }
@@ -1118,8 +1118,8 @@ void *lxmalloc(size_t n, int fatal)
 #endif
   if (p==NULL) {
     mi_errs++;
-    msgLog("", "Memory allocation error (%ld bytes requested).", (long)n);
-    printf("Memory allocation error (%ld bytes requested).", (long)n);
+    msgLog("", "Memory allocation error (%lu bytes requested).", (unsigned long)n);
+    printf("Memory allocation error (%lu bytes requested).", (unsigned long)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);
@@ -1144,8 +1144,8 @@ void *lxcalloc(size_t n, int fatal)
 #endif
   if (p==NULL) {
     mi_errs++;
-    msgLog("", "Memory allocation error (%ld bytes requested).", (long)n);
-    printf("Memory allocation error (%ld bytes requested).", (long)n);
+    msgLog("", "Memory allocation error (%lu bytes requested).", (unsigned long)n);
+    printf("Memory allocation error (%lu bytes requested).", (unsigned long)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);
@@ -1172,8 +1172,8 @@ void *lxrealloc(void *x, size_t n, int fatal)
   p = realloc(x, n);
   if (p==NULL) {
     mi_errs++;
-    msgLog("", "Memory allocation error (%ld bytes requested).", (long)n);
-    printf("Memory allocation error (%ld bytes requested).", (long)n);
+    msgLog("", "Memory allocation error (%lu bytes requested).", (unsigned long)n);
+    printf("Memory allocation error (%lu bytes requested).", (unsigned long)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);

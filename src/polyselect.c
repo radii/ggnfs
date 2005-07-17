@@ -1877,7 +1877,7 @@ char *getInputFromFile(char *fName)
   }
   size = 512 + fileInfo.st_size;
   if (!(input = (char *)malloc(size*sizeof(char)))) {
-    fprintf(stderr, "Memory allocation error (%ld bytes for file %s).\n",
+    fprintf(stderr, "Memory allocation error (%" PRId32 " bytes for file %s).\n",
             size, fName);
     return "";
   }
@@ -2061,7 +2061,7 @@ int main(int argC, char *args[])
     }
     if (thisScore > bestScore) {
       printTmp(" ");
-      printf("Score: %e (adj. I=%1.4lf, iteration %ld, minStage1=%1.2lf)\n", 
+      printf("Score: %e (adj. I=%1.4lf, iteration %" PRId32 ", minStage1=%1.2lf)\n", 
              thisScore, bestParam.logSize, iteration, minStage1Size);
       bestScore = thisScore;
 
@@ -2084,7 +2084,7 @@ int main(int argC, char *args[])
       fprintf(fp, "# E(F1,F2) = %e\n", bestParam.score);
       fprintf(fp, "# GGNFS version %s polyselect.\n", GGNFS_VERSION);
       fprintf(fp, "# Options were: \n");
-      fprintf(fp, "# lcd=%ld, enumLCD=%s, maxS1=%1.8lf, seed=%ld.\n",
+      fprintf(fp, "# lcd=%" PRId32 ", enumLCD=%s, maxS1=%1.8lf, seed=%" PRId32 ".\n",
                    lcd, mpz_get_str(str, 10, enumLCD), minStage1Size, seed);
       fprintf(fp, "# maxskew=%1.1lf\n", maxSkew);
       writeFactPars(fp, &bestParam);

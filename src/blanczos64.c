@@ -682,13 +682,13 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
               (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");
-      fprintf(stderr, "Number of iterations is %ld.\n", iterations);
+      fprintf(stderr, "Number of iterations is %" PRIu32 ".\n", iterations);
       /* Add some debugging stuff here! */
       fprintf(stderr, "Terminating...\n");
       exit(-1);
     }
   } while (cont);
-  printf("\nBlock Lanczos used %ld iterations.\n", iterations);
+  printf("\nBlock Lanczos used %" PRIu32 " iterations.\n", iterations);
 
           
   if (malloc_aligned64(Z, 16, 2*n)) Z=NULL;
@@ -806,7 +806,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     if (tmp_n[i])
       isZero = 0;
   if (!(isZero))
-    printf("Some error occurred: Final product (B)(deps) is nonzero (i=%ld)!\n", (s32)i);
+    printf("Some error occurred: Final product (B)(deps) is nonzero (i=%" PRIu64 ")!\n", i);
   else
     printf("Verified.\n"); 
 

@@ -75,14 +75,14 @@ void sortByNumLP(s32 *fieldsBySize, llist_t *P, char *str)
     i=0;
     while (i<P->numFields) {
       if (fieldsBySize[i] > P->numFields) 
-        printf("?!?WTF?!? fieldsBySize[%ld]=%ld vs. P->numFields=%ld.\n",
+        printf("?!?WTF?!? fieldsBySize[%" PRId32 "]=%" PRId32 " vs. P->numFields=%" PRId32 ".\n",
                i,fieldsBySize[i], P->numFields);
       size = P->index[fieldsBySize[i]+1] - P->index[fieldsBySize[i]];
       if (size > 6) 
         printf("?!Error!? Relation has more than 6 large primes!\n");
       else if (size < 0) {
         printf("P has been corrupted!\n");
-        printf("P->numFields = %ld, P->index[%ld]=%ld, P->index[%ld]=%ld.\n",
+        printf("P->numFields = %" PRId32 ", P->index[%" PRId32 "]=%" PRId32 ", P->index[%" PRId32 "]=%" PRId32 ".\n",
                P->numFields, fieldsBySize[i], P->index[fieldsBySize[i]],
                fieldsBySize[i]+1, P->index[fieldsBySize[i]+1]);
       } else {
@@ -91,7 +91,7 @@ void sortByNumLP(s32 *fieldsBySize, llist_t *P, char *str)
       i++;
     }
     for (i=0; i<7; i++)
-      printf("There are %ld relations with %ld large primes.\n", numBySize[i], i);
+      printf("There are %" PRId32 " relations with %" PRId32 " large primes.\n", numBySize[i], i);
   }
 }
 
@@ -271,12 +271,12 @@ int removeLPSingletons(llist_t *R, llist_t *P)
   }
   /* 'removeList' should already be sorted and unique, but whatever. */
   numRemove = mkUniqueS32s(removeList, numRemove);
-  printf("Deleting %ld singleton large primes.\n", numRemove);
+  printf("Deleting %" PRId32 " singleton large primes.\n", numRemove);
 
   ll_deleteFields(P, removeList, numRemove);
   ll_resize(P, P->index[P->numFields] + LARGE_BUFFER);
   ll_deleteFields(R, removeList, numRemove);
-//  printf("There are %ld relations remaining.\n", R->numFields);
+//  printf("There are %" PRId32 " relations remaining.\n", R->numFields);
   free(removeList);
   return (int)numRemove;
 }
@@ -411,7 +411,7 @@ int merge(llist_t *R, llist_t *P, llist_t *revP, s32 P0, s32 P1, int level)
   }
   numAdds = mkUniquePairs(pairs, numAdds);
   if (numAdds > 0) {
-    printf("Doing %ld additions...\n", numAdds);
+    printf("Doing %" PRId32 " additions...\n", numAdds);
     ll_catFields(P, pairs, numAdds, 1);
     ll_catFields(R, pairs, numAdds, 1);
   }
@@ -470,7 +470,7 @@ s32 makePass(llist_t *R, llist_t *P)
     removeLPSingletons(R, P); 
   } while (P->numFields < lastSize);
   s1 = R->numFields;
-  printf("Total: %ld singletons deleted.\n", s0-s1);
+  printf("Total: %" PRId32 " singletons deleted.\n", s0-s1);
 
   /* Sort the relation-sets on the number of large primes
      appearing. We don't actually sort 'P', but rather obtain
@@ -507,7 +507,7 @@ s32 makePass(llist_t *R, llist_t *P)
   part=0;
   ll_init(&revP, P1+100, P->maxDataSize);
   do {
-    printf("Doing merge on chunk %ld/%ld  (P0=%ld, P1=%ld)...\n", part+1, numParts, P0, P1);
+    printf("Doing merge on chunk %" PRId32 "/%" PRId32 "  (P0=%" PRId32 ", P1=%" PRId32 ")...\n", part+1, numParts, P0, P1);
     /* Make the reverse-lookup table. */
     mkLT(&revP, P, P0, P1);
     merge(R, P, &revP, P0, P1, (s32)(1.5*MAX_RELS_IN_FF));
@@ -534,13 +534,13 @@ int checkR(llist_t *R)
 
   for (i=0; i<R->numFields; i++) {
     if (R->index[i+1]-R->index[i] == 0) {
-      printf("Error: R field %ld is empty!\n", i);
+      printf("Error: R field %" PRId32 " is empty!\n", i);
       exit(-1);
     }
     for (j=R->index[i]; j<R->index[i+1]; j++) {
       for (k=j+1; k<R->index[i+1]; k++) {
         if (R->data[j]==R->data[k]) {
-          printf("Error: R field %ld has duplicate entries!\n", i);
+          printf("Error: R field %" PRId32 " has duplicate entries!\n", i);
           exit(-1);
         }
       }
@@ -654,7 +654,7 @@ s32 reduceRelSets(llist_t *R, llist_t *P)
   numAdds=0;
 
   printf("Attempting to reduce weight of relation sets.\n");
-  printf("Initial weight is: %ld\n", R->index[R->numFields]);
+  printf("Initial weight is: %" PRId32 "\n", R->index[R->numFields]);
   printf("Sorting relation-sets..."); fflush(stdout);
   for (i=0; i<R->numFields; i++) {
     s = FIELDSIZE(R, i);
@@ -684,7 +684,7 @@ s32 reduceRelSets(llist_t *R, llist_t *P)
 
   ll_init(&revR, r1-r0+100, R->maxDataSize);
   do {
-    printf("Making lookup table for chunk %ld / %ld: [%ld, %ld)...", 
+    printf("Making lookup table for chunk %" PRId32 " / %" PRId32 ": [%" PRId32 ", %" PRId32 ")...", 
             part+1, numParts, r0, r1);
     fflush(stdout);
     mkLT(&revR, R, r0, r1);
@@ -731,9 +731,9 @@ s32 reduceRelSets(llist_t *R, llist_t *P)
        but something odd happens at the square root step.
     */
     if (numAdds > 0) {
-      printf("Doing %ld additions to reduce relation-set weight...\n", numAdds);
+      printf("Doing %" PRId32 " additions to reduce relation-set weight...\n", numAdds);
       ll_catFields(R, pairs, numAdds, 1);
-      printf("Current weight is: %ld\n", R->index[R->numFields]);
+      printf("Current weight is: %" PRId32 "\n", R->index[R->numFields]);
       numAdds=0;
     }
     r0 += partSize;
@@ -744,7 +744,7 @@ s32 reduceRelSets(llist_t *R, llist_t *P)
   free(hash);
   free(pairs);
 //  free(bitcount);
-  printf("\nfinal weight is: %ld.\n", R->index[R->numFields]);
+  printf("\nfinal weight is: %" PRId32 ".\n", R->index[R->numFields]);
   return R->index[R->numFields] - initW;
 }
 
@@ -783,7 +783,7 @@ s32 removeHeavyRelSets(llist_t *R, llist_t *P, int maxRelsInRS)
     cum += byWt[i];
     cwt += i*byWt[i];
     if (byWt[i]>0) {
-      printf("%3ld |%10ld|%10ld|%ld\n", i, byWt[i],cum,cwt);
+      printf("%3" PRId32 " |%10" PRIu32 "|%10" PRIu32 "|%" PRIu32 "\n", i, byWt[i],cum,cwt);
     }
   }
   printf("--------------------------------------------------------------\n");
@@ -869,12 +869,12 @@ s32 combParts(llist_t *R, llist_t *P, int maxRelsInFF, s32 minFF)
     lastFull = full;
     full = makePass(R, P);
     checkR(R);
-    printf("* There are now %ld full relations.\n", full);
+    printf("* There are now %" PRId32 " full relations.\n", full);
   } while (lastFull < full);
 
   /* Drop any relation-sets still containing a large prime: */
   keepFulls(R, P); 
-  printf("After keepFulls(), R->numFields = %ld\n", R->numFields);
+  printf("After keepFulls(), R->numFields = %" PRId32 "\n", R->numFields);
 
   /* Don't bother with the weight reduction unless we're close
      to having enough relations.
@@ -889,14 +889,14 @@ s32 combParts(llist_t *R, llist_t *P, int maxRelsInFF, s32 minFF)
     wt0 = R->index[R->numFields];
     reduceRelSets(R, P);
     wt1 = R->index[R->numFields];
-    msgLog("", "reduceRelSets dropped relation-set weight from %ld to %ld.",
+    msgLog("", "reduceRelSets dropped relation-set weight from %" PRId32 " to %" PRId32 ".",
            wt0, wt1);
     shrink = (double)(wt0-wt1)/wt0;
   }  while (shrink > 0.15);
 #endif
   full = removeHeavyRelSets(R, P, maxRelsInFF);
-  msgLog("", "After removing heavy rel-sets, weight is %ld.", R->index[R->numFields]);
-  printf("After removing heavy rel-sets, weight is %ld.\n", R->index[R->numFields]);
+  msgLog("", "After removing heavy rel-sets, weight is %" PRId32 ".", R->index[R->numFields]);
+  printf("After removing heavy rel-sets, weight is %" PRId32 ".\n", R->index[R->numFields]);
   if (ll_verify(R)) {
     printf("ll_verify() reported an error for R!\n");
     exit(-1);

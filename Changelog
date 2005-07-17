@@ -1,3 +1,10 @@
+7/17/05 (trilliwig)
+  * Converted sources to use standard C9x int types defined in inttypes.h.
+    Corrected a number of format specifiers for printf/scanf.  Changed
+    a couple types here and there to correct possible problems.
+  * Added check that the aligned memory functions actually return aligned
+    memory in the MMX Lanczos code.
+
 7/14/05 (trilliwig)
   * Patched factLat.pl so it automatically applies more generous parameters
     for SNFS factorizations where the polynomial degree is not optimal.

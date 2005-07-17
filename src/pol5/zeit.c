@@ -147,12 +147,12 @@ void initzeit(int i)
 
 void printzeit(int i)
 {
-  printf("%.2fs (%llu)  ",zeitsum[i]/CLOCKS_PER_SEC,asmzeitcounter[i]);
+  printf("%.2fs (%" PRIu64 ")  ",zeitsum[i]/CLOCKS_PER_SEC,asmzeitcounter[i]);
 }
 
 void printzeit2(int i1, int i2)
 {
-  printf("%.2fs (%llu)  ",(zeitsum[i1]+zeitsum[i2])/CLOCKS_PER_SEC,asmzeitcounter[i1]+asmzeitcounter[i2]);
+  printf("%.2fs (%" PRIu64 ")  ",(zeitsum[i1]+zeitsum[i2])/CLOCKS_PER_SEC,asmzeitcounter[i1]+asmzeitcounter[i2]);
 }
 
 void printzeitall()
@@ -165,7 +165,7 @@ void printzeitall()
   printf("\n");
   printf("\nCycles: ");
   for (i=0; i<zeitcounteranz; i++)
-    printf("%d: %llu  ",i,asmzeitcounter[i]);
+    printf("%d: %" PRIu64 "  ",i,asmzeitcounter[i]);
   printf("\n");
 }
 

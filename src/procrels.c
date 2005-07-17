@@ -178,12 +178,12 @@ rel_list *getRelList(multi_file_t *prelF, int index)
   RL->maxRels += 5;
   /* Now allocate for the relations. */
   if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %ldMB for reading relation list!\n",
+    fprintf(stderr, "Error allocating %luMB for reading relation list!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     free(RL); return NULL;
   }
   if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %ldMB for relation pointers!\n", 
+    fprintf(stderr, "Error allocating %luMB for relation pointers!\n", 
             RL->maxRels * sizeof(s32)/1048576);
     free(RL->relData); free(RL);
     return NULL;
@@ -218,7 +218,7 @@ void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs
   long      numBySize[MAX_PR_SIZE], numRemove, t;
   s32       size;  
   char      outputStr[1024], str[128];
-  long      bufMax, bufIndex, *buf;
+  s32       bufMax, bufIndex, *buf;
   relation_t R;
   FILE     *afp, *rfp;
 
@@ -242,7 +242,7 @@ void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs
       numBySize[size] += 1;
     }
     numRemove = (long)((removeFrac*RL->numRels))-1;
-    printf("from %ld to %ld relations...",RL->numRels, RL->numRels-numRemove);
+    printf("from %" PRId32 " to %ld relations...",RL->numRels, RL->numRels-numRemove);
     /* We proceed by modifying numBySize so that it contains the
        number of relations we will keep with the given size.
     */
@@ -380,7 +380,7 @@ long countLP(multi_file_t *prelF)
   lRSize = lRMax=0;
   lASize = lAMax=0;
   for (i=0; i<prelF->numFiles; i++) {
-    printf("Loading processed file %ld/%d...", i+1, prelF->numFiles);
+    printf("Loading processed file %" PRId32 "/%d...", i+1, prelF->numFiles);
     fflush(stdout);
     RL = getRelList(prelF, i);
     printf("Done. Processing...\n");
@@ -431,12 +431,13 @@ long countLP(multi_file_t *prelF)
     printf("Done.\nSorting and filtering LA..."); fflush(stdout);
     lASize = sortRMDups2(lA, lASize);
     printf("Done.\n");
-    printf("Found %ld distinct large rprimes and %ld large aprimes so far.\n",lRSize, lASize); 
+    printf("Found %" PRId32 " distinct large rprimes and %" PRId32 " large aprimes so far.\n",lRSize, lASize); 
   }
 
-  printf("There are %ld large primes versus %ld relations.\n", 
+  printf("There are %" PRId32 " large primes versus %" PRId32 " relations.\n", 
           lRSize+lASize, initialRelations);
-  msgLog(NULL, "largePrimes: %ld , relations: %ld", lRSize+lASize, initialRelations);
+  msgLog(NULL, "largePrimes: %" PRId32 " , relations: %" PRId32,
+         lRSize+lASize, initialRelations);
   /* Now, check: should we do a cycle count? */
   free(lA); free(lR);
   return lRSize + lASize;
@@ -476,7 +477,7 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
   } while (cont);
 /* CJM, 129/04 : Consider making this MAX(i, DEFAULT_NUM_FILES); */
   prelF->numFiles = MAX(i, 1);
-  printf("Largest prel file size is %ld versus max allowed of %ld.\n", 
+  printf("Largest prel file size is %" PRId32 " versus max allowed of %" PRId32 ".\n", 
           maxSize, maxFileSize);
   if ((maxSize < maxFileSize)||(takeAction==0))
     return 0;
@@ -503,7 +504,7 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
 
   for (i=0; i<prelF->numFiles; i++) {
     RL = getRelList(prelF, i);
-    printf("Read %ld relations from %s.%d\n", RL->numRels, prelF->prefix, i);
+    printf("Read %" PRId32 " relations from %s.%d\n", RL->numRels, prelF->prefix, i);
 
     for (k=0; k<RL->numRels; k++) {
       where = RL->relIndex[k];
@@ -611,7 +612,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   RL->numRels = 0;
   RL->maxDataSize = 1000 + maxSize/sizeof(s32);
   if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %ldMB for processed relation files!\n",
+    fprintf(stderr, "Error allocating %luMB for processed relation files!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
     exit(-1);
@@ -619,7 +620,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   /* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
   RL->maxRels = (u32)RL->maxDataSize/20;
   if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %ldMB for relation pointers!\n",
+    fprintf(stderr, "Error allocating %luMB for relation pointers!\n",
             RL->maxRels * sizeof(s32)/1048756);
     free(RL->relData);
     exit(-1);
@@ -1034,7 +1035,7 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
   }
 
   total = makeABLookup(prelF);
-  printf("Before processing new relations, there are %ld total.\n", total);
+  printf("Before processing new relations, there are %" PRId32 " total.\n", total);
 
   /* Set up to prepare for the new data: */
   bufSize = MAX_PBUF_RAM/(MAX(1,prelF->numFiles)*sizeof(s32));
@@ -1180,7 +1181,7 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
     }
     numRead++;
 
-//    printf("Read (%I64d, %ld) from file\n", R.a, R.b );
+//    printf("Read (%" PRId64 ", %ld) from file\n", R.a, R.b );
 
     if (checkAB(R.a, R.b)==0) {
       fileno = NFS_HASH(R.b, R.b, prelF->numFiles);
@@ -1225,7 +1226,7 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
         numNew++;
       } else {
 #ifdef _DEBUG
-        printf("Relation (%I64d, %ld) bad : return value %d.\n", R.a, R.b, factRes);
+        printf("Relation (%" PRId64 ", %ld) bad : return value %d.\n", R.a, R.b, factRes);
 #endif
         ;
       }
@@ -1279,8 +1280,9 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
   for (i=0; i<prelF->numFiles; i++) 
     free(newData[i]);
   clearABLookup();
-  printf("   abExtra was sorted %ld times.\n", sortOps);
-  msgLog("", "There were %ld/%ld duplicates.", collisions, numRead);
+  printf("   abExtra was sorted %" PRId32 " times.\n", sortOps);
+  msgLog("", "There were %" PRId32 "/%" PRId32 " duplicates.",
+         collisions, numRead);
   total += numNew;
   return total;
 }
@@ -1311,7 +1313,7 @@ s32 dumpPairs(char *fName, multi_file_t *prelF, nfs_fb_t *FB)
     sprintf(prelName, "%s.%d", prelF->prefix, i);
     RL = getRelList(prelF, i);
     numRels = RL->numRels;
-    printf("Dumping %ld relations from %s...\n", numRels, prelName);
+    printf("Dumping %" PRId32 " relations from %s...\n", numRels, prelName);
     for (j=0; j<numRels; j++) {
       dataConvertToRel(&R, &RL->relData[RL->relIndex[j]]);
       makeOutputLine(outStr, &R, FB);
@@ -1330,7 +1332,7 @@ s32 dumpPairs(char *fName, multi_file_t *prelF, nfs_fb_t *FB)
     free(RL);
   }
   fclose(ofp);
-  printf("Dumped %ld relations to %s.\n", total, fName);
+  printf("Dumped %" PRId32 " relations to %s.\n", total, fName);
   return total;
 }
 
@@ -1340,8 +1342,8 @@ int fsingleVerbose(nf_t *N, char *line)
 { relation_t R;
   int res, i, n;
 
-  sscanf(line, "%I64d,%ld", &R.a, &R.b);
-  printf("Attempting to factor relation (%I64d, %ld)\n", R.a, R.b);
+  sscanf(line, "%" SCNd64 ",%" SCNd32, &R.a, &R.b);
+  printf("Attempting to factor relation (%" PRId64 ", %" PRId32 ")\n", R.a, R.b);
   if (R.b <= 0) {
     printf("Error: 'b' should be positive!\n");
     return -1;
@@ -1350,25 +1352,25 @@ int fsingleVerbose(nf_t *N, char *line)
   printf("res=%d\n", res);
   printf("RFB:\n");
   for (i=0; i<R.rFSize; i++) {
-    printf("(%ld)^%d ", N->FB->rfb[2*R.rFactors[i]], R.rExps[i]);
+    printf("(%" PRId32 ")^%d ", N->FB->rfb[2*R.rFactors[i]], R.rExps[i]);
     if (i%6==5) printf("\n");
   }
   printf("Large:\n");
   for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
     if (R.p[i]>1)
-      printf("%ld ", R.p[i]);
+      printf("%" PRId32 " ", R.p[i]);
   }
   
   printf("\nAFB:\n");
   for (i=0; i<R.aFSize; i++) {
-    printf("(%ld,%ld)^%d ", N->FB->afb[2*R.aFactors[i]], 
+    printf("(%" PRId32 ",%" PRId32 ")^%d ", N->FB->afb[2*R.aFactors[i]], 
            N->FB->afb[2*R.aFactors[i]+1], R.aExps[i]);
     if (i%6==5) printf("\n");
   }
   printf("Large:\n");
   for (i=0; i<MAX_LARGE_ALG_PRIMES; i++) {
     if (R.a_p[i]>1)
-      printf("(%ld, %ld) ", R.a_p[i], R.a_r[i]);
+      printf("(%" PRId32 ", %" PRId32 ") ", R.a_p[i], R.a_r[i]);
   }
   printf("Special primes:\n");
   for (i=0; i<R.spSize; i++) {
@@ -1379,7 +1381,7 @@ int fsingleVerbose(nf_t *N, char *line)
     mpz_poly_print(stdout, "", N->sPrimes[n].alpha);
     printf("\n");
   }
-  printf("QCB entries: %8.8lx %8.8lx\n", R.qcbBits[0], R.qcbBits[1]);
+  printf("QCB entries: %8.8" PRIx32 " %8.8" PRIx32 "\n", R.qcbBits[0], R.qcbBits[1]);
   return 0;
 }
   
@@ -1465,7 +1467,7 @@ int main(int argC, char *args[])
         c = prand();
       }
       now=sTime();
-      printf("b[a%%1024] = %8.8lx\n", b[a%1024]); /* So the compiler doesn't remove the loop above! */
+      printf("b[a%%1024] = %8.8" PRIx32 "\n", b[a%1024]); /* So the compiler doesn't remove the loop above! */
       printf("timeunit: %1.3lf\n",10.0/(now-start));
       exit(0);
     }
@@ -1563,7 +1565,7 @@ int main(int argC, char *args[])
       }
       fclose(fp);
     }
-    printf("     New file appears to have %ld relations.\n", numNewRels);
+    printf("     New file appears to have %" PRId32 " relations.\n", numNewRels);
   }
 
   totalRels = 0;
@@ -1574,7 +1576,7 @@ int main(int argC, char *args[])
 
 
   printf("--------------------------------------\n");
-  printf("There are now a total of %ld unique relations in %d files.\n",
+  printf("There are now a total of %" PRId32 " unique relations in %d files.\n",
           totalRels, prelF.numFiles);
   initialRelations = totalRels;
   if (totalRels <= 0) {

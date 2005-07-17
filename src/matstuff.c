@@ -67,7 +67,7 @@ int mat_verify(nfs_sparse_mat_t *M)
 { s32 i, s0, s1;
 
   if (M->numCols <= 0) {
-    printf("mat_verify() M->numCols=%ld.\n", M->numCols);
+    printf("mat_verify() M->numCols=%" PRId32 ".\n", M->numCols);
     return -1;
   }
 
@@ -75,12 +75,12 @@ int mat_verify(nfs_sparse_mat_t *M)
     s0 = M->cIndex[i];
     s1 = M->cIndex[i+1];
     if (s1 > M->maxDataSize) {
-      printf("mat_verify() M->cIndex[%ld]=%ld vs. M->maxDataSize=%ld.\n",
+      printf("mat_verify() M->cIndex[%" PRId32 "]=%" PRId32 " vs. M->maxDataSize=%" PRId32 ".\n",
              i+1, s1, M->maxDataSize);
       return -1;
     }
     if (s1 < s0) {
-      printf("mat_verify() M->cIndex[%ld]=%ld vs. M->cIndex[%ld+1]=%ld.\n",
+      printf("mat_verify() M->cIndex[%" PRId32 "]=%" PRId32 " vs. M->cIndex[%" PRId32 "+1]=%" PRId32 ".\n",
              i, s0, i, s1);
       return -1;
     }
@@ -318,9 +318,9 @@ int addCols_par(nfs_sparse_mat_t *M, llist_t *C, s32 *destCol, s32 *srcCol, s32 
     for (j=M->cIndex[c1]; (j<M->cIndex[c1+1])  && (numNewEntries < MAXCOLWT); j++)
       newEntries[numNewEntries++] = M->cEntry[j];
     if (numNewEntries >= MAXCOLWT) {
-      printf("MAXCOLWT exceeded (i=%ld, c0=%ld, c1=%ld.). Ignoring...\n",i,c0,c1);
-      printf("         cIndex[c0]=%ld, cIndex[c0+1] = %ld.\n", M->cIndex[c0], M->cIndex[c0+1]);
-      printf("         cIndex[c1]=%ld, cIndex[c1+1] = %ld.\n", M->cIndex[c1], M->cIndex[c1+1]);
+      printf("MAXCOLWT exceeded (i=%" PRId32 ", c0=%" PRId32 ", c1=%" PRId32 ".). Ignoring...\n",i,c0,c1);
+      printf("         cIndex[c0]=%" PRId32 ", cIndex[c0+1] = %" PRId32 ".\n", M->cIndex[c0], M->cIndex[c0+1]);
+      printf("         cIndex[c1]=%" PRId32 ", cIndex[c1+1] = %" PRId32 ".\n", M->cIndex[c1], M->cIndex[c1+1]);
       return -1;
     }
     numNewEntries = removeS32Pairs(newEntries, numNewEntries);
@@ -602,7 +602,7 @@ int removeHeavyColumnsByRows(nfs_sparse_mat_t *M, llist_t *C, s32 minC, s32 maxC
 
   if (!(cwt = (s32 *)malloc(2*M->numCols*sizeof(s32)))) {
     printf("removeHeavyColumnsByRows() memory allocation error!\n");
-    printf("( %ld bytes requested).\n", 2*sizeof(s32)*M->numCols);
+    printf("( %lu bytes requested).\n", 2*sizeof(s32)*M->numCols);
     return -1;
   }
   for (c=0; c<M->numCols; c++) {
@@ -614,7 +614,7 @@ int removeHeavyColumnsByRows(nfs_sparse_mat_t *M, llist_t *C, s32 minC, s32 maxC
   if (!(rowWeight = (s32 *)malloc(M->numRows*sizeof(s32)))) {
     free(cwt);
     printf("removeHeavyColumnsByRows() memory allocation error!\n");
-    printf("( %ld bytes requested).\n", sizeof(s32)*M->numRows);
+    printf("( %lu bytes requested).\n", sizeof(s32)*M->numRows);
     return -1;
   }
 
@@ -1019,12 +1019,12 @@ int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor,
   double wt;
 
   wt = MIN(0.95, MAX(0.05, wtFactor));
-  sprintf(str, "Initial matrix is %ld x %ld with sparse part having weight %ld.", 
+  sprintf(str, "Initial matrix is %" PRId32 " x %" PRId32 " with sparse part having weight %" PRId32 ".", 
           M->numRows, M->numCols, M->cIndex[M->numCols]);
   msgLog(NULL, "Pruning matrix with wt=%1.3lf", wt);
   origWt = M->cIndex[M->numCols];
   printf("%s\n",str); msgLog("", str);
-  sprintf(str, "(total weight is %ld)", matrixWeight(M));
+  sprintf(str, "(total weight is %" PRId32 ")", matrixWeight(M));
   printf("%s\n",str); msgLog("", str);
 
   setDenseRows(M);
@@ -1064,7 +1064,7 @@ int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor,
   } while (extraCols > 0);
 
   mat_verify(M);
-  sprintf(str, "Matrix pruned to %ld x %ld with weight %ld.",
+  sprintf(str, "Matrix pruned to %" PRId32 " x %" PRId32 " with weight %" PRId32 ".",
         M->numRows, M->numCols, M->cIndex[M->numCols]);
   printf("%s\n", str); msgLog("", str);
   mat_verify(M);

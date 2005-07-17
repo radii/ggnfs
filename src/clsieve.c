@@ -435,49 +435,49 @@ int clSieve(nfs_sieve_job_t *J)
   }
 
   msgLog("", "");
-  msgLog("", "hashtable: %d bins of size %d", conf.block_window, BLOCK_SIZE);
-  msgLog("", "hashtable cache: %d entries per bin", conf.cache_max);
+  msgLog("", "hashtable: %" PRId32 " bins of size %d", conf.block_window, BLOCK_SIZE);
+  msgLog("", "hashtable cache: %" PRId32 " entries per bin", conf.cache_max);
   msgLog("", "Rational factor base:");
   msgLog("", "base of logs: %4.3f", FB->rfb_log_base);
-  msgLog("", "factor base entries: %d (%3.1f MB)", conf.rfb_size,
+  msgLog("", "factor base entries: %" PRId32 " (%3.1f MB)", conf.rfb_size,
               (double)conf.rfb_size*sizeof(sieve_fb_t)/1e6);
-  msgLog("", "maximum factor base prime: %d", FB->rLim);
-  msgLog("", "primes at infinity: %d", conf.rfb_inf_size);
-  msgLog("", "hashed RFB entries: %d (%3.1f%%, max=%d)", 
+  msgLog("", "maximum factor base prime: %" PRId32, FB->rLim);
+  msgLog("", "primes at infinity: %" PRId32, conf.rfb_inf_size);
+  msgLog("", "hashed RFB entries: %" PRId32 " (%3.1f%%, max=%" PRId32 ")", 
                conf.rfb_size-conf.med_rfb_size, 
                100.0*(conf.rfb_size-conf.med_rfb_size)/conf.rfb_size,
                conf.rfb[conf.rfb_size-1].p);
-  msgLog("", "sieved RFB entries: %d (%3.3f%%, max=%d)", 
+  msgLog("", "sieved RFB entries: %" PRId32 " (%3.3f%%, max=%" PRId32 ")", 
                conf.med_rfb_size-conf.tiny_rfb_size, 
                100.0*(conf.med_rfb_size-conf.tiny_rfb_size)/conf.rfb_size,
                conf.rfb[conf.med_rfb_size-1].p);
-  msgLog("", "unsieved RFB entries: %d", conf.tiny_rfb_size);
-  msgLog("", "large prime cutoff: %d bits", mpz_sizeinbase(conf.LP1_max_r,2)-1);
-  msgLog("", "trial factoring cutoff: %d bits", 
+  msgLog("", "unsieved RFB entries: %" PRId32, conf.tiny_rfb_size);
+  msgLog("", "large prime cutoff: %lu bits", mpz_sizeinbase(conf.LP1_max_r,2)-1);
+  msgLog("", "trial factoring cutoff: %" PRId32 " bits", 
                (s32)(conf.cutoff2_r*M_LOG2E*FB->log_rlb)-1);
-  msgLog("", "2-large prime cutoff: %d-%d bits", 
+  msgLog("", "2-large prime cutoff: %lu-%lu bits", 
               mpz_sizeinbase(conf.LP2_min_r,2)-1,
               mpz_sizeinbase(conf.LP2_max_r,2)-1);
 
   msgLog("", "Algebraic factor base:");
   msgLog("", "base of logs: %4.3f", FB->afb_log_base);
-  msgLog("", "factor base entries: %d (%3.1f MB)", conf.afb_size,
+  msgLog("", "factor base entries: %" PRId32 " (%3.1f MB)", conf.afb_size,
               (double)conf.afb_size*sizeof(sieve_fb_t)/1e6);
-  msgLog("", "maximum factor base prime: %d", FB->aLim);
-  msgLog("", "primes at infinity: %d", conf.afb_inf_size);
-  msgLog("", "hashed AFB entries: %d (%3.1f%%, max=%d)", 
+  msgLog("", "maximum factor base prime: %" PRId32, FB->aLim);
+  msgLog("", "primes at infinity: %" PRId32, conf.afb_inf_size);
+  msgLog("", "hashed AFB entries: %" PRId32 " (%3.1f%%, max=%" PRId32 ")", 
                conf.afb_size-conf.med_afb_size, 
                100.0*(conf.afb_size-conf.med_afb_size)/conf.afb_size,
                conf.afb[conf.afb_size-1].p);
-  msgLog("", "sieved AFB entries: %d (%3.3f%%, max=%d)", 
+  msgLog("", "sieved AFB entries: %" PRId32 " (%3.3f%%, max=%" PRId32 ")", 
                conf.med_afb_size-conf.tiny_afb_size, 
                100.0*(conf.med_afb_size-conf.tiny_afb_size)/conf.afb_size,
                conf.afb[conf.med_afb_size-1].p);
-  msgLog("", "unsieved AFB entries: %d", conf.tiny_afb_size);
-  msgLog("", "large prime cutoff: %d bits", mpz_sizeinbase(conf.LP1_max_a,2)-1);
-  msgLog("", "trial factoring cutoff: %d bits", 
+  msgLog("", "unsieved AFB entries: %" PRId32, conf.tiny_afb_size);
+  msgLog("", "large prime cutoff: %lu bits", mpz_sizeinbase(conf.LP1_max_a,2)-1);
+  msgLog("", "trial factoring cutoff: %" PRId32 " bits", 
                (s32)(conf.cutoff2_a*M_LOG2E*FB->log_alb)-1);
-  msgLog("", "2-large prime cutoff: %d-%d bits", 
+  msgLog("", "2-large prime cutoff: %lu-%lu bits", 
               mpz_sizeinbase(conf.LP2_min_a,2)-1,
               mpz_sizeinbase(conf.LP2_max_a,2)-1);
   msgLog("", "");
@@ -612,7 +612,7 @@ int doSieve(nfs_fb_t *FB, sieve_conf_t *conf, s32 b0, s32 b1)
       break;
     }
   }
-  msgLog("", "Classical sieved [%ld, %ld]x[%ld, %ld]",
+  msgLog("", "Classical sieved [%" PRId32 ", %" PRId32 "]x[%" PRId32 ", %" PRId32 "]",
               -conf->sieve_size, conf->sieve_size, b0, i-1);
   flushSavefile(conf);
   return rels;
@@ -1953,20 +1953,20 @@ void clMakeOutputLine(char *str, relation_t *R)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%ld,%ld:", (int)R->a, (int)R->b);
+  sprintf(str, "%" PRId64 ",%" PRId32 ":", R->a, R->b);
   for (i=0; i<R->rFSize; i++) {
     if (numR==0)
-      sprintf(s, "%lx", R->rFactors[i]);
-    else sprintf(s, ",%lx", R->rFactors[i]);
+      sprintf(s, "%" PRIx32, R->rFactors[i]);
+    else sprintf(s, ",%" PRIx32 "", R->rFactors[i]);
     strcat(str, s);
     numR++;
   }
   for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
     if (R->p[i] > 1) {
       if (numR>0)
-        sprintf(s, ",%lx", R->p[i]);
+        sprintf(s, ",%" PRIx32 "", R->p[i]);
       else
-        sprintf(s, "%lx", R->p[i]);
+        sprintf(s, "%" PRIx32 "", R->p[i]);
       strcat(str, s);
       numR++;
     }
@@ -1974,17 +1974,17 @@ void clMakeOutputLine(char *str, relation_t *R)
   strcat(str, ":");
   for (i=0; i<R->aFSize; i++) {
     if (numA==0)
-      sprintf(s, "%lx", R->aFactors[i]);
-    else sprintf(s, ",%lx", R->aFactors[i]);
+      sprintf(s, "%" PRIx32 "", R->aFactors[i]);
+    else sprintf(s, ",%" PRIx32 "", R->aFactors[i]);
     strcat(str, s);
     numA++;
   }
   for (i=0; i<MAX_LARGE_ALG_PRIMES; i++) {
     if (R->a_p[i] > 1) {
       if (numA>0)
-        sprintf(s, ",%lx", R->a_p[i]);
+        sprintf(s, ",%" PRIx32 "", R->a_p[i]);
       else
-        sprintf(s, "%lx", R->a_p[i]);
+        sprintf(s, "%" PRIx32 "", R->a_p[i]);
       strcat(str, s);
       numA++;
     }

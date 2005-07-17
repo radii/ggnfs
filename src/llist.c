@@ -41,12 +41,12 @@ int ll_init(llist_t *L, s32 maxDataSize, s32 maxFields)
   L->maxDataSize = L->maxFields = 0;
   L->numFields = 0;
   if (!(L->data = (s32 *)lxmalloc(maxDataSize*sizeof(s32),0))) {
-    fprintf(stderr, "ll_init() Memory allocation error (%ldMb).\n", 
+    fprintf(stderr, "ll_init() Memory allocation error (%luMb).\n", 
             maxDataSize*sizeof(s32)/(1024*1024));
     return -1;
   }
   if (!(L->index = (s32 *)lxmalloc((maxFields+1)*sizeof(s32),0))) {
-    fprintf(stderr, "ll_init() Memory allocation error (%ldMb).\n", 
+    fprintf(stderr, "ll_init() Memory allocation error (%luMb).\n", 
             maxFields*sizeof(s32)/(1024*1024));
     free(L->data);
     L->data=NULL;
@@ -125,7 +125,7 @@ int ll_verify(llist_t *L)
 { s32 i, s0, s1;
 
   if ((L->numFields < 0) || (L->numFields > L->maxFields)) {
-    printf("ll_verify() L->numFields=%ld vs. L->maxFields=%ld.\n",
+    printf("ll_verify() L->numFields=%" PRId32 " vs. L->maxFields=%" PRId32 ".\n",
            L->numFields, L->maxFields);
     return -1;
   }
@@ -134,12 +134,12 @@ int ll_verify(llist_t *L)
     s0 = L->index[i];
     s1 = L->index[i+1];
     if (s1 > L->maxDataSize) {
-      printf("ll_verify() L->index[%ld]=%ld vs. L->maxDataSize=%ld.\n",
+      printf("ll_verify() L->index[%" PRId32 "]=%" PRId32 " vs. L->maxDataSize=%" PRId32 ".\n",
              i+1, s1, L->maxDataSize);
       return -1;
     }
     if (s1 < s0) {
-      printf("ll_verify() L->index[%ld]=%ld vs. L->index[%ld+1]=%ld.\n",
+      printf("ll_verify() L->index[%" PRId32 "]=%" PRId32 " vs. L->index[%" PRId32 "+1]=%" PRId32 ".\n",
              i, s0, i, s1);
       return -1;
     }
@@ -240,7 +240,7 @@ int ll_catFields(llist_t *L, lpair_t *pairs, s32 numPairs, int mod2)
     for (j=L->index[c1]; (j<L->index[c1+1]) && (numNewEntries < MAXFIELDENTRIES); j++)
       newEntries[numNewEntries++] = L->data[j];
     if (numNewEntries >= MAXFIELDENTRIES) {
-      printf("MAXFIELDENTRIES exceeded (i=%ld, c0=%ld, c1=%ld.). Ignoring...\n",i,c0,c1);
+      printf("MAXFIELDENTRIES exceeded (i=%" PRId32 ", c0=%" PRId32 ", c1=%" PRId32 ".). Ignoring...\n",i,c0,c1);
       return -1;
     }
     if (mod2)
@@ -264,11 +264,11 @@ int ll_catFields(llist_t *L, lpair_t *pairs, s32 numPairs, int mod2)
     tmpPtr = realloc(L->data, (L->index[L->numFields] + maxShift + 10)*sizeof(s32));
     if (tmpPtr == NULL) {
       printf("ll_catFields(): memory reallocation error!\n");
-      printf("%ld s32's requested.\n", (L->index[L->numFields] + maxShift + 10));
-      printf("Old size was L->maxDataSize=%ld\n", L->maxDataSize);
-      printf("L->numFields = %ld, maxShift = %ld\n", L->numFields, maxShift);
-      printf("L->index[%ld] = %ld\n", L->numFields, L->index[L->numFields]);
-      printf("numPairs=%ld, numNewEntries=%ld\n", numPairs, numNewEntries);
+      printf("%" PRId32 " s32's requested.\n", (L->index[L->numFields] + maxShift + 10));
+      printf("Old size was L->maxDataSize=%" PRId32 "\n", L->maxDataSize);
+      printf("L->numFields = %" PRId32 ", maxShift = %" PRId32 "\n", L->numFields, maxShift);
+      printf("L->index[%" PRId32 "] = %" PRId32 "\n", L->numFields, L->index[L->numFields]);
+      printf("numPairs=%" PRId32 ", numNewEntries=%" PRId32 "\n", numPairs, numNewEntries);
 #ifdef MALLOC_REPORTING
       printf("malloc useage is about %d MB.", mallocReport());
 #endif

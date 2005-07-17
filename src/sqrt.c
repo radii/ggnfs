@@ -208,9 +208,9 @@ int main(int argC, char *args[])
     str[0]=token[0]=value[0]=0;
     readBinField(str, 512, fp);
     sscanf(str, "%256s %256s", token, value);
-    if (strncmp(token, "NUMCOLS:", 8)==0) sscanf(value, "%lx", &maxCols);
+    if (strncmp(token, "NUMCOLS:", 8)==0) sscanf(value, "%" SCNx32, &maxCols);
     else if (strncmp(token, "COLNAME:", 8)==0) sscanf(value, "%s", colIndex);
-    else if (strncmp(token, "MAXRELS:", 8)==0) sscanf(value, "%lx", &maxRels);
+    else if (strncmp(token, "MAXRELS:", 8)==0) sscanf(value, "%" SCNx32, &maxRels);
     else if (strncmp(token, "RELPREFIX:", 10)==0) sscanf(value, "%s", prelF.prefix);
     else if (strncmp(token, "RELFILES:", 9)==0) sscanf(value, "%x", &prelF.numFiles);
     else if (strncmp(token, "LPFPREFIX:", 10)==0) sscanf(value, "%s", lpF.prefix);
@@ -221,7 +221,7 @@ int main(int argC, char *args[])
 
   if (!(colsInDep = (s32 *)malloc(maxCols*sizeof(s32)))) {
     fclose(fp);
-    fprintf(stderr, "Error allocating %ld bytes for columns in dependency!\n", 
+    fprintf(stderr, "Error allocating %lu bytes for columns in dependency!\n", 
             maxCols*sizeof(s32));
     res = -1; goto SS_DONE;
   }
@@ -232,14 +232,14 @@ int main(int argC, char *args[])
   }
   fclose(fp);
 
-  printf("NUMCOLS = %ld\n", maxCols);
+  printf("NUMCOLS = %" PRId32 "\n", maxCols);
   printf("COLNAME = %s\n", colIndex);
-  printf("MAXRELS = %ld\n", maxRels);
+  printf("MAXRELS = %" PRId32 "\n", maxRels);
   printf("RELPREFIX = %s\n", prelF.prefix);
   printf("RELFILES = %d\n", prelF.numFiles);
   printf("LPFPREFIX = %s\n", lpF.prefix);
   printf("LPFFILES = %d\n", lpF.numFiles);
-  printf("There are %ld columns in this dependency. Getting corresponding (a,b) pairs...\n", numCols);
+  printf("There are %" PRId32 " columns in this dependency. Getting corresponding (a,b) pairs...\n", numCols);
 
   if (stat(colIndex, &fileInfo)) {
     fprintf(stderr, "Could not stat column index file %s!\n", colIndex);
@@ -254,7 +254,7 @@ int main(int argC, char *args[])
   /* times, but it always suffices to reduce this to 0 or 1 times.    */
   /********************************************************************/
   if (!(rid_hash = (char *)malloc(maxRels*sizeof(char)))) {
-    fprintf(stderr, "Error allocating %ld bytes for rid_hash!\n", maxRels*sizeof(char));
+    fprintf(stderr, "Error allocating %lu bytes for rid_hash!\n", maxRels*sizeof(char));
     res = -1; goto SS_DONE;
   }
   for (i=0; i<maxRels; i++)
@@ -274,7 +274,7 @@ int main(int argC, char *args[])
       if (C.Rels[k] < maxRels)
         rid_hash[C.Rels[k]] ^= 0x01;
       else {
-        fprintf(stderr, "Error: Column claims use of relation %ld (maxRels = %ld)!\n",
+        fprintf(stderr, "Error: Column claims use of relation %" PRId32 " (maxRels = %" PRId32 ")!\n",
                 C.Rels[k], maxRels);
   
         exit(-4);
@@ -288,10 +288,10 @@ int main(int argC, char *args[])
     if (rid_hash[i]==0x01)
       numRels++;
   }
-  printf("This dependency consists of %ld (a,b) pairs.\n", numRels);  
+  printf("This dependency consists of %" PRId32 " (a,b) pairs.\n", numRels);  
   
   if (!(relsInDep = (s32 *)malloc(sizeof(s32)*(numRels+1)))) {
-    fprintf(stderr, "Error allocating %ld bytes for relsInDep!\n", (numRels+1)*sizeof(s32));
+    fprintf(stderr, "Error allocating %lu bytes for relsInDep!\n", (numRels+1)*sizeof(s32));
     res = -1; goto SS_DONE;
   }
   numRels = 0;
@@ -331,7 +331,7 @@ int main(int argC, char *args[])
       res=1;
     }
   }
-  msgLog("", "  r1=%s", str,strlen(str));
+  msgLog("", "  r1=%s", str);
   mpz_get_str(str, 10, q);
   if ((mpz_cmp_ui(q, 1)>0) && (mpz_cmp(q, N.FB->n)<0)) {
     if (mpz_probab_prime_p(q, 10)) 

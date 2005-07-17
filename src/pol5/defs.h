@@ -5,4 +5,7 @@
 #define ulong unsigned long
 #define ushort unsigned short
 #define ull unsigned long long
+
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #endif
