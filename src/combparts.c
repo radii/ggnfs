@@ -609,7 +609,7 @@ int combinedSize(llist_t *R, s32 a, s32 b)
       j++;
       sizeDiff++;
     }
-    if (B[j] == r) {
+    if ((j<sb) && (B[j] == r)) {
       sizeDiff--;
       j++;
     }

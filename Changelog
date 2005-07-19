@@ -1,3 +1,6 @@
+7/20/05 (asl)
+  * Fixed some stupid bug in combinedSize() ;)
+
 7/17/05 (trilliwig)
   * Converted sources to use standard C9x int types defined in inttypes.h.
     Corrected a number of format specifiers for printf/scanf.  Changed
