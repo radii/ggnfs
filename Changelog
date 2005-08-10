@@ -1,4 +1,4 @@
-8/10/05  (brian Gladman)
+8/10/05  (Brian Gladman)
   * Updated various files to repair the broken VC++ compilation
   * Added VC++ inline assembler to blanczos64.c
 

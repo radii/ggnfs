@@ -37,9 +37,11 @@
 
 
 #ifdef __GNUC__
-#define ALIGNED16 __attribute__ ((aligned (16)))
+#define ALIGNED16(x)	x __attribute__ ((aligned (16)))
+#elif defined(_MSC_VER)
+#define ALIGNED16(x)	__declspec(align(16)) x 
 #else
-#define ALIGNED16
+#define ALIGNED16(x)	x
 #endif
 
 #if defined(__MINGW32__) || defined(__CYGWIN__)
@@ -86,7 +88,7 @@
 #define XOR64(_a, _b)           { *(_a) ^= *(_b); }
 #endif
 
-static const u64 bit64[] ALIGNED16 ={
+static ALIGNED16(const u64 bit64[]) ={
 0x0000000000000001ULL,0x0000000000000002ULL,0x0000000000000004ULL,0x0000000000000008ULL,
 0x0000000000000010ULL,0x0000000000000020ULL,0x0000000000000040ULL,0x0000000000000080ULL,
 0x0000000000000100ULL,0x0000000000000200ULL,0x0000000000000400ULL,0x0000000000000800ULL,
@@ -225,6 +227,8 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
 // L2_CACHE_SIZE has to be a power of 2.
 // MULTB64_PAGESIZE is a half of L2 cache size.
+#ifndef _MSC_VER
+
 #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
 #if L2_CACHE_SIZE == 256
 #define MULTB64_PAGEMASK "-16384"
@@ -235,12 +239,29 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 #else
 #error 1
 #endif
+
+#else
+
+#define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+#if L2_CACHE_SIZE == 256
+#define MULTB64_PAGEMASK -16384
+#elif L2_CACHE_SIZE == 512
+#define MULTB64_PAGEMASK -32768
+#elif L2_CACHE_SIZE == 1024
+#define MULTB64_PAGEMASK -65536
+#else
+#error 1
+#endif
+
+#endif
+
   {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB64_PAGESIZE) {
+#ifndef _MSC_VER 
       asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#Product	\n\
@@ -308,6 +329,81 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 	emms" : : "m"(cEntry), "m"(Product), "m"(cIndex), "m"(x), "m"(n),
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+#define rep1(n)								\
+	__asm	mov		eax,[esi+edx*4+4*n]		\
+	__asm	and		eax,MULTB64_PAGEMASK	\
+	__asm	cmp		eax,[pagestart]			\
+	__asm	jne		rep1##n					\
+	__asm	mov		eax,[esi+edx*4+4*n]		\
+	__asm	movq	mm0,[edi+eax*8]			\
+	__asm	pxor	mm0,mm1					\
+	__asm	movq	[edi+eax*8],mm0			\
+	__asm	rep1##n:
+	__asm
+	{
+		mov		esi,[cEntry]
+		mov		edi,[Product]
+		xor		ecx, ecx			; i
+		xor		edx, edx			; p
+	l1:	mov		eax,[cIndex]
+		mov		ebx,4[eax+ecx*4+4]	; s = cIndex[i + 1]
+		sub		ebx,[eax+ecx*4]		; s -= cIndex[i]
+		jle		l7
+		mov		eax,[x]				; x
+		movq	mm1,[eax+ecx*8]		; t = x[i]
+		and		ebx,-16				; s &= -16
+		jz		l4
+		add		ebx,edx				; s += p
+	l2:	mov		eax,[esi+edx*4]		; p[0]
+		and		eax,MULTB64_PAGEMASK
+		cmp		eax,[pagestart]
+		jne		l3
+		mov		eax,[esi+edx*4]		; p[0]
+		movq	mm0,[edi+eax*8]		; Product[p[0]]
+		pxor	mm0,mm1				; ^=t
+		movq	[edi+eax*8],mm0
+	l3:	rep1(1)
+		rep1(2)
+		rep1(3)
+		rep1(4)
+		rep1(5)
+		rep1(6)
+		rep1(7)
+		rep1(8)
+		rep1(9)
+		rep1(10)
+		rep1(11)
+		rep1(12)
+		rep1(13)
+		rep1(14)
+		rep1(15)
+
+		add		edx,16				; p+=16
+		cmp		edx,ebx				; p<s
+		jl		l2
+	l4:	mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s = cIndex[i + 1]
+		cmp		edx,ebx
+		jge		l7
+	l5:	mov		eax,[esi+edx*4]		; p[0]
+		and		eax,MULTB64_PAGEMASK
+		cmp		eax,[pagestart]
+		jne		l6
+		mov		eax,[esi+edx*4]		; p[0]
+		movq	mm0,[edi+eax*8]		; Product[p[0]]
+		pxor	mm0,mm1
+		movq	[edi+eax*8],mm0
+	l6:	add		edx,1				; p++
+		cmp		edx,ebx				; p < s
+		jl		l5
+	l7:	add		ecx,1				; i++
+		cmp		ecx,[n]				; i < n
+		jl		l1
+		emms
+	}
+#endif
     }
   }
 #else
@@ -315,6 +411,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
+#ifndef _MSC_VER
     asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#Product	\n\
@@ -366,6 +463,74 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 	jl	1b						\n\
 	emms" : : "m"(cEntry), "m"(Product), "m"(cIndex), "m"(x), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+#define rep2(n)							\
+	__asm	mov		eax,[esi+edx*4+4*n]	\
+	__asm	movq	mm0,mm1				\
+	__asm	pxor	mm0,[edi+eax*8]		\
+	__asm	movq	[edi+eax*8],mm0
+	__asm
+	{
+		mov		esi,[cEntry]
+		mov		edi,[Product]
+		xor		ecx,ecx				; i
+		xor		edx,edx				; p
+	l1:	
+		mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		sub		ebx,[eax+ecx*4]		; s-=cIndex[i]
+		jle		l5				
+		mov		eax,[x]
+		movq	mm1,[eax+ecx*8]		; t=x[i]
+		and		ebx,-16
+		jz		l3				
+		add		ebx,edx				; s+=p
+	l2:						
+		mov		eax,[esi+edx*4]		; p[0]
+		movq	mm0,mm1			
+		pxor	mm0,[edi+eax*8]		; Product[p[0]]
+		movq	[edi+eax*8],mm0		; ^=t
+
+		rep2(1)
+		rep2(2)
+		rep2(3)
+		rep2(4)
+		rep2(5)
+		rep2(6)
+		rep2(7)
+		rep2(8)
+		rep2(9)
+		rep2(10)
+		rep2(11)
+		rep2(12)
+		rep2(13)
+		rep2(14)
+		rep2(15)
+
+		add		edx,16				; p+=16
+		cmp		edx,ebx				; p<s
+		jl		l2				
+	l3:						
+		mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		cmp		edx,ebx			
+		jge		l5				
+	l4:						
+		mov		eax,[esi+edx*4]		; p[0]
+		movq	mm0,mm1			
+		pxor	mm0,[edi+eax*8]		; Product[p[0]]
+		movq	[edi+eax*8],mm0		; ^=t
+		add		edx,1				; p++
+		cmp		edx,ebx				; p<s
+		jl		l4				
+	l5:											
+		add		ecx,1				; i++
+		cmp		ecx,[n]				; i<n
+		jl		l1				
+		emms
+	}
+#endif
   }
 #endif
 }
@@ -382,6 +547,8 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
 // L2_CACHE_SIZE has to be a power of 2.
 // MULTB_T64_PAGESIZE is a half of L2 cache size.
+#ifndef _MSC_VER
+
 #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
 #if L2_CACHE_SIZE == 256
 #define MULTB_T64_PAGEMASK "-16384"
@@ -392,12 +559,29 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 #else
 #error 1
 #endif
+
+#else
+
+#define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+#if L2_CACHE_SIZE == 256
+#define MULTB_T64_PAGEMASK -16384
+#elif L2_CACHE_SIZE == 512
+#define MULTB_T64_PAGEMASK -32768
+#elif L2_CACHE_SIZE == 1024
+#define MULTB_T64_PAGEMASK -65536
+#else
+#error 1
+#endif
+
+#endif
+
   {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
+#ifndef _MSC_VER
       asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#x		\n\
@@ -461,6 +645,86 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 	emms" : : "m"(cEntry), "m"(x), "m"(cIndex), "m"(Product), "m"(n),
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+#define rep3(n)								\
+	__asm	mov		eax,[esi+edx*4+4*n]		\
+	__asm	and		eax,MULTB_T64_PAGEMASK	\
+	__asm	cmp		eax,[pagestart]			\
+	__asm	jne		rep3##n					\
+	__asm	mov		eax,[esi+edx*4+4*n]		\
+	__asm	pxor	mm0,[edi+eax*8]			\
+	__asm	rep3##n:
+
+	__asm
+	{
+		mov		esi,[cEntry]
+		mov		edi,[x]
+		xor		ecx,ecx				; i
+		xor		edx,edx				; p
+	l1:						
+		mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		sub		ebx,[eax+ecx*4]		; s-=cIndex[i]
+		jle		l8				
+		mov		eax,[x]				; Product
+		movq	mm0,[eax+ecx*8]		; t=Product[i]
+		and		ebx,-16				; s&=-16
+		jz		l4				
+		add		ebx,edx				; s+=p
+	l2:						
+		mov		eax,[esi+edx*4]		; p[0]
+		and		eax,MULTB_T64_PAGEMASK
+		cmp		eax,[pagestart]
+		jne		l3				
+		mov		eax,[esi+edx*4]		; p[0]
+		pxor	mm0,[edi+eax*8]		; t^=x[p[0]]
+	l3:
+		rep3(1)
+		rep3(2)
+		rep3(3)
+		rep3(4)
+		rep3(5)
+		rep3(6)
+		rep3(7)
+		rep3(8)
+		rep3(9)
+		rep3(10)
+		rep3(11)
+		rep3(12)
+		rep3(13)
+		rep3(14)
+		rep3(15)
+
+		add		edx,16				; p+=16
+		cmp		edx,ebx				; p<s
+		jl		l2				
+	l4:						
+		mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		cmp		edx,ebx			
+		jge		l7				
+	l5:						
+		mov		eax,[esi+edx*4]		; p[0]
+		and		eax,MULTB_T64_PAGEMASK
+		cmp		eax,[pagestart]
+		jne		l6				
+		mov		eax,[esi+edx*4]		; p[0]
+		pxor	mm0,[edi+eax*8]		; t^=x[p[0]]
+	l6:						
+		add		edx,1				; p++
+		cmp		edx,ebx				; p<s
+		jl		l5				
+	l7:						
+		mov		eax,[x]				; Product
+		movq	[eax+ecx*8],mm0		; Product[i]=t
+	l8:						
+		add		ecx,1				; i++
+		cmp		ecx,[n]				; i<n
+		jl		l1				
+		emms
+	}
+#endif
     }
   }
 #else
@@ -468,6 +732,8 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
+#ifndef _MSC_VER
+
     asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#x		\n\
@@ -515,6 +781,73 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 	jl	1b						\n\
 	emms" : : "m"(cEntry), "m"(x), "m"(cIndex), "m"(Product), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		mov		esi,[cEntry]
+		mov		edi,[x]
+		xor		ecx,ecx				; i
+		xor		edx,edx				; p
+	l1:						
+		mov		eax,[cIndex]
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		sub		ebx,[eax+ecx*4]		; s-=cIndex[i]
+		jle		l6				
+		mov		eax,[x]				; Product
+		movq	mm0,[eax+ecx*8]		; t=Product[i]
+		and		ebx,-16
+		jz		l3				
+		add		ebx,edx				; s+=p
+	l2:						
+		mov		eax,[esi+edx*4]		; p[0]
+		pxor	mm0,[edi+eax*8]		; t^=x[p[0]]
+
+	#define rep4(n)							\
+		__asm	mov		eax,[esi+edx*4+4*n]	\
+		__asm	pxor	mm0,[edi+eax*8]
+
+		rep4(1)
+		rep4(2)
+		rep4(3)
+		rep4(4)
+		rep4(5)
+		rep4(6)
+		rep4(7)
+		rep4(8)
+		rep4(9)
+		rep4(10)
+		rep4(11)
+		rep4(12)
+		rep4(13)
+		rep4(14)
+		rep4(15)
+
+		add		edx,16				; p+=16
+		cmp		edx,ebx				; p<s
+		jl		l2				
+	l3:						
+		mov		eax,[cIndex]		; cIndex
+		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
+		cmp		edx,ebx				; p<s
+		jge		l5				
+	l4:						
+		mov		eax,[esi+edx*4]		; p[0]
+		pxor	mm0,[edi+eax*8]		; t^=x[p[0]]
+		add		edx,1				; p++
+		cmp		edx,ebx				; p<s
+		jl		l4				
+	l5:						
+		mov		eax,[x]				; Product
+		movq	[eax+ecx*8],mm0		; Product[i]=t
+	l6:						
+		add		ecx,1				; i++
+		cmp		ecx,[n]				; i<n
+		jl		l1				
+		emms
+	}
+#endif
+
   }
 #endif
 }
@@ -525,10 +858,18 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
 /**********************************************************************/
 { u64 *Y=NULL, *X=NULL, *Vi=NULL, *Vi_1=NULL, *Vi_2=NULL, *tmp_n=NULL, *tmp2_n=NULL;
   u64 *V0=NULL, *tmp3_n=NULL, *Z=NULL, *AZ=NULL;
-  u64 D[64] ALIGNED16, E[64] ALIGNED16, F[64] ALIGNED16, Wi[64] ALIGNED16;
-  u64 Wi_1[64] ALIGNED16, Wi_2[64] ALIGNED16, T[64] ALIGNED16, T_1[64] ALIGNED16;
-  u64 tmp[64] ALIGNED16;
-  u64 U[64] ALIGNED16, U_1[64] ALIGNED16, tmp2[64] ALIGNED16;
+  ALIGNED16(u64 D[64]);
+  ALIGNED16(u64 E[64]);
+  ALIGNED16(u64 F[64]);
+  ALIGNED16(u64 Wi[64]);
+  ALIGNED16(u64 Wi_1[64]);
+  ALIGNED16(u64 Wi_2[64]);
+  ALIGNED16(u64 T[64]);
+  ALIGNED16(u64 T_1[64]);
+  ALIGNED16(u64 tmp[64]);
+  ALIGNED16(u64 U[64]);
+  ALIGNED16(u64 U_1[64]);
+  ALIGNED16(u64 tmp2[64]);
   int  Si[64], Si_1[64];
   u64 i, j, m, mask, isZero, r1,r2;
   u32  iterations;
@@ -827,10 +1168,11 @@ SHORT_CIRC_STOP:
 }
 
 
-u64 mult_w[2048] ALIGNED16;
+ALIGNED16(u64 mult_w[2048]);
 
 void multT(u64 *c, u64 *a, u64 *b, s32 n) {
   memset(mult_w, 0, sizeof(u64) * 256 * 8);
+#ifndef _MSC_VER
   asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -880,9 +1222,63 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
 	jnz	1b						\n\
 	emms" : : "m"(a), "m"(b), "m"(n) :
                "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		mov		esi,[a]
+		mov		edi,[b]
+		mov		ecx,[n]
+		lea		esi,[esi+ecx*8]
+		lea		edi,[edi+ecx*8]
+		neg		ecx
+	l1:
+		movq	mm1,[edi+ecx*8]
+		mov		ebx,[esi+ecx*8]
+		movzx	eax,bl
+		movzx	edx,bh
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+eax*8]
+		movq	[mult_w+eax*8],mm0
+		shr		ebx,16
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256+edx*8]
+		movq	[mult_w+8*256+edx*8],mm0
+		movzx	eax,bl
+		mov		edx,[esi+ecx*8+4]
+		shr		ebx,8
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*2+eax*8]
+		movq	[mult_w+8*256*2+eax*8],mm0
+		movzx	eax,dl
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*3+ebx*8]
+		movq	[mult_w+8*256*3+ebx*8],mm0
+		movzx	ebx,dh
+		shr		edx,16
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*4+eax*8]
+		movq	[mult_w+8*256*4+eax*8],mm0
+		movzx	eax,dl
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*5+ebx*8]
+		movq	[mult_w+8*256*5+ebx*8],mm0
+		shr		edx,8
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*6+eax*8]
+		movq	[mult_w+8*256*6+eax*8],mm0
+		movq	mm0,mm1
+		pxor	mm0,[mult_w+8*256*7+edx*8]
+		movq	[mult_w+8*256*7+edx*8],mm0
+		add		ecx,1
+		jnz		l1
+		emms
+	}
+#endif
   {
     int i;
     for (i = 0; i < 64; i += 8) {
+#ifndef _MSC_VER
       asm volatile("\
 	movq	2040(%0), %%mm0		#r0 = a[255]	255->254	\n\
 	pxor	2032(%0), %%mm0		#r0 ^= a[254]			\n\
@@ -1593,6 +1989,732 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
 	pxor	1536(%0), %%mm0		#r0 ^= a[192]			\n\
 	movq	%%mm0, 56(%1)		#b[7] = r0			\n\
 	emms" : : "r"(mult_w + (i << 5)), "r"(c + i));
+#else
+
+__asm
+{
+	lea		ecx,[mult_w]
+	mov		edx,[c]
+	mov		eax,[i]
+	shl		eax,6
+	add		edx,eax
+	shl		eax,5
+	add		ecx,eax
+
+#define _p	ecx
+#define _q	edx
+
+	movq	mm0,[_p+2040]		; r0 = a[255]	255->254
+	pxor	mm0,[_p+2032]		; r0 ^= a[254]		
+	movq	[_p+2032],mm0		; a[254] = r0		
+	pxor	mm0,[_p+2016]		; r0 ^= a[252]	254->252
+	pxor	mm0,[_p+2024]		; r0 ^= a[253]	253->252
+	movq	[_p+2016],mm0		; a[252] = r0		
+	movq	mm1,[_p+2008]		; r1 = a[251]	251->250
+	pxor	mm1,[_p+2000]		; r1 ^= a[250]		
+	movq	[_p+2000],mm1		; a[250] = r1		
+	pxor	mm0,[_p+1984]		; r0 ^= a[248]	252->248
+	pxor	mm0,mm1				; r0 ^= r1		250->248
+	pxor	mm0,[_p+1992]		; r0 ^= a[249]	249->248
+	movq	[_p+1984],mm0		; a[248] = r0		
+	movq	mm1,[_p+1976]		; r1 = a[247]	247->246
+	pxor	mm1,[_p+1968]		; r1 ^= a[246]		
+	movq	[_p+1968],mm1		; a[246] = r1		
+	pxor	mm1,[_p+1952]		; r1 ^= a[244]	246->244
+	pxor	mm1,[_p+1960]		; r1 ^= a[245]	245->244
+	movq	[_p+1952],mm1		; a[244] = r1		
+	movq	mm2,[_p+1944]		; r2 = a[243]	243->242
+	pxor	mm2,[_p+1936]		; r2 ^= a[242]		
+	movq	[_p+1936],mm2		; a[242] = r2		
+	pxor	mm0,[_p+1920]		; r0 ^= a[240]	248->240
+	pxor	mm0,mm1				; r0 ^= r1		244->240
+	pxor	mm0,mm2				; r0 ^= r2		242->240
+	pxor	mm0,[_p+1928]		; r0 ^= a[241]	241->240
+	movq	[_p+1920],mm0		; a[240] = r0		
+	movq	mm1,[_p+1912]		; r1 = a[239]	239->238
+	pxor	mm1,[_p+1904]		; r1 ^= a[238]		
+	movq	[_p+1904],mm1		; a[238] = r1		
+	pxor	mm1,[_p+1888]		; r1 ^= a[236]	238->236
+	pxor	mm1,[_p+1896]		; r1 ^= a[237]	237->236
+	movq	[_p+1888],mm1		; a[236] = r1		
+	movq	mm2,[_p+1880]		; r2 = a[235]	235->234
+	pxor	mm2,[_p+1872]		; r2 ^= a[234]		
+	movq	[_p+1872],mm2		; a[234] = r2		
+	pxor	mm1,[_p+1856]		; r1 ^= a[232]	236->232
+	pxor	mm1,mm2				; r1 ^= r2		234->232
+	pxor	mm1,[_p+1864]		; r1 ^= a[233]	233->232
+	movq	[_p+1856],mm1		; a[232] = r1		
+	movq	mm2,[_p+1848]		; r2 = a[231]	231->230
+	pxor	mm2,[_p+1840]		; r2 ^= a[230]		
+	movq	[_p+1840],mm2		; a[230] = r2		
+	pxor	mm2,[_p+1824]		; r2 ^= a[228]	230->228
+	pxor	mm2,[_p+1832]		; r2 ^= a[229]	229->228
+	movq	[_p+1824],mm2		; a[228] = r2		
+	movq	mm3,[_p+1816]		; r3 = a[227]	227->226
+	pxor	mm3,[_p+1808]		; r3 ^= a[226]		
+	movq	[_p+1808],mm3		; a[226] = r3		
+	pxor	mm0,[_p+1792]		; r0 ^= a[224]	240->224
+	pxor	mm0,mm1				; r0 ^= r1		232->224
+	pxor	mm0,mm2				; r0 ^= r2		228->224
+	pxor	mm0,mm3				; r0 ^= r3		226->224
+	pxor	mm0,[_p+1800]		; r0 ^= a[225]	225->224
+	movq	[_p+1792],mm0		; a[224] = r0		
+	movq	mm1,[_p+1784]		; r1 = a[223]	223->222
+	pxor	mm1,[_p+1776]		; r1 ^= a[222]		
+	movq	[_p+1776],mm1		; a[222] = r1		
+	pxor	mm1,[_p+1760]		; r1 ^= a[220]	222->220
+	pxor	mm1,[_p+1768]		; r1 ^= a[221]	221->220
+	movq	[_p+1760],mm1		; a[220] = r1		
+	movq	mm2,[_p+1752]		; r2 = a[219]	219->218
+	pxor	mm2,[_p+1744]		; r2 ^= a[218]		
+	movq	[_p+1744],mm2		; a[218] = r2		
+	pxor	mm1,[_p+1728]		; r1 ^= a[216]	220->216
+	pxor	mm1,mm2				; r1 ^= r2		218->216
+	pxor	mm1,[_p+1736]		; r1 ^= a[217]	217->216
+	movq	[_p+1728],mm1		; a[216] = r1		
+	movq	mm2,[_p+1720]		; r2 = a[215]	215->214
+	pxor	mm2,[_p+1712]		; r2 ^= a[214]		
+	movq	[_p+1712],mm2		; a[214] = r2		
+	pxor	mm2,[_p+1696]		; r2 ^= a[212]	214->212
+	pxor	mm2,[_p+1704]		; r2 ^= a[213]	213->212
+	movq	[_p+1696],mm2		; a[212] = r2		
+	movq	mm3,[_p+1688]		; r3 = a[211]	211->210
+	pxor	mm3,[_p+1680]		; r3 ^= a[210]		
+	movq	[_p+1680],mm3		; a[210] = r3		
+	pxor	mm1,[_p+1664]		; r1 ^= a[208]	216->208
+	pxor	mm1,mm2				; r1 ^= r2		212->208
+	pxor	mm1,mm3				; r1 ^= r3		210->208
+	pxor	mm1,[_p+1672]		; r1 ^= a[209]	209->208
+	movq	[_p+1664],mm1		; a[208] = r1		
+	movq	mm2,[_p+1656]		; r2 = a[207]	207->206
+	pxor	mm2,[_p+1648]		; r2 ^= a[206]		
+	movq	[_p+1648],mm2		; a[206] = r2		
+	pxor	mm2,[_p+1632]		; r2 ^= a[204]	206->204
+	pxor	mm2,[_p+1640]		; r2 ^= a[205]	205->204
+	movq	[_p+1632],mm2		; a[204] = r2		
+	movq	mm3,[_p+1624]		; r3 = a[203]	203->202
+	pxor	mm3,[_p+1616]		; r3 ^= a[202]		
+	movq	[_p+1616],mm3		; a[202] = r3		
+	pxor	mm2,[_p+1600]		; r2 ^= a[200]	204->200
+	pxor	mm2,mm3				; r2 ^= r3		202->200
+	pxor	mm2,[_p+1608]		; r2 ^= a[201]	201->200
+	movq	[_p+1600],mm2		; a[200] = r2		
+	movq	mm3,[_p+1592]		; r3 = a[199]	199->198
+	pxor	mm3,[_p+1584]		; r3 ^= a[198]		
+	movq	[_p+1584],mm3		; a[198] = r3		
+	pxor	mm3,[_p+1568]		; r3 ^= a[196]	198->196
+	pxor	mm3,[_p+1576]		; r3 ^= a[197]	197->196
+	movq	[_p+1568],mm3		; a[196] = r3		
+	movq	mm4,[_p+1560]		; r4 = a[195]	195->194
+	pxor	mm4,[_p+1552]		; r4 ^= a[194]		
+	movq	[_p+1552],mm4		; a[194] = r4		
+	pxor	mm0,[_p+1536]		; r0 ^= a[192]	224->192
+	pxor	mm0,mm1				; r0 ^= r1		208->192
+	pxor	mm0,mm2				; r0 ^= r2		200->192
+	pxor	mm0,mm3				; r0 ^= r3		196->192
+	pxor	mm0,mm4				; r0 ^= r4		194->192
+	movq	[_p+1536],mm0		; a[192] = r0		
+	pxor	mm0,[_p+1544]		; r0 ^= a[193]	193->192
+	movq	[_p+1536],mm0		; a[192] = r0		
+	movq	mm0,[_p+1528]		; r0 = a[191]	191->190
+	pxor	mm0,[_p+1520]		; r0 ^= a[190]		
+	movq	[_p+1520],mm0		; a[190] = r0		
+	pxor	mm0,[_p+1504]		; r0 ^= a[188]	190->188
+	pxor	mm0,[_p+1512]		; r0 ^= a[189]	189->188
+	movq	[_p+1504],mm0		; a[188] = r0		
+	movq	mm1,[_p+1496]		; r1 = a[187]	187->186
+	pxor	mm1,[_p+1488]		; r1 ^= a[186]		
+	movq	[_p+1488],mm1		; a[186] = r1		
+	pxor	mm0,[_p+1472]		; r0 ^= a[184]	188->184
+	pxor	mm0,mm1				; r0 ^= r1		186->184
+	pxor	mm0,[_p+1480]		; r0 ^= a[185]	185->184
+	movq	[_p+1472],mm0		; a[184] = r0		
+	movq	mm1,[_p+1464]		; r1 = a[183]	183->182
+	pxor	mm1,[_p+1456]		; r1 ^= a[182]		
+	movq	[_p+1456],mm1		; a[182] = r1		
+	pxor	mm1,[_p+1440]		; r1 ^= a[180]	182->180
+	pxor	mm1,[_p+1448]		; r1 ^= a[181]	181->180
+	movq	[_p+1440],mm1		; a[180] = r1		
+	movq	mm2,[_p+1432]		; r2 = a[179]	179->178
+	pxor	mm2,[_p+1424]		; r2 ^= a[178]		
+	movq	[_p+1424],mm2		; a[178] = r2		
+	pxor	mm0,[_p+1408]		; r0 ^= a[176]	184->176
+	pxor	mm0,mm1				; r0 ^= r1		180->176
+	pxor	mm0,mm2				; r0 ^= r2		178->176
+	pxor	mm0,[_p+1416]		; r0 ^= a[177]	177->176
+	movq	[_p+1408],mm0		; a[176] = r0		
+	movq	mm1,[_p+1400]		; r1 = a[175]	175->174
+	pxor	mm1,[_p+1392]		; r1 ^= a[174]		
+	movq	[_p+1392],mm1		; a[174] = r1		
+	pxor	mm1,[_p+1376]		; r1 ^= a[172]	174->172
+	pxor	mm1,[_p+1384]		; r1 ^= a[173]	173->172
+	movq	[_p+1376],mm1		; a[172] = r1		
+	movq	mm2,[_p+1368]		; r2 = a[171]	171->170
+	pxor	mm2,[_p+1360]		; r2 ^= a[170]		
+	movq	[_p+1360],mm2		; a[170] = r2		
+	pxor	mm1,[_p+1344]		; r1 ^= a[168]	172->168
+	pxor	mm1,mm2				; r1 ^= r2	170->168
+	pxor	mm1,[_p+1352]		; r1 ^= a[169]	169->168
+	movq	[_p+1344],mm1		; a[168] = r1		
+	movq	mm2,[_p+1336]		; r2 = a[167]	167->166
+	pxor	mm2,[_p+1328]		; r2 ^= a[166]		
+	movq	[_p+1328],mm2		; a[166] = r2		
+	pxor	mm2,[_p+1312]		; r2 ^= a[164]	166->164
+	pxor	mm2,[_p+1320]		; r2 ^= a[165]	165->164
+	movq	[_p+1312],mm2		; a[164] = r2		
+	movq	mm3,[_p+1304]		; r3 = a[163]	163->162
+	pxor	mm3,[_p+1296]		; r3 ^= a[162]		
+	movq	[_p+1296],mm3		; a[162] = r3		
+	pxor	mm0,[_p+1280]		; r0 ^= a[160]	176->160
+	pxor	mm0,mm1				; r0 ^= r1		168->160
+	pxor	mm0,mm2				; r0 ^= r2		164->160
+	pxor	mm0,mm3				; r0 ^= r3		162->160
+	movq	[_p+1280],mm0		; a[160] = r0		
+	pxor	mm0,[_p+1288]		; r0 ^= a[161]	161->160
+	movq	[_p+1280],mm0		; a[160] = r0		
+	movq	mm0,[_p+1272]		; r0 = a[159]	159->158
+	pxor	mm0,[_p+1264]		; r0 ^= a[158]		
+	movq	[_p+1264],mm0		; a[158] = r0		
+	pxor	mm0,[_p+1248]		; r0 ^= a[156]	158->156
+	pxor	mm0,[_p+1256]		; r0 ^= a[157]	157->156
+	movq	[_p+1248],mm0		; a[156] = r0		
+	movq	mm1,[_p+1240]		; r1 = a[155]	155->154
+	pxor	mm1,[_p+1232]		; r1 ^= a[154]		
+	movq	[_p+1232],mm1		; a[154] = r1		
+	pxor	mm0,[_p+1216]		; r0 ^= a[152]	156->152
+	pxor	mm0,mm1				; r0 ^= r1		154->152
+	pxor	mm0,[_p+1224]		; r0 ^= a[153]	153->152
+	movq	[_p+1216],mm0		; a[152] = r0		
+	movq	mm1,[_p+1208]		; r1 = a[151]	151->150
+	pxor	mm1,[_p+1200]		; r1 ^= a[150]		
+	movq	[_p+1200],mm1		; a[150] = r1		
+	pxor	mm1,[_p+1184]		; r1 ^= a[148]	150->148
+	pxor	mm1,[_p+1192]		; r1 ^= a[149]	149->148
+	movq	[_p+1184],mm1		; a[148] = r1		
+	movq	mm2,[_p+1176]		; r2 = a[147]	147->146
+	pxor	mm2,[_p+1168]		; r2 ^= a[146]		
+	movq	[_p+1168],mm2		; a[146] = r2		
+	pxor	mm0,[_p+1152]		; r0 ^= a[144]	152->144
+	pxor	mm0,mm1				; r0 ^= r1		148->144
+	pxor	mm0,mm2				; r0 ^= r2		146->144
+	movq	[_p+1152],mm0		; a[144] = r0		
+	pxor	mm0,[_p+1160]		; r0 ^= a[145]	145->144
+	movq	[_p+1152],mm0		; a[144] = r0		
+	movq	mm0,[_p+1144]		; r0 = a[143]	143->142
+	pxor	mm0,[_p+1136]		; r0 ^= a[142]		
+	movq	[_p+1136],mm0		; a[142] = r0		
+	pxor	mm0,[_p+1120]		; r0 ^= a[140]	142->140
+	pxor	mm0,[_p+1128]		; r0 ^= a[141]	141->140
+	movq	[_p+1120],mm0		; a[140] = r0		
+	movq	mm1,[_p+1112]		; r1 = a[139]	139->138
+	pxor	mm1,[_p+1104]		; r1 ^= a[138]		
+	movq	[_p+1104],mm1		; a[138] = r1		
+	pxor	mm0,[_p+1088]		; r0 ^= a[136]	140->136
+	pxor	mm0,mm1				; r0 ^= r1	138->136
+	movq	[_p+1088],mm0		; a[136] = r0		
+	pxor	mm0,[_p+1096]		; r0 ^= a[137]	137->136
+	movq	[_p+1088],mm0		; a[136] = r0		
+	movq	mm0,[_p+1080]		; r0 = a[135]	135->134
+	pxor	mm0,[_p+1072]		; r0 ^= a[134]		
+	movq	[_p+1072],mm0		; a[134] = r0		
+	pxor	mm0,[_p+1056]		; r0 ^= a[132]	134->132
+	movq	[_p+1056],mm0		; a[132] = r0		
+	pxor	mm0,[_p+1064]		; r0 ^= a[133]	133->132
+	movq	[_p+1056],mm0		; a[132] = r0		
+	movq	mm0,[_p+1048]		; r0 = a[131]	131->130
+	pxor	mm0,[_p+1040]		; r0 ^= a[130]		
+	movq	[_p+1040],mm0		; a[130] = r0		
+	movq	mm0,[_p+1016]		; r0 = a[127]	127->126
+	pxor	mm0,[_p+1008]		; r0 ^= a[126]		
+	movq	[_p+1008],mm0		; a[126] = r0		
+	pxor	mm0,[_p+992]		; r0 ^= a[124]	126->124
+	pxor	mm0,[_p+1000]		; r0 ^= a[125]	125->124
+	movq	[_p+992],mm0		; a[124] = r0		
+	movq	mm1,[_p+984]		; r1 = a[123]	123->122
+	pxor	mm1,[_p+976]		; r1 ^= a[122]		
+	movq	[_p+976],mm1		; a[122] = r1		
+	pxor	mm0,[_p+960]		; r0 ^= a[120]	124->120
+	pxor	mm0,mm1				; r0 ^= r1	122->120
+	pxor	mm0,[_p+968]		; r0 ^= a[121]	121->120
+	movq	[_p+960],mm0		; a[120] = r0		
+	movq	mm1,[_p+952]		; r1 = a[119]	119->118
+	pxor	mm1,[_p+944]		; r1 ^= a[118]		
+	movq	[_p+944],mm1		; a[118] = r1		
+	pxor	mm1,[_p+928]		; r1 ^= a[116]	118->116
+	pxor	mm1,[_p+936]		; r1 ^= a[117]	117->116
+	movq	[_p+928],mm1		; a[116] = r1		
+	movq	mm2,[_p+920]		; r2 = a[115]	115->114
+	pxor	mm2,[_p+912]		; r2 ^= a[114]		
+	movq	[_p+912],mm2		; a[114] = r2		
+	pxor	mm0,[_p+896]		; r0 ^= a[112]	120->112
+	pxor	mm0,mm1				; r0 ^= r1		116->112
+	pxor	mm0,mm2				; r0 ^= r2		114->112
+	pxor	mm0,[_p+904]		; r0 ^= a[113]	113->112
+	movq	[_p+896],mm0		; a[112] = r0		
+	movq	mm1,[_p+888]		; r1 = a[111]	111->110
+	pxor	mm1,[_p+880]		; r1 ^= a[110]		
+	movq	[_p+880],mm1		; a[110] = r1		
+	pxor	mm1,[_p+864]		; r1 ^= a[108]	110->108
+	pxor	mm1,[_p+872]		; r1 ^= a[109]	109->108
+	movq	[_p+864],mm1		; a[108] = r1		
+	movq	mm2,[_p+856]		; r2 = a[107]	107->106
+	pxor	mm2,[_p+848]		; r2 ^= a[106]		
+	movq	[_p+848],mm2		; a[106] = r2		
+	pxor	mm1,[_p+832]		; r1 ^= a[104]	108->104
+	pxor	mm1,mm2				; r1 ^= r2	106->104
+	pxor	mm1,[_p+840]		; r1 ^= a[105]	105->104
+	movq	[_p+832],mm1		; a[104] = r1		
+	movq	mm2,[_p+824]		; r2 = a[103]	103->102
+	pxor	mm2,[_p+816]		; r2 ^= a[102]		
+	movq	[_p+816],mm2		; a[102] = r2		
+	pxor	mm2,[_p+800]		; r2 ^= a[100]	102->100
+	pxor	mm2,[_p+808]		; r2 ^= a[101]	101->100
+	movq	[_p+800],mm2		; a[100] = r2		
+	movq	mm3,[_p+792]		; r3 = a[99]	99->98	
+	pxor	mm3,[_p+784]		; r3 ^= a[98]		
+	movq	[_p+784],mm3		; a[98] = r3		
+	pxor	mm0,[_p+768]		; r0 ^= a[96]	112->96	
+	pxor	mm0,mm1				; r0 ^= r1		104->96	
+	pxor	mm0,mm2				; r0 ^= r2		100->96	
+	pxor	mm0,mm3				; r0 ^= r3		98->96	
+	movq	[_p+768],mm0		; a[96] = r0		
+	pxor	mm0,[_p+776]		; r0 ^= a[97]	97->96	
+	movq	[_p+768],mm0		; a[96] = r0		
+	movq	mm0,[_p+760]		; r0 = a[95]	95->94	
+	pxor	mm0,[_p+752]		; r0 ^= a[94]		
+	movq	[_p+752],mm0		; a[94] = r0		
+	pxor	mm0,[_p+736]		; r0 ^= a[92]	94->92	
+	pxor	mm0,[_p+744]		; r0 ^= a[93]	93->92	
+	movq	[_p+736],mm0		; a[92] = r0		
+	movq	mm1,[_p+728]		; r1 = a[91]	91->90	
+	pxor	mm1,[_p+720]		; r1 ^= a[90]		
+	movq	[_p+720],mm1		; a[90] = r1		
+	pxor	mm0,[_p+704]		; r0 ^= a[88]	92->88	
+	pxor	mm0,mm1				; r0 ^= r1	90->88	
+	pxor	mm0,[_p+712]		; r0 ^= a[89]	89->88	
+	movq	[_p+704],mm0		; a[88] = r0		
+	movq	mm1,[_p+696]		; r1 = a[87]	87->86	
+	pxor	mm1,[_p+688]		; r1 ^= a[86]		
+	movq	[_p+688],mm1		; a[86] = r1		
+	pxor	mm1,[_p+672]		; r1 ^= a[84]	86->84	
+	pxor	mm1,[_p+680]		; r1 ^= a[85]	85->84	
+	movq	[_p+672],mm1		; a[84] = r1		
+	movq	mm2,[_p+664]		; r2 = a[83]	83->82	
+	pxor	mm2,[_p+656]		; r2 ^= a[82]		
+	movq	[_p+656],mm2		; a[82] = r2		
+	pxor	mm0,[_p+640]		; r0 ^= a[80]	88->80	
+	pxor	mm0,mm1				; r0 ^= r1		84->80	
+	pxor	mm0,mm2				; r0 ^= r2		82->80	
+	movq	[_p+640],mm0		; a[80] = r0		
+	pxor	mm0,[_p+648]		; r0 ^= a[81]	81->80	
+	movq	[_p+640],mm0		; a[80] = r0		
+	movq	mm0,[_p+632]		; r0 = a[79]	79->78	
+	pxor	mm0,[_p+624]		; r0 ^= a[78]		
+	movq	[_p+624],mm0		; a[78] = r0		
+	pxor	mm0,[_p+608]		; r0 ^= a[76]	78->76	
+	pxor	mm0,[_p+616]		; r0 ^= a[77]	77->76	
+	movq	[_p+608],mm0		; a[76] = r0		
+	movq	mm1,[_p+600]		; r1 = a[75]	75->74	
+	pxor	mm1,[_p+592]		; r1 ^= a[74]		
+	movq	[_p+592],mm1		; a[74] = r1		
+	pxor	mm0,[_p+576]		; r0 ^= a[72]	76->72	
+	pxor	mm0,mm1				; r0 ^= r1		74->72	
+	movq	[_p+576],mm0		; a[72] = r0		
+	pxor	mm0,[_p+584]		; r0 ^= a[73]	73->72	
+	movq	[_p+576],mm0		; a[72] = r0		
+	movq	mm0,[_p+568]		; r0 = a[71]	71->70	
+	pxor	mm0,[_p+560]		; r0 ^= a[70]		
+	movq	[_p+560],mm0		; a[70] = r0		
+	pxor	mm0,[_p+544]		; r0 ^= a[68]	70->68	
+	movq	[_p+544],mm0		; a[68] = r0		
+	pxor	mm0,[_p+552]		; r0 ^= a[69]	69->68	
+	movq	[_p+544],mm0		; a[68] = r0		
+	movq	mm0,[_p+536]		; r0 = a[67]	67->66	
+	pxor	mm0,[_p+528]		; r0 ^= a[66]		
+	movq	[_p+528],mm0		; a[66] = r0		
+	movq	mm0,[_p+504]		; r0 = a[63]	63->62	
+	pxor	mm0,[_p+496]		; r0 ^= a[62]		
+	movq	[_p+496],mm0		; a[62] = r0		
+	pxor	mm0,[_p+480]		; r0 ^= a[60]	62->60	
+	pxor	mm0,[_p+488]		; r0 ^= a[61]	61->60	
+	movq	[_p+480],mm0		; a[60] = r0		
+	movq	mm1,[_p+472]		; r1 = a[59]	59->58	
+	pxor	mm1,[_p+464]		; r1 ^= a[58]		
+	movq	[_p+464],mm1		; a[58] = r1		
+	pxor	mm0,[_p+448]		; r0 ^= a[56]	60->56	
+	pxor	mm0,mm1				; r0 ^= r1		58->56	
+	pxor	mm0,[_p+456]		; r0 ^= a[57]	57->56	
+	movq	[_p+448],mm0		; a[56] = r0		
+	movq	mm1,[_p+440]		; r1 = a[55]	55->54	
+	pxor	mm1,[_p+432]		; r1 ^= a[54]		
+	movq	[_p+432],mm1		; a[54] = r1		
+	pxor	mm1,[_p+416]		; r1 ^= a[52]	54->52	
+	pxor	mm1,[_p+424]		; r1 ^= a[53]	53->52	
+	movq	[_p+416],mm1		; a[52] = r1		
+	movq	mm2,[_p+408]		; r2 = a[51]	51->50	
+	pxor	mm2,[_p+400]		; r2 ^= a[50]		
+	movq	[_p+400],mm2		; a[50] = r2		
+	pxor	mm0,[_p+384]		; r0 ^= a[48]	56->48	
+	pxor	mm0,mm1				; r0 ^= r1		52->48	
+	pxor	mm0,mm2				; r0 ^= r2		50->48	
+	movq	[_p+384],mm0		; a[48] = r0		
+	pxor	mm0,[_p+392]		; r0 ^= a[49]	49->48	
+	movq	[_p+384],mm0		; a[48] = r0		
+	movq	mm0,[_p+376]		; r0 = a[47]	47->46	
+	pxor	mm0,[_p+368]		; r0 ^= a[46]		
+	movq	[_p+368],mm0		; a[46] = r0		
+	pxor	mm0,[_p+352]		; r0 ^= a[44]	46->44	
+	pxor	mm0,[_p+360]		; r0 ^= a[45]	45->44	
+	movq	[_p+352],mm0		; a[44] = r0		
+	movq	mm1,[_p+344]		; r1 = a[43]	43->42	
+	pxor	mm1,[_p+336]		; r1 ^= a[42]		
+	movq	[_p+336],mm1		; a[42] = r1		
+	pxor	mm0,[_p+320]		; r0 ^= a[40]	44->40	
+	pxor	mm0,mm1				; r0 ^= r1		42->40	
+	movq	[_p+320],mm0		; a[40] = r0		
+	pxor	mm0,[_p+328]		; r0 ^= a[41]	41->40	
+	movq	[_p+320],mm0		; a[40] = r0		
+	movq	mm0,[_p+312]		; r0 = a[39]	39->38	
+	pxor	mm0,[_p+304]		; r0 ^= a[38]		
+	movq	[_p+304],mm0		; a[38] = r0		
+	pxor	mm0,[_p+288]		; r0 ^= a[36]	38->36	
+	movq	[_p+288],mm0		; a[36] = r0		
+	pxor	mm0,[_p+296]		; r0 ^= a[37]	37->36	
+	movq	[_p+288],mm0		; a[36] = r0		
+	movq	mm0,[_p+280]		; r0 = a[35]	35->34	
+	pxor	mm0,[_p+272]		; r0 ^= a[34]		
+	movq	[_p+272],mm0		; a[34] = r0		
+	movq	mm0,[_p+248]		; r0 = a[31]	31->30	
+	pxor	mm0,[_p+240]		; r0 ^= a[30]		
+	movq	[_p+240],mm0		; a[30] = r0		
+	pxor	mm0,[_p+224]		; r0 ^= a[28]	30->28	
+	pxor	mm0,[_p+232]		; r0 ^= a[29]	29->28	
+	movq	[_p+224],mm0		; a[28] = r0		
+	movq	mm1,[_p+216]		; r1 = a[27]	27->26	
+	pxor	mm1,[_p+208]		; r1 ^= a[26]		
+	movq	[_p+208],mm1		; a[26] = r1		
+	pxor	mm0,[_p+192]		; r0 ^= a[24]	28->24	
+	pxor	mm0,mm1				; r0 ^= r1		26->24	
+	movq	[_p+192],mm0		; a[24] = r0		
+	pxor	mm0,[_p+200]		; r0 ^= a[25]	25->24	
+	movq	[_p+192],mm0		; a[24] = r0		
+	movq	mm0,[_p+184]		; r0 = a[23]	23->22	
+	pxor	mm0,[_p+176]		; r0 ^= a[22]		
+	movq	[_p+176],mm0		; a[22] = r0		
+	pxor	mm0,[_p+160]		; r0 ^= a[20]	22->20	
+	movq	[_p+160],mm0		; a[20] = r0		
+	pxor	mm0,[_p+168]		; r0 ^= a[21]	21->20	
+	movq	[_p+160],mm0		; a[20] = r0		
+	movq	mm0,[_p+152]		; r0 = a[19]	19->18	
+	pxor	mm0,[_p+144]		; r0 ^= a[18]		
+	movq	[_p+144],mm0		; a[18] = r0		
+	movq	mm0,[_p+120]		; r0 = a[15]	15->14	
+	pxor	mm0,[_p+112]		; r0 ^= a[14]		
+	movq	[_p+112],mm0		; a[14] = r0		
+	pxor	mm0,[_p+96]			; r0 ^= a[12]	14->12	
+	movq	[_p+96],mm0			; a[12] = r0		
+	pxor	mm0,[_p+104]		; r0 ^= a[13]	13->12	
+	movq	[_p+96],mm0			; a[12] = r0		
+	movq	mm0,[_p+88]			; r0 = a[11]	11->10	
+	pxor	mm0,[_p+80]			; r0 ^= a[10]		
+	movq	[_p+80],mm0			; a[10] = r0		
+	movq	mm0,[_p+56]			; r0 = a[7]		7->6	
+	pxor	mm0,[_p+48]			; r0 ^= a[6]		
+	movq	[_p+48],mm0			; a[6] = r0		
+	movq	mm0,[_p+8]			; r0 = a[1]		
+	pxor	mm0,[_p+24]			; r0 ^= a[3]		
+	pxor	mm0,[_p+40]			; r0 ^= a[5]		
+	pxor	mm0,[_p+56]			; r0 ^= a[7]		
+	pxor	mm0,[_p+72]			; r0 ^= a[9]		
+	pxor	mm0,[_p+88]			; r0 ^= a[11]		
+	pxor	mm0,[_p+104]		; r0 ^= a[13]		
+	pxor	mm0,[_p+120]		; r0 ^= a[15]		
+	pxor	mm0,[_p+136]		; r0 ^= a[17]		
+	pxor	mm0,[_p+152]		; r0 ^= a[19]		
+	pxor	mm0,[_p+168]		; r0 ^= a[21]		
+	pxor	mm0,[_p+184]		; r0 ^= a[23]		
+	pxor	mm0,[_p+200]		; r0 ^= a[25]		
+	pxor	mm0,[_p+216]		; r0 ^= a[27]		
+	pxor	mm0,[_p+232]		; r0 ^= a[29]		
+	pxor	mm0,[_p+248]		; r0 ^= a[31]		
+	pxor	mm0,[_p+264]		; r0 ^= a[33]		
+	pxor	mm0,[_p+280]		; r0 ^= a[35]		
+	pxor	mm0,[_p+296]		; r0 ^= a[37]		
+	pxor	mm0,[_p+312]		; r0 ^= a[39]		
+	pxor	mm0,[_p+328]		; r0 ^= a[41]		
+	pxor	mm0,[_p+344]		; r0 ^= a[43]		
+	pxor	mm0,[_p+360]		; r0 ^= a[45]		
+	pxor	mm0,[_p+376]		; r0 ^= a[47]		
+	pxor	mm0,[_p+392]		; r0 ^= a[49]		
+	pxor	mm0,[_p+408]		; r0 ^= a[51]		
+	pxor	mm0,[_p+424]		; r0 ^= a[53]		
+	pxor	mm0,[_p+440]		; r0 ^= a[55]		
+	pxor	mm0,[_p+456]		; r0 ^= a[57]		
+	pxor	mm0,[_p+472]		; r0 ^= a[59]		
+	pxor	mm0,[_p+488]		; r0 ^= a[61]		
+	pxor	mm0,[_p+504]		; r0 ^= a[63]		
+	pxor	mm0,[_p+520]		; r0 ^= a[65]		
+	pxor	mm0,[_p+536]		; r0 ^= a[67]		
+	pxor	mm0,[_p+552]		; r0 ^= a[69]		
+	pxor	mm0,[_p+568]		; r0 ^= a[71]		
+	pxor	mm0,[_p+584]		; r0 ^= a[73]		
+	pxor	mm0,[_p+600]		; r0 ^= a[75]		
+	pxor	mm0,[_p+616]		; r0 ^= a[77]		
+	pxor	mm0,[_p+632]		; r0 ^= a[79]		
+	pxor	mm0,[_p+648]		; r0 ^= a[81]		
+	pxor	mm0,[_p+664]		; r0 ^= a[83]		
+	pxor	mm0,[_p+680]		; r0 ^= a[85]		
+	pxor	mm0,[_p+696]		; r0 ^= a[87]		
+	pxor	mm0,[_p+712]		; r0 ^= a[89]		
+	pxor	mm0,[_p+728]		; r0 ^= a[91]		
+	pxor	mm0,[_p+744]		; r0 ^= a[93]		
+	pxor	mm0,[_p+760]		; r0 ^= a[95]		
+	pxor	mm0,[_p+776]		; r0 ^= a[97]		
+	pxor	mm0,[_p+792]		; r0 ^= a[99]		
+	pxor	mm0,[_p+808]		; r0 ^= a[101]		
+	pxor	mm0,[_p+824]		; r0 ^= a[103]		
+	pxor	mm0,[_p+840]		; r0 ^= a[105]		
+	pxor	mm0,[_p+856]		; r0 ^= a[107]		
+	pxor	mm0,[_p+872]		; r0 ^= a[109]		
+	pxor	mm0,[_p+888]		; r0 ^= a[111]		
+	pxor	mm0,[_p+904]		; r0 ^= a[113]		
+	pxor	mm0,[_p+920]		; r0 ^= a[115]		
+	pxor	mm0,[_p+936]		; r0 ^= a[117]		
+	pxor	mm0,[_p+952]		; r0 ^= a[119]		
+	pxor	mm0,[_p+968]		; r0 ^= a[121]		
+	pxor	mm0,[_p+984]		; r0 ^= a[123]		
+	pxor	mm0,[_p+1000]		; r0 ^= a[125]		
+	pxor	mm0,[_p+1016]		; r0 ^= a[127]		
+	pxor	mm0,[_p+1032]		; r0 ^= a[129]		
+	pxor	mm0,[_p+1048]		; r0 ^= a[131]		
+	pxor	mm0,[_p+1064]		; r0 ^= a[133]		
+	pxor	mm0,[_p+1080]		; r0 ^= a[135]		
+	pxor	mm0,[_p+1096]		; r0 ^= a[137]		
+	pxor	mm0,[_p+1112]		; r0 ^= a[139]		
+	pxor	mm0,[_p+1128]		; r0 ^= a[141]		
+	pxor	mm0,[_p+1144]		; r0 ^= a[143]		
+	pxor	mm0,[_p+1160]		; r0 ^= a[145]		
+	pxor	mm0,[_p+1176]		; r0 ^= a[147]		
+	pxor	mm0,[_p+1192]		; r0 ^= a[149]		
+	pxor	mm0,[_p+1208]		; r0 ^= a[151]		
+	pxor	mm0,[_p+1224]		; r0 ^= a[153]		
+	pxor	mm0,[_p+1240]		; r0 ^= a[155]		
+	pxor	mm0,[_p+1256]		; r0 ^= a[157]		
+	pxor	mm0,[_p+1272]		; r0 ^= a[159]		
+	pxor	mm0,[_p+1288]		; r0 ^= a[161]		
+	pxor	mm0,[_p+1304]		; r0 ^= a[163]		
+	pxor	mm0,[_p+1320]		; r0 ^= a[165]		
+	pxor	mm0,[_p+1336]		; r0 ^= a[167]		
+	pxor	mm0,[_p+1352]		; r0 ^= a[169]		
+	pxor	mm0,[_p+1368]		; r0 ^= a[171]		
+	pxor	mm0,[_p+1384]		; r0 ^= a[173]		
+	pxor	mm0,[_p+1400]		; r0 ^= a[175]		
+	pxor	mm0,[_p+1416]		; r0 ^= a[177]		
+	pxor	mm0,[_p+1432]		; r0 ^= a[179]		
+	pxor	mm0,[_p+1448]		; r0 ^= a[181]		
+	pxor	mm0,[_p+1464]		; r0 ^= a[183]		
+	pxor	mm0,[_p+1480]		; r0 ^= a[185]		
+	pxor	mm0,[_p+1496]		; r0 ^= a[187]		
+	pxor	mm0,[_p+1512]		; r0 ^= a[189]		
+	pxor	mm0,[_p+1528]		; r0 ^= a[191]		
+	pxor	mm0,[_p+1544]		; r0 ^= a[193]		
+	pxor	mm0,[_p+1560]		; r0 ^= a[195]		
+	pxor	mm0,[_p+1576]		; r0 ^= a[197]		
+	pxor	mm0,[_p+1592]		; r0 ^= a[199]		
+	pxor	mm0,[_p+1608]		; r0 ^= a[201]		
+	pxor	mm0,[_p+1624]		; r0 ^= a[203]		
+	pxor	mm0,[_p+1640]		; r0 ^= a[205]		
+	pxor	mm0,[_p+1656]		; r0 ^= a[207]		
+	pxor	mm0,[_p+1672]		; r0 ^= a[209]		
+	pxor	mm0,[_p+1688]		; r0 ^= a[211]		
+	pxor	mm0,[_p+1704]		; r0 ^= a[213]		
+	pxor	mm0,[_p+1720]		; r0 ^= a[215]		
+	pxor	mm0,[_p+1736]		; r0 ^= a[217]		
+	pxor	mm0,[_p+1752]		; r0 ^= a[219]		
+	pxor	mm0,[_p+1768]		; r0 ^= a[221]		
+	pxor	mm0,[_p+1784]		; r0 ^= a[223]		
+	pxor	mm0,[_p+1800]		; r0 ^= a[225]		
+	pxor	mm0,[_p+1816]		; r0 ^= a[227]		
+	pxor	mm0,[_p+1832]		; r0 ^= a[229]		
+	pxor	mm0,[_p+1848]		; r0 ^= a[231]		
+	pxor	mm0,[_p+1864]		; r0 ^= a[233]		
+	pxor	mm0,[_p+1880]		; r0 ^= a[235]		
+	pxor	mm0,[_p+1896]		; r0 ^= a[237]		
+	pxor	mm0,[_p+1912]		; r0 ^= a[239]		
+	pxor	mm0,[_p+1928]		; r0 ^= a[241]		
+	pxor	mm0,[_p+1944]		; r0 ^= a[243]		
+	pxor	mm0,[_p+1960]		; r0 ^= a[245]		
+	pxor	mm0,[_p+1976]		; r0 ^= a[247]		
+	pxor	mm0,[_p+1992]		; r0 ^= a[249]		
+	pxor	mm0,[_p+2008]		; r0 ^= a[251]		
+	pxor	mm0,[_p+2024]		; r0 ^= a[253]		
+	pxor	mm0,[_p+2040]		; r0 ^= a[255]		
+	movq	[_q+0],mm0			; b[0] = r0		
+	movq	mm0,[_p+16]			; r0 = a[2]		
+	pxor	mm0,[_p+24]			; r0 ^= a[3]		
+	pxor	mm0,[_p+48]			; r0 ^= a[6]		
+	pxor	mm0,[_p+80]			; r0 ^= a[10]		
+	pxor	mm0,[_p+112]		; r0 ^= a[14]		
+	pxor	mm0,[_p+144]		; r0 ^= a[18]		
+	pxor	mm0,[_p+176]		; r0 ^= a[22]		
+	pxor	mm0,[_p+208]		; r0 ^= a[26]		
+	pxor	mm0,[_p+240]		; r0 ^= a[30]		
+	pxor	mm0,[_p+272]		; r0 ^= a[34]		
+	pxor	mm0,[_p+304]		; r0 ^= a[38]		
+	pxor	mm0,[_p+336]		; r0 ^= a[42]		
+	pxor	mm0,[_p+368]		; r0 ^= a[46]		
+	pxor	mm0,[_p+400]		; r0 ^= a[50]		
+	pxor	mm0,[_p+432]		; r0 ^= a[54]		
+	pxor	mm0,[_p+464]		; r0 ^= a[58]		
+	pxor	mm0,[_p+496]		; r0 ^= a[62]		
+	pxor	mm0,[_p+528]		; r0 ^= a[66]		
+	pxor	mm0,[_p+560]		; r0 ^= a[70]		
+	pxor	mm0,[_p+592]		; r0 ^= a[74]		
+	pxor	mm0,[_p+624]		; r0 ^= a[78]		
+	pxor	mm0,[_p+656]		; r0 ^= a[82]		
+	pxor	mm0,[_p+688]		; r0 ^= a[86]		
+	pxor	mm0,[_p+720]		; r0 ^= a[90]		
+	pxor	mm0,[_p+752]		; r0 ^= a[94]		
+	pxor	mm0,[_p+784]		; r0 ^= a[98]		
+	pxor	mm0,[_p+816]		; r0 ^= a[102]		
+	pxor	mm0,[_p+848]		; r0 ^= a[106]		
+	pxor	mm0,[_p+880]		; r0 ^= a[110]		
+	pxor	mm0,[_p+912]		; r0 ^= a[114]		
+	pxor	mm0,[_p+944]		; r0 ^= a[118]		
+	pxor	mm0,[_p+976]		; r0 ^= a[122]		
+	pxor	mm0,[_p+1008]		; r0 ^= a[126]		
+	pxor	mm0,[_p+1040]		; r0 ^= a[130]		
+	pxor	mm0,[_p+1072]		; r0 ^= a[134]		
+	pxor	mm0,[_p+1104]		; r0 ^= a[138]		
+	pxor	mm0,[_p+1136]		; r0 ^= a[142]		
+	pxor	mm0,[_p+1168]		; r0 ^= a[146]		
+	pxor	mm0,[_p+1200]		; r0 ^= a[150]		
+	pxor	mm0,[_p+1232]		; r0 ^= a[154]		
+	pxor	mm0,[_p+1264]		; r0 ^= a[158]		
+	pxor	mm0,[_p+1296]		; r0 ^= a[162]		
+	pxor	mm0,[_p+1328]		; r0 ^= a[166]		
+	pxor	mm0,[_p+1360]		; r0 ^= a[170]		
+	pxor	mm0,[_p+1392]		; r0 ^= a[174]		
+	pxor	mm0,[_p+1424]		; r0 ^= a[178]		
+	pxor	mm0,[_p+1456]		; r0 ^= a[182]		
+	pxor	mm0,[_p+1488]		; r0 ^= a[186]		
+	pxor	mm0,[_p+1520]		; r0 ^= a[190]		
+	pxor	mm0,[_p+1552]		; r0 ^= a[194]		
+	pxor	mm0,[_p+1584]		; r0 ^= a[198]		
+	pxor	mm0,[_p+1616]		; r0 ^= a[202]		
+	pxor	mm0,[_p+1648]		; r0 ^= a[206]		
+	pxor	mm0,[_p+1680]		; r0 ^= a[210]		
+	pxor	mm0,[_p+1712]		; r0 ^= a[214]		
+	pxor	mm0,[_p+1744]		; r0 ^= a[218]		
+	pxor	mm0,[_p+1776]		; r0 ^= a[222]		
+	pxor	mm0,[_p+1808]		; r0 ^= a[226]		
+	pxor	mm0,[_p+1840]		; r0 ^= a[230]		
+	pxor	mm0,[_p+1872]		; r0 ^= a[234]		
+	pxor	mm0,[_p+1904]		; r0 ^= a[238]		
+	pxor	mm0,[_p+1936]		; r0 ^= a[242]		
+	pxor	mm0,[_p+1968]		; r0 ^= a[246]		
+	pxor	mm0,[_p+2000]		; r0 ^= a[250]		
+	pxor	mm0,[_p+2032]		; r0 ^= a[254]		
+	movq	[_q+8],mm0			; b[1] = r0		
+	movq	mm0,[_p+32]			; r0 = a[4]		
+	pxor	mm0,[_p+40]			; r0 ^= a[5]		
+	pxor	mm0,[_p+48]			; r0 ^= a[6]		
+	pxor	mm0,[_p+96]			; r0 ^= a[12]		
+	pxor	mm0,[_p+160]		; r0 ^= a[20]		
+	pxor	mm0,[_p+224]		; r0 ^= a[28]		
+	pxor	mm0,[_p+288]		; r0 ^= a[36]		
+	pxor	mm0,[_p+352]		; r0 ^= a[44]		
+	pxor	mm0,[_p+416]		; r0 ^= a[52]		
+	pxor	mm0,[_p+480]		; r0 ^= a[60]		
+	pxor	mm0,[_p+544]		; r0 ^= a[68]		
+	pxor	mm0,[_p+608]		; r0 ^= a[76]		
+	pxor	mm0,[_p+672]		; r0 ^= a[84]		
+	pxor	mm0,[_p+736]		; r0 ^= a[92]		
+	pxor	mm0,[_p+800]		; r0 ^= a[100]		
+	pxor	mm0,[_p+864]		; r0 ^= a[108]		
+	pxor	mm0,[_p+928]		; r0 ^= a[116]		
+	pxor	mm0,[_p+992]		; r0 ^= a[124]		
+	pxor	mm0,[_p+1056]		; r0 ^= a[132]		
+	pxor	mm0,[_p+1120]		; r0 ^= a[140]		
+	pxor	mm0,[_p+1184]		; r0 ^= a[148]		
+	pxor	mm0,[_p+1248]		; r0 ^= a[156]		
+	pxor	mm0,[_p+1312]		; r0 ^= a[164]		
+	pxor	mm0,[_p+1376]		; r0 ^= a[172]		
+	pxor	mm0,[_p+1440]		; r0 ^= a[180]		
+	pxor	mm0,[_p+1504]		; r0 ^= a[188]		
+	pxor	mm0,[_p+1568]		; r0 ^= a[196]		
+	pxor	mm0,[_p+1632]		; r0 ^= a[204]		
+	pxor	mm0,[_p+1696]		; r0 ^= a[212]		
+	pxor	mm0,[_p+1760]		; r0 ^= a[220]		
+	pxor	mm0,[_p+1824]		; r0 ^= a[228]		
+	pxor	mm0,[_p+1888]		; r0 ^= a[236]		
+	pxor	mm0,[_p+1952]		; r0 ^= a[244]		
+	pxor	mm0,[_p+2016]		; r0 ^= a[252]		
+	movq	[_q+16],mm0			; b[2] = r0		
+	movq	mm0,[_p+64]			; r0 = a[8]		
+	pxor	mm0,[_p+72]			; r0 ^= a[9]		
+	pxor	mm0,[_p+80]			; r0 ^= a[10]		
+	pxor	mm0,[_p+96]			; r0 ^= a[12]		
+	pxor	mm0,[_p+192]		; r0 ^= a[24]		
+	pxor	mm0,[_p+320]		; r0 ^= a[40]		
+	pxor	mm0,[_p+448]		; r0 ^= a[56]		
+	pxor	mm0,[_p+576]		; r0 ^= a[72]		
+	pxor	mm0,[_p+704]		; r0 ^= a[88]		
+	pxor	mm0,[_p+832]		; r0 ^= a[104]		
+	pxor	mm0,[_p+960]		; r0 ^= a[120]		
+	pxor	mm0,[_p+1088]		; r0 ^= a[136]		
+	pxor	mm0,[_p+1216]		; r0 ^= a[152]		
+	pxor	mm0,[_p+1344]		; r0 ^= a[168]		
+	pxor	mm0,[_p+1472]		; r0 ^= a[184]		
+	pxor	mm0,[_p+1600]		; r0 ^= a[200]		
+	pxor	mm0,[_p+1728]		; r0 ^= a[216]		
+	pxor	mm0,[_p+1856]		; r0 ^= a[232]		
+	pxor	mm0,[_p+1984]		; r0 ^= a[248]		
+	movq	[_q+24],mm0			; b[3] = r0		
+	movq	mm0,[_p+128]		; r0 = a[16]		
+	pxor	mm0,[_p+136]		; r0 ^= a[17]		
+	pxor	mm0,[_p+144]		; r0 ^= a[18]		
+	pxor	mm0,[_p+160]		; r0 ^= a[20]		
+	pxor	mm0,[_p+192]		; r0 ^= a[24]		
+	pxor	mm0,[_p+384]		; r0 ^= a[48]		
+	pxor	mm0,[_p+640]		; r0 ^= a[80]		
+	pxor	mm0,[_p+896]		; r0 ^= a[112]		
+	pxor	mm0,[_p+1152]		; r0 ^= a[144]		
+	pxor	mm0,[_p+1408]		; r0 ^= a[176]		
+	pxor	mm0,[_p+1664]		; r0 ^= a[208]		
+	pxor	mm0,[_p+1920]		; r0 ^= a[240]		
+	movq	[_q+32],mm0			; b[4] = r0		
+	movq	mm0,[_p+256]		; r0 = a[32]		
+	pxor	mm0,[_p+264]		; r0 ^= a[33]		
+	pxor	mm0,[_p+272]		; r0 ^= a[34]		
+	pxor	mm0,[_p+288]		; r0 ^= a[36]		
+	pxor	mm0,[_p+320]		; r0 ^= a[40]		
+	pxor	mm0,[_p+384]		; r0 ^= a[48]		
+	pxor	mm0,[_p+768]		; r0 ^= a[96]		
+	pxor	mm0,[_p+1280]		; r0 ^= a[160]		
+	pxor	mm0,[_p+1792]		; r0 ^= a[224]		
+	movq	[_q+40],mm0			; b[5] = r0		
+	movq	mm0,[_p+512]		; r0 = a[64]		
+	pxor	mm0,[_p+520]		; r0 ^= a[65]		
+	pxor	mm0,[_p+528]		; r0 ^= a[66]		
+	pxor	mm0,[_p+544]		; r0 ^= a[68]		
+	pxor	mm0,[_p+576]		; r0 ^= a[72]		
+	pxor	mm0,[_p+640]		; r0 ^= a[80]		
+	pxor	mm0,[_p+768]		; r0 ^= a[96]		
+	pxor	mm0,[_p+1536]		; r0 ^= a[192]		
+	movq	[_q+48],mm0			; b[6] = r0		
+	movq	mm0,[_p+1024]		; r0 = a[128]		
+	pxor	mm0,[_p+1032]		; r0 ^= a[129]		
+	pxor	mm0,[_p+1040]		; r0 ^= a[130]		
+	pxor	mm0,[_p+1056]		; r0 ^= a[132]		
+	pxor	mm0,[_p+1088]		; r0 ^= a[136]		
+	pxor	mm0,[_p+1152]		; r0 ^= a[144]		
+	pxor	mm0,[_p+1280]		; r0 ^= a[160]		
+	pxor	mm0,[_p+1536]		; r0 ^= a[192]		
+	movq	[_q+56],mm0			; b[7] = r0		
+	emms
+	}
+#endif
     }
   }
 }
@@ -1621,6 +2743,7 @@ void multS(u64 *D, int *S)
 }
 
 void mult64x64(u64 *c, u64 *a, u64 *b) {
+#ifndef _MSC_VER
   asm volatile("\
 	movl	%0, %%esi			#a		\n\
 	movl	%1, %%edx			#b		\n\
@@ -1713,6 +2836,153 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
 	jnz	1b						\n\
 	emms" : : "m"(a), "m"(b), "m"(c) :
                "%eax", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		mov		esi,[a]
+		mov		edx,[b]
+		mov		edi,[c]
+		lea		esi,[esi+8*64]
+		lea		edi,[edi+8*64]
+		mov		ecx,-64
+	l1:						
+		mov		eax,[esi+ecx*8]		; t=(u32)a[i]
+		pxor	mm0,mm0				; u=0
+		test	al,1				
+		jz		l2				
+		movq	mm0,[edx]			; b[0]
+	l2:	
+#define rep5(n)						\
+	__asm	test	al,1 << n		\
+	__asm	jz		rep5##n			\
+	__asm	pxor	mm0,[edx+8*n]	\
+	__asm	rep5##n:
+
+		rep5(1)
+		rep5(2)
+		rep5(3)
+		rep5(4)
+		rep5(5)
+		rep5(6)
+
+		test	al,al			
+		jns		l3				
+		pxor	mm0,[edx+8*7]		; b[7]
+	l3:
+#define rep6(n)						\
+	__asm	test	ah,1 << n - 8	\
+	__asm	jz		rep6##n			\
+	__asm	pxor	mm0,[edx+8*n]	\
+	__asm	rep6##n:
+
+		rep6(8)
+		rep6(9)
+		rep6(10)
+		rep6(11)
+		rep6(12)
+		rep6(13)
+		rep6(14)
+
+		test	ah,ah			
+		jns		l4				
+		pxor	mm0,[edx+8*15]		; b[15]
+	l4:
+#define rep7(n)						\
+	__asm	test	eax,1 << n		\
+	__asm	jz		rep7##n			\
+	__asm	pxor	mm0,[edx+8*n]	\
+	__asm	rep7##n:
+
+		rep7(16)
+		rep7(17)
+		rep7(18)
+		rep7(19)
+		rep7(20)
+		rep7(21)
+		rep7(22)
+		rep7(23)
+		rep7(24)
+		rep7(25)
+		rep7(26)
+		rep7(27)
+		rep7(28)
+		rep7(29)
+		rep7(30)
+
+		test	eax,eax			
+		jns		l5				
+		pxor	mm0,[edx+8*31]		; b[31]
+	l5:						
+		mov		eax,[esi+ecx*8+4]	; t=a[i]>>32
+#define rep8(n)						\
+	__asm	test	al,1 << n - 32	\
+	__asm	jz		rep8##n			\
+	__asm	pxor	mm0,[edx+8*n]	\
+	__asm	rep8##n:
+
+		rep8(32)
+		rep8(33)
+		rep8(34)
+		rep8(35)
+		rep8(36)
+		rep8(37)
+		rep8(38)
+
+		test	al,al			
+		jns		l6				
+		pxor	mm0,[edx+8*39]		; b[39]
+	l6:
+#define rep9(n)						\
+	__asm	test	ah,1 << n - 40	\
+	__asm	jz		rep9##n			\
+	__asm	pxor	mm0,[edx+8*n]	\
+	__asm	rep9##n:
+
+		rep9(40)
+		rep9(41)
+		rep9(42)
+		rep9(43)
+		rep9(44)
+		rep9(45)
+		rep9(46)
+
+		test	ah,ah			
+		jns		l7				
+		pxor	mm0,[edx+8*47]		; b[47]
+	l7:
+#define rep10(n)						\
+	__asm	test	eax,1 << n - 32		\
+	__asm	jz		rep10##n			\
+	__asm	pxor	mm0,[edx+8*n]		\
+	__asm	rep10##n:
+
+		rep10(48)
+		rep10(49)
+		rep10(50)
+		rep10(51)
+		rep10(52)
+		rep10(53)
+		rep10(54)
+		rep10(55)
+		rep10(56)
+		rep10(57)
+		rep10(58)
+		rep10(59)
+		rep10(60)
+		rep10(61)
+		rep10(62)
+
+		test	eax,eax			
+		jns		l8				
+		pxor	mm0,[edx+8*63]		; b[63]
+	l8:						
+		movq	[edi+ecx*8],mm0		; c[i]=u
+		add		ecx,1				; i++
+		jnz		l1				
+		emms
+	}
+#endif
 }
 
 /******************************************/
@@ -1721,13 +2991,14 @@ void preMult(u64 *A, u64 *B)
 /* Input: 'A' and 'B' are 64x64 matrices. */
 /* Output: A <-- B*A.                     */
 /******************************************/
-{ u64 res[64] ALIGNED16;
+{ ALIGNED16(u64 res[64]);
 
   mult64x64(res, B, A);
   memcpy(A, res, 64*sizeof(u64));
 }
   
 void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
+#ifndef _MSC_VER
   asm volatile("\
 	xorl	%%eax, %%eax					\n\
 	xorl	%%ecx, %%ecx					\n\
@@ -1760,7 +3031,550 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 	addb	$32, %%cl					\n\
 	jnc	1b						\n\
 #	emms" : : "r"(b), "r"(mult_w) : "%eax", "%ecx");
+#else
+
+	__asm
+	{
+		push	esi
+		push	edi
+		mov		esi,[b]
+		lea		edi,[mult_w]
+		xor		eax,eax
+		xor		ecx,ecx
+	l1:			
+		movq	mm0,[esi+ecx*2]
+		movq	mm1,[esi+ecx*2+8]
+		movq	mm2,[esi+ecx*2+16]
+		movq	mm3,[esi+ecx*2+24]
+		movq	mm4,[esi+ecx*2+32]
+		movq	mm5,[esi+ecx*2+40]
+		movq	mm6,[esi+ecx*2+48]
+		pxor	mm7,mm7
+		movq	[edi+eax*8],mm7
+
+
+		pxor    mm7,mm0
+		movq    [edi+eax*8+8],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+24],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+16],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+48],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+56],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+40],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+32],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+96],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+104],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+120],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+112],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+80],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+88],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+72],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+64],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+192],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+200],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+216],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+208],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+240],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+248],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+232],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+224],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+160],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+168],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+184],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+176],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+144],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+152],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+136],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+128],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+384],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+392],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+408],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+400],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+432],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+440],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+424],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+416],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+480],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+488],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+504],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+496],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+464],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+472],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+456],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+448],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+320],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+328],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+344],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+336],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+368],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+376],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+360],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+352],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+288],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+296],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+312],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+304],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+272],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+280],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+264],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+256],mm7
+		pxor    mm7,mm6
+		movq    [edi+eax*8+768],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+776],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+792],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+784],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+816],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+824],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+808],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+800],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+864],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+872],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+888],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+880],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+848],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+856],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+840],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+832],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+960],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+968],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+984],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+976],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1008],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1016],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1000],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+992],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+928],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+936],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+952],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+944],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+912],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+920],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+904],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+896],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+640],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+648],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+664],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+656],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+688],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+696],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+680],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+672],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+736],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+744],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+760],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+752],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+720],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+728],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+712],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+704],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+576],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+584],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+600],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+592],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+624],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+632],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+616],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+608],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+544],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+552],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+568],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+560],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+528],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+536],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+520],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+512],mm7
+		pxor    mm7,[esi+ecx*2+56]
+		movq    [edi+eax*8+1536],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1544],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1560],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1552],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1584],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1592],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1576],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1568],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1632],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1640],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1656],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1648],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1616],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1624],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1608],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1600],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1728],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1736],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1752],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1744],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1776],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1784],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1768],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1760],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1696],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1704],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1720],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1712],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1680],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1688],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1672],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1664],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+1920],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1928],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1944],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1936],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1968],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1976],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1960],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1952],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+2016],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2024],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+2040],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2032],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+2000],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2008],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1992],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1984],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1856],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1864],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1880],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1872],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1904],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1912],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1896],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1888],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1824],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1832],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1848],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1840],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1808],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1816],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1800],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1792],mm7
+		pxor    mm7,mm6
+		movq    [edi+eax*8+1280],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1288],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1304],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1296],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1328],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1336],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1320],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1312],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1376],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1384],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1400],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1392],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1360],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1368],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1352],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1344],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1472],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1480],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1496],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1488],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1520],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1528],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1512],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1504],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1440],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1448],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1464],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1456],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1424],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1432],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1416],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1408],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+1152],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1160],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1176],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1168],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1200],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1208],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1192],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1184],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1248],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1256],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1272],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1264],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1232],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1240],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1224],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1216],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1088],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1096],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1112],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1104],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1136],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1144],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1128],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1120],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1056],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1064],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1080],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1072],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1040],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1048],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1032],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1024],mm7
+
+		add		eax,256
+		add		cl,32
+		jnc		l1
+	;	emms
+		pop		edi
+		pop		esi
+	}
+
+#endif
   if (a == c) {
+#ifndef _MSC_VER
     asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -1794,7 +3608,45 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 	jnz	1b						\n\
 	emms" : : "m"(a), "m"(c), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		mov		esi,[a]
+		mov		edi,[c]
+		mov		ecx,[n]
+		lea		esi,[esi+ecx*8]
+		lea		edi,[edi+ecx*8]
+		neg	ecx	
+	l2:			
+		mov		ebx,[esi+ecx*8]
+		movzx	eax,bl
+		movzx	edx,bh
+		movq	mm0,[mult_w+eax*8]
+		shr		ebx,16
+		pxor	mm0,[mult_w+8*256+edx*8]
+		movzx	eax,bl
+		mov		edx,[esi+ecx*8+4]
+		shr		ebx,8
+		pxor	mm0,[mult_w+8*256*2+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*3+ebx*8]
+		movzx	ebx,dh
+		shr		edx,16
+		pxor	mm0,[mult_w+8*256*4+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*5+ebx*8]
+		shr		edx,8
+		pxor	mm0,[mult_w+8*256*6+eax*8]
+		pxor	mm0,[mult_w+8*256*7+edx*8]
+		movq	[edi+ecx*8],mm0
+		add		ecx,1
+		jnz		l2	
+		emms
+	}
+#endif
   } else {
+#ifndef _MSC_VER
     asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -1828,10 +3680,48 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 	jnz	1b						\n\
 	emms" : : "m"(a), "m"(c), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		mov		esi,[a]
+		mov		edi,[c]
+		mov		ecx,[n]
+		lea		esi,[esi+ecx*8]
+		lea		edi,[edi+ecx*8]
+		neg		ecx	
+	l3:			
+		mov		ebx,[esi+ecx*8]
+		movzx	eax,bl
+		movzx	edx,bh
+		movq	mm0,[mult_w+eax*8]
+		shr		ebx,16
+		pxor	mm0,[mult_w+8*256+edx*8]
+		movzx	eax,bl
+		mov		edx,[esi+ecx*8+4]
+		shr		ebx,8
+		pxor	mm0,[mult_w+8*256*2+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*3+ebx*8]
+		movzx	ebx,dh
+		shr		edx,16
+		pxor	mm0,[mult_w+8*256*4+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*5+ebx*8]
+		shr		edx,8
+		pxor	mm0,[mult_w+8*256*6+eax*8]
+		pxor	mm0,[mult_w+8*256*7+edx*8]
+		movntq	[edi+ecx*8],mm0
+		add		ecx,1
+		jnz		l3	
+		emms
+	}
+#endif
   }
 }
 
 void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
+#ifndef _MSC_VER
   asm volatile("\
 	xorl	%%eax, %%eax					\n\
 	xorl	%%ecx, %%ecx					\n\
@@ -1898,6 +3788,580 @@ void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 	jnz	1b						\n\
 	emms" : : "m"(a), "m"(c), "m"(n) :
                "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
+#else
+
+	__asm
+	{
+		push	esi
+		push	edi
+		mov		esi,[b]
+		lea		edi,[mult_w]
+		xor		eax,eax
+		xor		ecx,ecx
+	l1:			
+		movq	mm0,[esi+ecx*2]
+		movq	mm1,[esi+ecx*2+8]
+		movq	mm2,[esi+ecx*2+16]
+		movq	mm3,[esi+ecx*2+24]
+		movq	mm4,[esi+ecx*2+32]
+		movq	mm5,[esi+ecx*2+40]
+		movq	mm6,[esi+ecx*2+48]
+		pxor	mm7,mm7
+		movq	[edi+eax*8],mm7
+
+
+		pxor    mm7,mm0
+		movq    [edi+eax*8+8],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+24],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+16],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+48],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+56],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+40],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+32],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+96],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+104],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+120],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+112],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+80],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+88],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+72],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+64],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+192],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+200],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+216],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+208],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+240],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+248],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+232],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+224],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+160],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+168],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+184],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+176],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+144],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+152],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+136],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+128],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+384],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+392],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+408],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+400],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+432],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+440],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+424],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+416],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+480],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+488],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+504],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+496],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+464],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+472],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+456],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+448],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+320],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+328],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+344],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+336],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+368],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+376],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+360],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+352],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+288],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+296],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+312],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+304],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+272],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+280],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+264],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+256],mm7
+		pxor    mm7,mm6
+		movq    [edi+eax*8+768],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+776],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+792],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+784],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+816],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+824],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+808],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+800],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+864],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+872],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+888],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+880],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+848],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+856],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+840],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+832],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+960],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+968],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+984],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+976],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1008],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1016],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1000],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+992],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+928],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+936],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+952],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+944],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+912],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+920],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+904],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+896],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+640],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+648],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+664],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+656],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+688],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+696],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+680],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+672],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+736],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+744],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+760],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+752],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+720],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+728],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+712],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+704],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+576],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+584],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+600],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+592],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+624],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+632],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+616],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+608],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+544],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+552],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+568],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+560],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+528],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+536],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+520],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+512],mm7
+		pxor    mm7,[esi+ecx*2+56]
+		movq    [edi+eax*8+1536],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1544],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1560],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1552],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1584],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1592],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1576],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1568],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1632],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1640],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1656],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1648],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1616],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1624],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1608],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1600],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1728],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1736],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1752],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1744],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1776],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1784],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1768],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1760],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1696],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1704],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1720],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1712],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1680],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1688],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1672],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1664],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+1920],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1928],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1944],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1936],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1968],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1976],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1960],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1952],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+2016],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2024],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+2040],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2032],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+2000],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+2008],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1992],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1984],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1856],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1864],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1880],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1872],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1904],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1912],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1896],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1888],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1824],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1832],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1848],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1840],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1808],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1816],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1800],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1792],mm7
+		pxor    mm7,mm6
+		movq    [edi+eax*8+1280],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1288],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1304],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1296],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1328],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1336],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1320],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1312],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1376],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1384],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1400],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1392],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1360],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1368],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1352],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1344],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1472],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1480],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1496],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1488],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1520],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1528],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1512],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1504],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1440],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1448],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1464],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1456],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1424],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1432],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1416],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1408],mm7
+		pxor    mm7,mm5
+		movq    [edi+eax*8+1152],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1160],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1176],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1168],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1200],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1208],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1192],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1184],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1248],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1256],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1272],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1264],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1232],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1240],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1224],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1216],mm7
+		pxor    mm7,mm4
+		movq    [edi+eax*8+1088],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1096],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1112],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1104],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1136],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1144],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1128],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1120],mm7
+		pxor    mm7,mm3
+		movq    [edi+eax*8+1056],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1064],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1080],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1072],mm7
+		pxor    mm7,mm2
+		movq    [edi+eax*8+1040],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1048],mm7
+		pxor    mm7,mm1
+		movq    [edi+eax*8+1032],mm7
+		pxor    mm7,mm0
+		movq    [edi+eax*8+1024],mm7
+
+		add		eax,256
+		add		cl,32
+		jnc		l1
+	;	emms
+		pop		edi
+		pop		esi
+
+		mov		esi,[a]
+		mov		edi,[c]
+		mov		ecx,[n]
+		lea		esi,[esi+ecx*8]
+		lea		edi,[edi+ecx*8]
+		neg		ecx	
+	l2:			
+		mov		ebx,[esi+ecx*8]
+		movzx	eax,bl
+		movzx	eax,bh
+		movq	mm0,[mult_w+eax*8]
+		shr		ebx,16
+		pxor	mm0,[mult_w+8*256+edx*8]
+		movzx	eax,bl
+		mov		edx,[esi+ecx*8+4]
+		shr		ebx,8
+		pxor	mm0,[mult_w+8*256*2+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*3+ebx*8]
+		movzx	ebx,dh
+		shr		edx,16
+		pxor	mm0,[mult_w+8*256*4+eax*8]
+		movzx	eax,dl
+		pxor	mm0,[mult_w+8*256*5+ebx*8]
+		shr		edx,8
+		pxor	mm0,[mult_w+8*256*6+eax*8]
+		pxor	mm0,[mult_w+8*256*7+edx*8]
+		pxor	mm0,[edi+ecx*8]
+		movq	[edi+ecx*8],mm0
+		add		ecx,1
+		jnz		l2
+		emms
+	}
+#endif
 }
 
 /*********************************************/ 
@@ -1913,7 +4377,8 @@ int isZeroV(u64 *A, s32 size)
 
 /*********************************************/ 
 void getW_S(u64 *Wi, int *Si, u64 *T, int *Si_1)
-{ u64 M[128] ALIGNED16, mask, t0, t1;
+{ ALIGNED16(u64 M[128]);
+  u64 mask, t0, t1;
   int  c[64], i, j, k, sSize, s;
   
   /* Number the columns, with those in Si_1 coming last. */  
