@@ -1,9 +1,35 @@
-  The VC project files have been generously contributed by Brian Gladman. He
+
+Notes on Building GGNFS using Microsoft VC++
+--------------------------------------------
+
+The VC project files have been generously contributed by Brian Gladman. He
 does send me new ones pretty regularly, but please understand: he has a life
 and I don't have VC; so more often than not, they might lag a little behind
 the current source. In that case, if you want to use VC to compile, expect
 to do a little work.
+
   This is because the project is still very beta and the compilation process
 and files are still evolving. As the project nears some level of stability,
 the structure of the source tree won't change as much and the VC compilation
 will probably become easier.
+
+    Chris Monico
+
+Issues to Note
+--------------
+
+1. A number of GGNFS source files use 'long long' types, which were not 
+supported in Microsoft VC++ version 6 and earlier versions. Hence unless 
+you are prepared to edit a number of source files you will need VC++ version 
+7 or later
+
+It is important to use the same Microsoft runtime libraries when building GMP 
+and GGNFS.  If this is not done there will probably be many library conflicts 
+during the linking stage.  Since there are debug and non-debug, single and 
+multi-threaded, DLL and non-DLL versions of the Microsoft libraries, the scope
+for errors in this step is large.
+
+As delivered the GGNFS project files are set up to build the multi-threaded 
+version of GGNFS for use with a multi-threaded version of GMP.
+
+    Brian Gladman
