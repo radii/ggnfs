@@ -411,7 +411,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW32__)
     asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#Product	\n\
@@ -581,7 +581,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER_ || defined(__MINGW32__)
       asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#x		\n\
@@ -732,7 +732,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
     s32 *cIndex = M->cIndex;
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW32__)
 
     asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
@@ -1172,7 +1172,7 @@ ALIGNED16(u64 mult_w[2048]);
 
 void multT(u64 *c, u64 *a, u64 *b, s32 n) {
   memset(mult_w, 0, sizeof(u64) * 256 * 8);
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
   asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -1278,7 +1278,7 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
   {
     int i;
     for (i = 0; i < 64; i += 8) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
       asm volatile("\
 	movq	2040(%0), %%mm0		#r0 = a[255]	255->254	\n\
 	pxor	2032(%0), %%mm0		#r0 ^= a[254]			\n\
@@ -2743,7 +2743,7 @@ void multS(u64 *D, int *S)
 }
 
 void mult64x64(u64 *c, u64 *a, u64 *b) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
   asm volatile("\
 	movl	%0, %%esi			#a		\n\
 	movl	%1, %%edx			#b		\n\
@@ -2998,7 +2998,7 @@ void preMult(u64 *A, u64 *B)
 }
   
 void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
   asm volatile("\
 	xorl	%%eax, %%eax					\n\
 	xorl	%%ecx, %%ecx					\n\
@@ -3574,7 +3574,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 
 #endif
   if (a == c) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
     asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -3646,7 +3646,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 	}
 #endif
   } else {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
     asm volatile("\
 	movl	%0, %%esi					\n\
 	movl	%1, %%edi					\n\
@@ -3721,7 +3721,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 }
 
 void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
   asm volatile("\
 	xorl	%%eax, %%eax					\n\
 	xorl	%%ecx, %%ecx					\n\

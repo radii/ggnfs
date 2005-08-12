@@ -178,12 +178,12 @@ rel_list *getRelList(multi_file_t *prelF, int index)
   RL->maxRels += 5;
   /* Now allocate for the relations. */
   if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %luMB for reading relation list!\n",
+    fprintf(stderr, "Error allocating %" PRIu32 "MB for reading relation list!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     free(RL); return NULL;
   }
   if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %luMB for relation pointers!\n", 
+    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n", 
             RL->maxRels * sizeof(s32)/1048576);
     free(RL->relData); free(RL);
     return NULL;
@@ -612,7 +612,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   RL->numRels = 0;
   RL->maxDataSize = 1000 + maxSize/sizeof(s32);
   if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %luMB for processed relation files!\n",
+    fprintf(stderr, "Error allocating %" PRIu32 "MB for processed relation files!\n",
             RL->maxDataSize * sizeof(s32)/1048576);
     fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
     exit(-1);
@@ -620,7 +620,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
   /* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
   RL->maxRels = (u32)RL->maxDataSize/20;
   if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %luMB for relation pointers!\n",
+    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n",
             RL->maxRels * sizeof(s32)/1048756);
     free(RL->relData);
     exit(-1);

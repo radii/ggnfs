@@ -221,7 +221,7 @@ int main(int argC, char *args[])
 
   if (!(colsInDep = (s32 *)malloc(maxCols*sizeof(s32)))) {
     fclose(fp);
-    fprintf(stderr, "Error allocating %lu bytes for columns in dependency!\n", 
+    fprintf(stderr, "Error allocating %" PRIu32 " bytes for columns in dependency!\n", 
             maxCols*sizeof(s32));
     res = -1; goto SS_DONE;
   }
@@ -254,7 +254,7 @@ int main(int argC, char *args[])
   /* times, but it always suffices to reduce this to 0 or 1 times.    */
   /********************************************************************/
   if (!(rid_hash = (char *)malloc(maxRels*sizeof(char)))) {
-    fprintf(stderr, "Error allocating %lu bytes for rid_hash!\n", maxRels*sizeof(char));
+    fprintf(stderr, "Error allocating %" PRIu32 " bytes for rid_hash!\n", maxRels*sizeof(char));
     res = -1; goto SS_DONE;
   }
   for (i=0; i<maxRels; i++)
@@ -291,7 +291,7 @@ int main(int argC, char *args[])
   printf("This dependency consists of %" PRId32 " (a,b) pairs.\n", numRels);  
   
   if (!(relsInDep = (s32 *)malloc(sizeof(s32)*(numRels+1)))) {
-    fprintf(stderr, "Error allocating %lu bytes for relsInDep!\n", (numRels+1)*sizeof(s32));
+    fprintf(stderr, "Error allocating %" PRIu32 " bytes for relsInDep!\n", (numRels+1)*sizeof(s32));
     res = -1; goto SS_DONE;
   }
   numRels = 0;

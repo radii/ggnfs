@@ -4,8 +4,11 @@ INC=-I../include $(LOCALINC)
 LIBFLAGS=-L/usr/local/lib
 MAKE=make
 CC=gcc
+CXX=g++
 DEBUGOPT=-Wall -g -pg 
 DLMALLOC=0
+MATBUILD_TPIE=0
+TPIE_DIR=f:/tmp/nfs/tpie
 
 #Hope, we're running Mingw32 ;)
 ifeq ($(OSTYPE),msys)
@@ -28,7 +31,7 @@ else
 endif
 
 OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
-OPT3=-O3 -fomit-frame-pointer -Wall $(ALLOPT)
+OPT3=-O3 -ffast-math -funroll-loops -finline-functions -ftracer -finline-limit=1000 -fomit-frame-pointer -Wall $(ALLOPT)
 OPT=-Wall -O $(ALLOPT)
 
 #OPT=$(DEBUGOPT) $(ALLOPT) 
@@ -41,17 +44,24 @@ OBJS=getprimes.o \
      $(LANCZOS).o poly.o mpz_poly.o \
      mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
      montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     modinv1002.S llist.o combparts.o dlmalloc.o
+     modinv1002.S llist.o dlmalloc.o
 else
 OBJS=getprimes.o \
      fbmisc.o mulmod32.s squfof.o rels.o \
      $(LANCZOS).o poly.o mpz_poly.o \
      mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
      montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     modinv1002.S llist.o combparts.o
+     modinv1002.S llist.o
 endif
 
 BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
+
+ifeq ($(MATBUILD_TPIE),1)
+BINS+= matbuild-tpie
+INC+= -I$(TPIE_DIR)/include
+LIBFLAGS+= -L$(TPIE_DIR)/lib
+endif
+
 #LSBINS=lasieve4/gnfs-lasieve4I12e lasieve4/gnfs-lasieve4I13e \
 #       lasieve4/gnfs-lasieve4I14e
 LSBINS=latsiever polsel
@@ -99,8 +109,11 @@ procrels : procrels.c $(OBJS) ;
 #	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o procrels procrels.c $(OBJS) -lgmp -lm 
 
 matbuild : matbuild.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild matbuild.c combparts.c $(OBJS) -lgmp -lm 
 #	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+
+matbuild-tpie : matbuild-tpie.c $(OBJS)
+	$(CXX) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild-tpie matbuild-tpie.c experimental/combparts_tpie.cpp experimental/llist_tpie.cpp $(OBJS) -lgmp -lm -ltpie
 
 matsolve : matsolve.c $(OBJS) ;
 	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matsolve matsolve.c $(OBJS) -lgmp -lm 

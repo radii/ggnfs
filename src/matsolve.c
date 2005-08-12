@@ -221,7 +221,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* Scan the file once to find out how many dense rows there are. */
   rwt = (s32 *)malloc(M->numCols*sizeof(s32));
   if (rwt == NULL) {
-    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%lu bytes)\n",
+    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%" PRIu32 " bytes)\n",
             M->numCols*sizeof(s32));
     exit(-1);
   }
@@ -280,18 +280,18 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* We could do a little better, by discounting for the QCB and sign entries. */
   M->maxDataSize = 256 + fileSize/sizeof(s32);
   if (!(M->cEntry = (s32 *)malloc(M->maxDataSize*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %lu bytes for the sparse matrix!\n",
+    fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix!\n",
             M->maxDataSize*sizeof(s32));
     fclose(fp); return -1;
   }
   if (!(M->cIndex = (s32 *)malloc((M->numCols+1)*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %lu bytes for the sparse matrix indicies!\n",
+    fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix indicies!\n",
             (M->numCols+1)*sizeof(s32));
     free(M->cEntry); fclose(fp); return -1;
   }
   for (i=0; i<M->numDenseBlocks; i++) {
     if (!(M->denseBlocks[i] = (u64 *)calloc((M->numCols+1),sizeof(u64)))) {
-      fprintf(stderr, "loadMat() Error allocating %lu bytes for the QCB entries!\n",
+      fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the QCB entries!\n",
               (M->numCols+1)*sizeof(u64));
       free(M->cIndex); free(M->cEntry); fclose(fp); return -1;
     }
@@ -345,7 +345,7 @@ int main(int argC, char *args[])
   strcpy(colName, DEFAULT_COLNAME);
   strcpy(depName, DEFAULT_DEPNAME);
   printf(START_MSG, GGNFS_VERSION);
-  time(&seed);
+  seed=time(0);
   /* This probably shouldn't be needed, but whatever. */
   seed = ((seed % 1001)*seed) ^ (171*seed);
 
@@ -409,7 +409,7 @@ int main(int argC, char *args[])
   printf("Original matrix had %" PRId32 " columns.\n", origC);
 
   if (!(deps = (s32 *)malloc(origC*sizeof(s32)))) {
-    printf("Could not allocate %lu bytes for the dependencies.\n", origC*sizeof(s32));
+    printf("Could not allocate %" PRIu32 " bytes for the dependencies.\n", origC*sizeof(s32));
     free(M.cEntry); free(M.cIndex); return -1;
   }
 

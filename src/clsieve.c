@@ -452,10 +452,10 @@ int clSieve(nfs_sieve_job_t *J)
                100.0*(conf.med_rfb_size-conf.tiny_rfb_size)/conf.rfb_size,
                conf.rfb[conf.med_rfb_size-1].p);
   msgLog("", "unsieved RFB entries: %" PRId32, conf.tiny_rfb_size);
-  msgLog("", "large prime cutoff: %lu bits", mpz_sizeinbase(conf.LP1_max_r,2)-1);
+  msgLog("", "large prime cutoff: %" PRIu32 " bits", mpz_sizeinbase(conf.LP1_max_r,2)-1);
   msgLog("", "trial factoring cutoff: %" PRId32 " bits", 
                (s32)(conf.cutoff2_r*M_LOG2E*FB->log_rlb)-1);
-  msgLog("", "2-large prime cutoff: %lu-%lu bits", 
+  msgLog("", "2-large prime cutoff: %" PRIu32 "-%" PRIu32 " bits", 
               mpz_sizeinbase(conf.LP2_min_r,2)-1,
               mpz_sizeinbase(conf.LP2_max_r,2)-1);
 
@@ -474,10 +474,10 @@ int clSieve(nfs_sieve_job_t *J)
                100.0*(conf.med_afb_size-conf.tiny_afb_size)/conf.afb_size,
                conf.afb[conf.med_afb_size-1].p);
   msgLog("", "unsieved AFB entries: %" PRId32, conf.tiny_afb_size);
-  msgLog("", "large prime cutoff: %lu bits", mpz_sizeinbase(conf.LP1_max_a,2)-1);
+  msgLog("", "large prime cutoff: %" PRIu32 " bits", mpz_sizeinbase(conf.LP1_max_a,2)-1);
   msgLog("", "trial factoring cutoff: %" PRId32 " bits", 
                (s32)(conf.cutoff2_a*M_LOG2E*FB->log_alb)-1);
-  msgLog("", "2-large prime cutoff: %lu-%lu bits", 
+  msgLog("", "2-large prime cutoff: %" PRIu32 "-%" PRIu32 " bits", 
               mpz_sizeinbase(conf.LP2_min_a,2)-1,
               mpz_sizeinbase(conf.LP2_max_a,2)-1);
   msgLog("", "");

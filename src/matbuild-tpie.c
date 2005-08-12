@@ -69,7 +69,7 @@
 "\n"\
 " __________________________________________________________ \n"\
 "|        This is the matbuild program for GGNFS.           |\n"\
-"| Version: %-15s                                 |\n"\
+"| Version: %-15s [tpie]                          |\n"\
 "| This program is copyright 2004, Chris Monico, and subject|\n"\
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"
@@ -108,7 +108,7 @@ long relsNumLP[8]={0,0,0,0,0,0,0,0};
 s32  delCols[2048], numDel=0;
 
 int cmp2S32s(const void *a, const void *b);
-
+s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF);
 
 /******************************************************/
 void readColSF(column_t *C, FILE *fp)
@@ -518,7 +518,7 @@ llist_t *getLPList(multi_file_t *prelF)
         /* So p is a large rational prime in this relation. */
         if (lRSize + 8 > lRMax) {
           lRMax += LP_LIST_INC_SIZE;
-          lR = lxrealloc(lR, lRMax*sizeof(s32),0);
+          lR = (s32*)lxrealloc(lR, lRMax*sizeof(s32),0);
           if (lR == NULL) {
             printf("getLPList() : Memory allocation error for lR!\n");
             exit(-1); 
@@ -532,7 +532,7 @@ llist_t *getLPList(multi_file_t *prelF)
         /* So (p,r) is a large algebraic prime in this relation. */
         if (lASize + 16 > lAMax) {
           lAMax += LP_LIST_INC_SIZE;
-          lA = lxrealloc(lA, 2*lAMax*sizeof(s32),0);
+          lA = (s32*)lxrealloc(lA, 2*lAMax*sizeof(s32),0);
           if (lA == NULL) {
             printf("getLPList() : Memory allocation error for lA!\n");
             exit(-1); 
@@ -657,7 +657,7 @@ llist_t *getLPList(multi_file_t *prelF)
       for (k=0; k<numLR; k++) {
         p = RL->relData[RL->relIndex[j] + lrpi + k];
         /* So p is a large rational prime in this relation: get it's index. */
-        loc = bsearch(&p, lR, lRSize, sizeof(s32), cmpS32s);
+        loc = (s32*)bsearch(&p, lR, lRSize, sizeof(s32), cmpS32s);
         if (loc==NULL) {
           printf("Warning: Could not find large rational prime %" PRId32 " in lR!\n", p);
           index = BAD_LP_INDEX; /* See the note at top of file. */
@@ -671,7 +671,7 @@ llist_t *getLPList(multi_file_t *prelF)
         r = RL->relData[RL->relIndex[j] + lapi + 2*k + 1];
         /* So (p,r) is a large algebraic prime in this relation. */
         key[0]=p; key[1]=r;
-        loc = bsearch(key, lA, lASize, 2*sizeof(s32), cmp2S32s);
+        loc = (s32*)bsearch(key, lA, lASize, 2*sizeof(s32), cmp2S32s);
         if (loc==NULL) {
           printf("Warning: Could not find large alg prime (%" PRId32 ",%" PRId32 ") in lR!\n",p,r);
           index = BAD_LP_INDEX;
@@ -750,7 +750,7 @@ s32 doRowOps3(llist_t **P, llist_t *R, multi_file_t *prelF, int maxRelsInFF)
   printf("------------------------------\n");
 
 
-  numFull = combParts(R, PL, maxRelsInFF, minFF);
+  numFull = combParts_tpie(R, PL, maxRelsInFF, minFF);
   return numFull;
 }
 
@@ -1184,7 +1184,7 @@ int buildSparseMat(char *colName, double wtFactor)
   */
   removeCols(&M, &C, delCols, numDel);
 
-  minExtraCols = 64 + 0.005*M.numRows;
+  minExtraCols = (long)(64 + 0.005*M.numRows);
   pruneMatrix(&M, minExtraCols, wtFactor, &C);
   /* Sanity check: */
   if (M.numCols != C.numFields) {
@@ -1261,7 +1261,7 @@ lxmalloc(4000000,0);
     printf("USAGE: %s %s\n", args[0], USAGE);
     exit(0);
   }
-  msgLog("", "GGNFS-%s : matbuild", GGNFS_VERSION);
+  msgLog("", "GGNFS-%s : matbuild-tpie", GGNFS_VERSION);
   sprintf(prelName, "%s.%d", prelF.prefix, 0);
   initFB(&FB);
   if (loadFB(fbName, &FB)) {

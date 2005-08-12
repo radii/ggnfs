@@ -22,14 +22,20 @@
 #ifndef _GGNFS_H
 #define _GGNFS_H
 
+
 #if defined (__MINGW32__) || defined (MINGW32)
-#define _MSC_VER
+#define _MSC_VER 1300
 #endif
 
 #include <gmp.h>
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #define __STDC_FORMAT_MACROS
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) && !defined(__MINGW32__)
 #include <basetsd.h>
 
 #define int8_t  INT8
@@ -574,7 +580,7 @@ extern s32 mulmod32(s32 op1, s32 op2, s32 modulus);
 
 
 /* clsieve.c */
-int forceStop;
+static int forceStop;
 int clSieve(nfs_sieve_job_t *J);
 
 /* squfof.c */
@@ -758,6 +764,10 @@ double dickmanStrong(double x, int numTerms);
           asm(" imull %2\n\t idivl %3\n\t movl %%edx, %0"  \
                : "=mq" (_res)  \
                : "a" (_op1) , "mb" (_op2) , "mc" (_mod) : "%edx");     
+#endif
+
+#if defined (__cplusplus)
+}
 #endif
 
 #endif

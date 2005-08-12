@@ -1,9 +1,17 @@
-8/10/05  (Brian Gladman)
+8/12/05 (asl)
+  * Fixed mingw32 miscompilation.
+  * Changed "%lu" to PRIu32.
+  * Integrated matbuild-tpie experimental package. Please read
+    matbuild-tpie.txt in the experimental/ directory.
+  * Some changes in optimization parameters. Added -ffast-math and
+    increased function size for inlining. Got some speed-up.
+
+8/10/05 (Brian Gladman)
   * Updated various files to repair the broken VC++ compilation
   * Added VC++ inline assembler to blanczos64.c
 
 7/20/05 (asl)
-  * Fixed some stupid bug in combinedSize() ;)
+  * Fixed some boundary cross bug in combinedSize().
 
 7/17/05 (trilliwig)
   * Converted sources to use standard C9x int types defined in inttypes.h.

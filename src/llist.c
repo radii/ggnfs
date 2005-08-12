@@ -41,12 +41,12 @@ int ll_init(llist_t *L, s32 maxDataSize, s32 maxFields)
   L->maxDataSize = L->maxFields = 0;
   L->numFields = 0;
   if (!(L->data = (s32 *)lxmalloc(maxDataSize*sizeof(s32),0))) {
-    fprintf(stderr, "ll_init() Memory allocation error (%luMb).\n", 
+    fprintf(stderr, "ll_init() Memory allocation error (%" PRIu32 "Mb).\n", 
             maxDataSize*sizeof(s32)/(1024*1024));
     return -1;
   }
   if (!(L->index = (s32 *)lxmalloc((maxFields+1)*sizeof(s32),0))) {
-    fprintf(stderr, "ll_init() Memory allocation error (%luMb).\n", 
+    fprintf(stderr, "ll_init() Memory allocation error (%" PRIu32 "Mb).\n", 
             maxFields*sizeof(s32)/(1024*1024));
     free(L->data);
     L->data=NULL;

@@ -452,7 +452,7 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
   }
   maxSize += 1000; /* For safety. */
   if (!(T1 = (afb_elt_t *)malloc(maxSize*sizeof(afb_elt_t)))) {
-    fprintf(stderr, "setupPrimes() Error allocating %lu bytes for T1!\n", 
+    fprintf(stderr, "setupPrimes() Error allocating %" PRIu32 " bytes for T1!\n", 
             maxSize*sizeof(afb_elt_t));
     exit(-1);
   }
@@ -623,17 +623,17 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
     /**************************************************************************/
     nr = NR_MULTIPLIER*depSize*M->N->FB->maxLP;
     if (!(ratHashList = (rat_p_t *)malloc(2*nr*sizeof(rat_p_t)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for ratHashList!\n",
+      fprintf(stderr, "ratSqrt() Error allocating %" PRIu32 " bytes for ratHashList!\n",
               2*nr*sizeof(rat_p_t));
       exit(-1);
     }
     if (!(ratLeftoverList = (rat_p_t *)malloc((nr/2)*sizeof(rat_p_t)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for ratLeftoverList!\n",
+      fprintf(stderr, "ratSqrt() Error allocating %" PRIu32 " bytes for ratLeftoverList!\n",
               (nr/2)*sizeof(rat_p_t));
       free(ratHashList); exit(-1);
     }
     if (!(RFB_exps = (s32 *)malloc(M->N->FB->rfb_size*sizeof(s32)))) {
-      fprintf(stderr, "ratSqrt() Error allocating %lu bytes for RFB_exps!\n", 
+      fprintf(stderr, "ratSqrt() Error allocating %" PRIu32 " bytes for RFB_exps!\n", 
               M->N->FB->rfb_size*sizeof(s32));
       free(ratHashList); free(ratLeftoverList); exit(-1);
     }
