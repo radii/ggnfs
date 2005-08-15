@@ -1,0 +1,48 @@
+16a17
+> #ifndef __MINGW32__
+19a21
+> #endif
+55c57
+< #if _MSC_VER < 1300
+---
+> #if (_MSC_VER < 1300) && !defined(__MINGW32__)
+66c68
+< #ifdef _WIN32
+---
+> #if defined (_WIN32) && !defined(__MINGW32__)
+84c86
+< #if _MSC_VER < 1300
+---
+> #if (_MSC_VER < 1300) && !defined(__MINGW32__)
+215c217
+< #if _MSC_VER < 1300
+---
+> #if (_MSC_VER < 1300) && !defined(__MINGW32__)
+220c222
+< #ifdef _WIN32
+---
+> #if defined (_WIN32) && !defined(__MINGW32__)
+230c232
+< #ifdef _WIN32
+---
+> #if defined (_WIN32) && !defined(__MINGW32__)
+427c429
+<     return (LONG)((ULONGLONG)(off) % 0x000100000000);
+---
+>     return (LONG)((ULONGLONG)(off) % 0x000100000000ULL);
+705c707
+<     return (TPIE_OS_SSIZE_T)(bytesWritten > 0 ? bytesWritten : -1);
+---
+>     return (TPIE_OS_SSIZE_T)(bytesWritten > 0 ? bytesWritten : (long unsigned int)-1);
+717c719
+<     return (bytesRead > 0 ? bytesRead : -1);
+---
+>     return (bytesRead > 0 ? bytesRead : (long unsigned int)-1);
+829c831
+< #ifdef _WIN32
+---
+> #if defined(_WIN32)  && !defined(__MINGW32__)
+990c992
+< #ifdef _WIN32
+---
+> #if defined(_WIN32) && !defined(__MINGW32__)
