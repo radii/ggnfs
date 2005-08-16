@@ -1,3 +1,6 @@
+8/15/05 (frmky)
+  * Fixed a small typo in combparts_tpie.cpp.
+
 8/12/05 (asl)
   * Fixed mingw32 miscompilation.
   * Changed "%lu" to PRIu32.
