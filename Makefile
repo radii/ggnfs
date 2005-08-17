@@ -3,6 +3,7 @@ THISDIR=branch_0
 HOME=.
 
 TARGET=x86
+#TARGET=athlon
 #TARGET=ppc
 #TARGET=x86_64
 

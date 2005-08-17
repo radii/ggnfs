@@ -555,7 +555,7 @@ int lasieve()
 #endif
 
           if ((of = fopen(ofn, "wb")) != 0) {
-            fprintf(of, "%u\n", (uint)special_q);
+            fprintf(of, "%u\n", (unsigned int)special_q);
             fclose(of);
           }
           free(ofn);
@@ -2864,8 +2864,8 @@ printf("Too large!\n");
                           numR++;
                         }
                         for (x = fbp_buffers[1]; x < fbp_buffers_ub[1];x++) {
-                          if (numR>0) fprintf(ofile, ",%X", (uint)*x);
-                          else { fprintf(ofile, "%X", (uint)*x); numR++;}
+                          if (numR>0) fprintf(ofile, ",%X", (unsigned int)*x);
+                          else { fprintf(ofile, "%X", (unsigned int)*x); numR++;}
                         }
                       }
                       { int numA=0;
@@ -2878,8 +2878,8 @@ printf("Too large!\n");
                           numA++;
                         }
                         for (x = fbp_buffers[0]; x < fbp_buffers_ub[0];x++) {
-                          if (numA>0) fprintf(ofile, ",%X", (uint)*x);
-                          else { fprintf(ofile, "%X", (uint)*x); numA++;}
+                          if (numA>0) fprintf(ofile, ",%X", (unsigned int)*x);
+                          else { fprintf(ofile, "%X", (unsigned int)*x); numA++;}
                         }
                       }
                       fprintf(ofile, "\n");
@@ -2929,7 +2929,7 @@ printf("Too large!\n");
     tNow = sTime();
     if (tNow > lastReport + 5.0) {
       lastReport = sTime();
-      fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\n", (uint)yield, (uint)special_q,
+      fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\n", (unsigned int)yield, (unsigned int)special_q,
               (tNow - tStart)/yield);
       fflush(stderr);
       { char *ofn;
@@ -2937,7 +2937,7 @@ printf("Too large!\n");
 
         asprintf(&ofn, ".last_spq%d", process_no);
         if ((of = fopen(ofn, "wb")) != 0) {
-          fprintf(of, "%u\n", (uint)special_q);
+          fprintf(of, "%u\n", (unsigned int)special_q);
           fclose(of);
         }
         free(ofn);
@@ -3074,7 +3074,7 @@ int main(int argc, char **argv)
     first_mpqs_side = 0;
     J_bits = U32_MAX;
 
-#define NumRead(x) if(sscanf(optarg, "%u" ,(uint*)&x)!=1) Usage()
+#define NumRead(x) if(sscanf(optarg, "%u" ,(unsigned int*)&x)!=1) Usage()
 #define NumRead16(x) if(sscanf(optarg, "%hu" ,(ushort*)&x)!=1) Usage()
 
     while ((option =

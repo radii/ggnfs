@@ -1,3 +1,6 @@
+8/17/05 (asl)
+  * Fixed mingw32 miscompilation.
+
 8/17/05 (relf)
   * "out-of-box" support for x86_64 target
   * target can be specified in the master Makefile
