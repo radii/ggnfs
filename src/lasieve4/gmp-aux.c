@@ -21,8 +21,8 @@
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
 
 /********************************************************/
 void adjust_mpz_bufsize(mpz_t ** x, size_t * alloc_ptr, size_t size,

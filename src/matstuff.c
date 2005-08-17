@@ -602,7 +602,7 @@ int removeHeavyColumnsByRows(nfs_sparse_mat_t *M, llist_t *C, s32 minC, s32 maxC
 
   if (!(cwt = (s32 *)malloc(2*M->numCols*sizeof(s32)))) {
     printf("removeHeavyColumnsByRows() memory allocation error!\n");
-    printf("( %" PRIu32 " bytes requested).\n", 2*sizeof(s32)*M->numCols);
+    printf("( %" PRIu32 " bytes requested).\n", (u32)(2*sizeof(s32)*M->numCols) );
     return -1;
   }
   for (c=0; c<M->numCols; c++) {
@@ -614,7 +614,7 @@ int removeHeavyColumnsByRows(nfs_sparse_mat_t *M, llist_t *C, s32 minC, s32 maxC
   if (!(rowWeight = (s32 *)malloc(M->numRows*sizeof(s32)))) {
     free(cwt);
     printf("removeHeavyColumnsByRows() memory allocation error!\n");
-    printf("( %" PRIu32 " bytes requested).\n", sizeof(s32)*M->numRows);
+    printf("( %" PRIu32 " bytes requested).\n", (u32)(sizeof(s32)*M->numRows) );
     return -1;
   }
 

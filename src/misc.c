@@ -1119,7 +1119,7 @@ void *lxmalloc(size_t n, int fatal)
   if (p==NULL) {
     mi_errs++;
     msgLog("", "Memory allocation error (%" PRIu32 " bytes requested).", n);
-    printf("Memory allocation error (%" PRIu32 " bytes requested).", n);
+    printf("Memory allocation error (%" PRIu32 " bytes requested).", (u32)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);
@@ -1145,7 +1145,7 @@ void *lxcalloc(size_t n, int fatal)
   if (p==NULL) {
     mi_errs++;
     msgLog("", "Memory allocation error (%" PRIu32 " bytes requested).", n);
-    printf("Memory allocation error (%" PRIu32 " bytes requested).", n);
+    printf("Memory allocation error (%" PRIu32 " bytes requested).", (u32)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);
@@ -1173,7 +1173,7 @@ void *lxrealloc(void *x, size_t n, int fatal)
   if (p==NULL) {
     mi_errs++;
     msgLog("", "Memory allocation error (%" PRIu32 " bytes requested).", n);
-    printf("Memory allocation error (%" PRIu32 " bytes requested).", n);
+    printf("Memory allocation error (%" PRIu32 " bytes requested).", (u32)n);
     if (!(fatal)) return NULL;
     printf("Fatal error. Terminating...\n");
     exit(-1);

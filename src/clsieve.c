@@ -394,9 +394,9 @@ int clSieve(nfs_sieve_job_t *J)
   conf.rtable = (hashtable_t *)malloc(BLOCK_SIZE+16);
   conf.atable = (hashtable_t *)malloc(BLOCK_SIZE+16);
   conf.rcache = (update_t *)(conf.rtable+conf.block_window);
-  conf.rcache = (update_t *)((u8 *)(conf.rcache)+16-((s32)(conf.rcache)%16));
+  conf.rcache = (update_t *)((u8 *)(conf.rcache)+16-((size_t)(conf.rcache)%16));
   conf.acache = (update_t *)(conf.atable+conf.block_window);
-  conf.acache = (update_t *)((u8 *)(conf.acache)+16-((s32)(conf.acache)%16));
+  conf.acache = (update_t *)((u8 *)(conf.acache)+16-((size_t)(conf.acache)%16));
   conf.mempool = NULL;
 
   for (i=0; i<conf.block_window; i++) {

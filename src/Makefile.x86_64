@@ -1,6 +1,7 @@
 INC=-I../include
 CC=gcc
 DEBUGOPT=-Wall -g -pg 
+MAKE=make
 
 LANCZOS=blanczos64-no-mmx
 # Choose one of these for some more optimization for
@@ -75,7 +76,7 @@ polyselect : polyselect.c $(OBJS) ;
 	gcc $(INC) $(OPT3) -o polyselect polyselect.c $(OBJS) $(LIBS)
 
 latsiever : ;
-	cd lasieve4; make -f Makefile.x86_64
+	cd lasieve4; $(MAKE) -f Makefile.x86_64
 	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
 	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
 	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
@@ -85,7 +86,7 @@ clean : lasieve-clean ;
 	rm -f gnfs-lasieve4I1?e
 
 lasieve-clean: ;
-	make -C lasieve4 clean
+	$(MAKE) -C lasieve4 -f Makefile.x86_64 clean
 
 squeaky : clean ;
 	

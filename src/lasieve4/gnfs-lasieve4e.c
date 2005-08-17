@@ -336,7 +336,7 @@ void getFB(int force_aFBcalc)
           write_u32(afbfile, &(FBsize[side]), 1);
           write_u32(afbfile, FB[side], FBsize[side]);
           write_u32(afbfile, proots[side], FBsize[side]);
-          write_u32(afbfile, &xFBs[side], 1);
+          write_u32(afbfile, (void*)&(xFBs[side]), 1);
           fclose(afbfile);
         }
 
@@ -350,7 +350,7 @@ void getFB(int force_aFBcalc)
             read_u32(afbfile, proots[side], FBsize[side]) != FBsize[side]) {
           complain("Cannot read aFB from %s: %m\n", afbname);
         }
-        if (read_u32(afbfile, &xFBs[side], 1) != 1) {
+        if (read_u32(afbfile, (void*)&(xFBs[side]), 1) != 1) {
           complain("%s: Cannot read xFBsize\n", afbname);
         }
         fclose(afbfile);

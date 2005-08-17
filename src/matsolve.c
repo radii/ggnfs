@@ -222,7 +222,7 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   rwt = (s32 *)malloc(M->numCols*sizeof(s32));
   if (rwt == NULL) {
     fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%" PRIu32 " bytes)\n",
-            M->numCols*sizeof(s32));
+            (u32)(M->numCols*sizeof(s32)) );
     exit(-1);
   }
   memset(rwt, 0x00, M->numCols*sizeof(s32));
@@ -281,18 +281,18 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   M->maxDataSize = 256 + fileSize/sizeof(s32);
   if (!(M->cEntry = (s32 *)malloc(M->maxDataSize*sizeof(s32)))) {
     fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix!\n",
-            M->maxDataSize*sizeof(s32));
+            (u32)(M->maxDataSize*sizeof(s32)) );
     fclose(fp); return -1;
   }
   if (!(M->cIndex = (s32 *)malloc((M->numCols+1)*sizeof(s32)))) {
     fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix indicies!\n",
-            (M->numCols+1)*sizeof(s32));
+            (u32)((M->numCols+1)*sizeof(s32)) );
     free(M->cEntry); fclose(fp); return -1;
   }
   for (i=0; i<M->numDenseBlocks; i++) {
     if (!(M->denseBlocks[i] = (u64 *)calloc((M->numCols+1),sizeof(u64)))) {
       fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the QCB entries!\n",
-              (M->numCols+1)*sizeof(u64));
+              (u32)((M->numCols+1)*sizeof(u64)) );
       free(M->cIndex); free(M->cEntry); fclose(fp); return -1;
     }
   }
@@ -409,7 +409,7 @@ int main(int argC, char *args[])
   printf("Original matrix had %" PRId32 " columns.\n", origC);
 
   if (!(deps = (s32 *)malloc(origC*sizeof(s32)))) {
-    printf("Could not allocate %" PRIu32 " bytes for the dependencies.\n", origC*sizeof(s32));
+    printf("Could not allocate %" PRIu32 " bytes for the dependencies.\n", (u32)(origC*sizeof(s32)) );
     free(M.cEntry); free(M.cIndex); return -1;
   }
 

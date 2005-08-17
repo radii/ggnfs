@@ -22,8 +22,9 @@
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
+
 #ifdef _OLD_FORMAT
 /*******************************************************/
 void input_poly(mpz_t N, mpz_t ** A, i32_t * adeg_ptr, mpz_t ** B,

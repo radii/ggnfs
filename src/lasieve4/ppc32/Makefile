@@ -30,4 +30,4 @@ bup:
 	echo $(SRCFILES)
 
 clean:
-	rm *a *o
+	rm -f core *a *o

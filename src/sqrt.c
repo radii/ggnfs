@@ -170,8 +170,8 @@ int main(int argC, char *args[])
   mpz_fact_init(&D);
   initNF(&N);
   if (!(N.FB = (nfs_fb_t *)malloc(sizeof(nfs_fb_t)))) {
-    fprintf(stderr, "Error: Could not allocate %d bytes for N.FB!\n",
-            sizeof(nfs_fb_t));
+    fprintf(stderr, "Error: Could not allocate %u bytes for N.FB!\n",
+            (unsigned int)sizeof(nfs_fb_t));
     clearNF(&N); mpz_fact_clear(&D); exit(-4);
   }
   initFB(N.FB);
@@ -222,7 +222,7 @@ int main(int argC, char *args[])
   if (!(colsInDep = (s32 *)malloc(maxCols*sizeof(s32)))) {
     fclose(fp);
     fprintf(stderr, "Error allocating %" PRIu32 " bytes for columns in dependency!\n", 
-            maxCols*sizeof(s32));
+            (u32)(maxCols*sizeof(s32)) );
     res = -1; goto SS_DONE;
   }
   for (i=0, numCols=0; i<maxCols; i++) {
@@ -254,7 +254,7 @@ int main(int argC, char *args[])
   /* times, but it always suffices to reduce this to 0 or 1 times.    */
   /********************************************************************/
   if (!(rid_hash = (char *)malloc(maxRels*sizeof(char)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 " bytes for rid_hash!\n", maxRels*sizeof(char));
+    fprintf(stderr, "Error allocating %" PRIu32 " bytes for rid_hash!\n", (u32)(maxRels*sizeof(char)) );
     res = -1; goto SS_DONE;
   }
   for (i=0; i<maxRels; i++)
@@ -291,7 +291,7 @@ int main(int argC, char *args[])
   printf("This dependency consists of %" PRId32 " (a,b) pairs.\n", numRels);  
   
   if (!(relsInDep = (s32 *)malloc(sizeof(s32)*(numRels+1)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 " bytes for relsInDep!\n", (numRels+1)*sizeof(s32));
+    fprintf(stderr, "Error allocating %" PRIu32 " bytes for relsInDep!\n", (u32)((numRels+1)*sizeof(s32)) );
     res = -1; goto SS_DONE;
   }
   numRels = 0;
@@ -325,9 +325,9 @@ int main(int argC, char *args[])
   if ((mpz_cmp_ui(p, 1)>0) && (mpz_cmp(p, N.FB->n)<0)) {
     res = 0;
     if (mpz_probab_prime_p(p, 10))
-      sprintf(str, "%s (pp%d)", str,strlen(str));
+      sprintf(str, "%s (pp%u)", str, (unsigned int)strlen(str));
     else {
-      sprintf(str, "%s (c%d)", str,strlen(str));
+      sprintf(str, "%s (c%u)", str, (unsigned int)strlen(str));
       res=1;
     }
   }
@@ -335,9 +335,9 @@ int main(int argC, char *args[])
   mpz_get_str(str, 10, q);
   if ((mpz_cmp_ui(q, 1)>0) && (mpz_cmp(q, N.FB->n)<0)) {
     if (mpz_probab_prime_p(q, 10)) 
-      sprintf(str, "%s (pp%d)", str,strlen(str));
+      sprintf(str, "%s (pp%u)", str, (unsigned int)strlen(str));
     else {
-      sprintf(str, "%s (c%d)", str,strlen(str));
+      sprintf(str, "%s (c%u)", str, (unsigned int)strlen(str));
       res=1;
     }
   }

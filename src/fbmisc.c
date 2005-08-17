@@ -587,7 +587,7 @@ int loadFB(char *fName, nfs_fb_t *FB)
   /* get the algebraic factor base */
   /*********************************/
   size = FB->afb_size;
-  if (!(FB->afb = (u32 *)malloc(size*2*sizeof(u32)))) {
+  if (!(FB->afb = (s32 *)malloc(size*2*sizeof(s32)))) {
     fprintf(stderr, "loadfb(): Memory allocation error!\n");
     fclose(fp); return -1;
   }

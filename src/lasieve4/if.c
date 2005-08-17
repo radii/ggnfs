@@ -21,7 +21,6 @@
 #include <sys/times.h>
 #endif
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -33,8 +32,9 @@
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
+
 int verbose = 0;
 static size_t used_cols, ncol = 80;
 #if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
