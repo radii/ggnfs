@@ -61,6 +61,9 @@
 "| This program is part of gnfs4linux.              |\n"\
 "----------------------------------------------------\n"
 
+extern int asm_hash1();
+extern int asm_hash2();
+
 mpz_t gmp_N, gmp_a5_begin, gmp_a5_end;
 int compress, verbose=0;
 char *input_line=NULL;

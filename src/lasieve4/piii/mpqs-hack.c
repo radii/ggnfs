@@ -326,7 +326,7 @@ static u16_t mpqs_powmod(u16_t a, u16_t e, u16_t p)
 static u16_t mpqs_sqrt_init(u16_t p)
 {
   u16_t e, u, i, j;
-  u32_t g, b;
+  u32_t g=0, b;
 
   if (p&2) return 0;
   if (p&4) return mpqs_powmod(2,(p-1)>>2,p);

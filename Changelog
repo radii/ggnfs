@@ -1,3 +1,14 @@
+8/17/05 (relf)
+  * "out-of-box" support for x86_64 target
+  * target can be specified in the master Makefile
+  * fixed some minor problem with makefiles
+  * some missed #include's recovered
+  * major problems w/ gcc 4.0 compilation resolved
+  * extra "%l" specificators removed
+  * type conversion applied to printf() arguments where required 
+  * implicit function declarations made explicit
+  * other minor issues fixed
+
 8/15/05 (frmky)
   * Fixed a small typo in combparts_tpie.cpp.
 

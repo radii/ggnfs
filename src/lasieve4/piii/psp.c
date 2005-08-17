@@ -48,8 +48,8 @@ int asm_cmp64(ulong * a, ulong * b)
 /*******************************************************/
 int psp64()
 /*******************************************************/
-{ ulong x[2], ex[2], one[2], s, y[2];
-  long e, i, b, v;
+{ ulong x[2], ex[2], one[2], s;
+  long e, i, b=0, v;
 
   if (!(montgomery_modulo_n[0] & 1))
     return 0;

@@ -244,10 +244,15 @@ u32_t*medsched(u32_t*,u32_t*,u32_t*,u32_t**,u32_t,u32_t);
 
 /*  montgomery_mul.c */
 void init_montgomery_multiplication();
+int set_montgomery_multiplication(mpz_t n);
 
 /* sieve-from-sched.S */
 int schedsieve(unsigned char x, unsigned char *sieve_interval, 
                u16_t *schedule_ptr, u16_t *sptr_ub) NAME("schedsieve");
+
+/* basemath.c */
+int asm_cmp(ulong * a, ulong * b);
+int asm_cmp64(ulong * a, ulong * b);
 
 /* gcd32.c */
 u32_t gcd32(u32_t x, u32_t y);
@@ -257,6 +262,7 @@ int psp(mpz_t n);
 
 /* mpqs.c */
 long mpqs_factor(mpz_t N, long max_bits, mpz_t ** factors);
+void complain(char *fmt, ...);
 
 /* ri-aux.s */
 ulong asm_getbc(u32_t r, u32_t p, u32_t A, u32_t *b, u32_t *s, u32_t *c, u32_t *t) NAME("asm_getbc");
