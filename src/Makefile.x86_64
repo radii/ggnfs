@@ -1,0 +1,91 @@
+INC=-I../include
+CC=gcc
+DEBUGOPT=-Wall -g -pg 
+
+LANCZOS=blanczos64-no-mmx
+# Choose one of these for some more optimization for
+# all but the lattice sieving code.
+ALLOPT=-march=k8 -mtune=k8 -D__ppc__
+# -D__ppc__ should be removed later
+# TODO: carefully inspect all ``#if defined(__ppc__)'' and
+# add ``#if defined(__x86_64__)'' where required
+
+OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
+OPT3=-O3 -fomit-frame-pointer -Wall $(ALLOPT)
+OPT=-Wall -O $(ALLOPT)
+
+#OPT=$(DEBUGOPT) $(ALLOPT) 
+#OPT2=$(DEBUGOPT) $(ALLOPT)
+#OPT3=$(DEBUGOPT) $(ALLOPT) 
+
+LIBS=-lgmp -lm 
+
+OBJS=getprimes.o modinv32.o \
+     fbmisc.o squfof.o rels.o \
+     $(LANCZOS).o poly.o mpz_poly.o \
+     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
+     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
+     llist.o combparts.o
+BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
+LSBINS=latsiever
+TESTBIN=./tsrc
+TESTCODE=./tsrc
+
+all : $(OBJS) $(BINS) $(LSBINS) ;
+tests: $(TESTS) ;
+bins: $(BINS) ;
+
+
+.c.o : 
+	$(CC) $(INC) $(OPT3) -c $*.c
+
+smintfact.o : smintfact.c ;
+	gcc $(INC) $(OPT3) -c smintfact.c
+
+fbmisc.o : fbmisc.c ;
+	gcc $(INC) $(OPT3) -c fbmisc.c
+
+rels.o : rels.c ;
+	gcc $(INC) $(OPT3) -c rels.c
+
+latsieve.o : latsieve.c ;
+	gcc $(INC) $(OPT3) -c latsieve.c 
+
+sieve : sieve.c clsieve.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o sieve sieve.c clsieve.c $(OBJS) $(LIBS)
+
+makefb : makefb.c $(OBJS) ;
+	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+             fbmisc.o poly.o mpz_poly.o smintfact.o modinv32.c \
+             misc.o nfmisc.o mpz_mat.o ecm4c.o fbgen.o rels.o $(LIBS)
+
+procrels : procrels.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o procrels procrels.c $(OBJS) $(LIBS)
+
+matsolve : matsolve.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o matsolve matsolve.c $(OBJS) $(LIBS)
+
+matbuild : matbuild.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o matbuild matbuild.c $(OBJS) $(LIBS)
+
+sqrt : sqrt.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o sqrt sqrt.c $(OBJS) $(LIBS)
+
+polyselect : polyselect.c $(OBJS) ;
+	gcc $(INC) $(OPT3) -o polyselect polyselect.c $(OBJS) $(LIBS)
+
+latsiever : ;
+	cd lasieve4; make -f Makefile.x86_64
+	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
+	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
+	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
+
+clean : lasieve-clean ;
+	rm -f *.o core $(BINS)
+	rm -f gnfs-lasieve4I1?e
+
+lasieve-clean: ;
+	make -C lasieve4 clean
+
+squeaky : clean ;
+	

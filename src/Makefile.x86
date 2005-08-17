@@ -126,7 +126,7 @@ polyselect : polyselect.c $(OBJS) ;
 	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o polyselect polyselect.c $(OBJS) -lgmp -lm 
 
 latsiever : ;
-	cd lasieve4; LIBFLAGS="$(LIBFLAGS)" CFLAGS="$(OPT3) $(LOCALINC)" $(MAKE)
+	cd lasieve4; LIBFLAGS="$(LIBFLAGS)" CFLAGS="$(OPT3) $(LOCALINC)" $(MAKE) -f Makefile.x86
 ifeq ($(OS),Windows_NT)
 	ln -fs lasieve4/gnfs-lasieve4I12e.exe gnfs-lasieve4I12e.exe
 	ln -fs lasieve4/gnfs-lasieve4I13e.exe gnfs-lasieve4I13e.exe

@@ -19,8 +19,9 @@
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
+
 static u32_t A, A_bits, ub;
 
 void rec_info_init(u32_t A1, u32_t ub1)

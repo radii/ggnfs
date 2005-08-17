@@ -14,14 +14,15 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <sys/types.h>
 #ifdef __ppc__
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
 
 static double *aux;
 static size_t aux_alloc = 0;

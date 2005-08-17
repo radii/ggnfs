@@ -18,7 +18,6 @@
 #include <gmp.h>
 #ifdef __ppc__
 #include "ppc32/siever-config.h"
-typedef uint32_t ulong;
 #else
 #include "asm/lasieve-asm.h"
 #endif

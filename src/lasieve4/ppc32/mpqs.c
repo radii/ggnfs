@@ -23,6 +23,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <gmp.h>
 
 #include "siever-config.h"
+#include "lasieve.h"
 
 #ifdef MPQS_STAT
 extern u64_t stat_asm_eval, stat_asm_td;

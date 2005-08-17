@@ -20,21 +20,23 @@
 #include <unistd.h>
 #include <sys/times.h>
 #endif
+
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <gmp.h>
 #include <limits.h>
+
 #ifdef __ppc__
 #include "ppc32/siever-config.h"
-typedef uint32_t ulong;
 #else
 #include "asm/lasieve-asm.h"
 #include "lasieve.h"
 #endif
 int verbose = 0;
-static ulong used_cols, ncol = 80;
+static size_t used_cols, ncol = 80;
 #if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define NEED_GETLINE
 #define NEED_ASPRINTF
@@ -140,7 +142,7 @@ void logbook(int l, char *fmt, ...)
   if (l < verbose) {
     va_list arglist;
     char *output_str;
-    ulong sl;
+    size_t sl;
 
     va_start(arglist, fmt);
     vasprintf(&output_str, fmt, arglist);

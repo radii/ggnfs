@@ -18,8 +18,9 @@
 #include "ppc32/siever-config.h"
 #else
 #include "asm/lasieve-asm.h"
-#include "lasieve.h"
 #endif
+#include "lasieve.h"
+
 i32_t n_iter = 0;
 
 /**************************************************************/
