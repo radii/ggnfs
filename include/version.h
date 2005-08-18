@@ -1,1 +1,0 @@
-#define GGNFS_VERSION "0.77.1-050817-k8"

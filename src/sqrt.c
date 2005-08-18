@@ -36,7 +36,7 @@
 
 #define USAGE " -fb <fname> -prel <prefix> -deps <fname> -depnum <int>\n"\
 "-fb     <fname>  : File containing the factor base.\n"\
-"-deps   <fname>  : Output of `procrels'. i.e., the file with the dependencies.\n"\
+"-deps   <fname>  : Output of `matsolve'. i.e., the file with the dependencies.\n"\
 "-depnum <int>    : Which dependency to try.\n"\
 "-knowndiv <int>  : The product of known small divisors of n\n"\
 "-nodfactor       : Don't try to factor the discriminant again.\n"

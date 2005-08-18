@@ -216,7 +216,7 @@ int checkMat(nfs_sparse_mat_t *M)
   if (warn) {
     printf("checkMat() did not like something about the matrix:\n");
     printf("This is probably a sign that something has gone horribly wrong\n");
-    printf("in the matrix construction (procrels).\n");
+    printf("in the matrix construction (matbuild).\n");
     if (numDel < 2048) {
       printf("However, the number of bad columns is only %" PRId32 ",\n", numDel);
       printf("so we will delete them and attempt to continue.\n");

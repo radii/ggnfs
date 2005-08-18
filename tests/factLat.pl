@@ -300,7 +300,7 @@ sub getPrimes {
     @_ = split;
     if (/r\d=/) {
       s/.*r\d=//;
-      if ((length($_) > 1) && (length($_) < length($N))) {
+      if ((length($_) > 1) && (length($_) < length($NDIVFREE))) {
         # Is this a prime divisor or composite?
         if (/pp/) {
           s/\(.*\)//; # Strip off the (pp <digits>) part.
@@ -325,8 +325,8 @@ sub getPrimes {
   for ($i=0; $i<=$#PRIMES; $i++) {
     $x = $x*$PRIMES[$i];
   }
-  if ($x==$N || probab_prime_p($N/$x, 10)) { 
-    $x==$N or push(@PRIMES, $N/$x);
+  if ($x==$NDIVFREE || probab_prime_p($NDIVFREE/$x, 10)) { 
+    $x==$NDIVFREE or push(@PRIMES, $NDIVFREE/$x);
     open(OF, ">>$LOGFILE");
     while ($_ = shift @PRIMES) {
       printf(OF "-> p: $_ (pp%d)\n", length($_));
@@ -1169,7 +1169,14 @@ sub readParams {
       }
     }
   }
-  if ($KNOWNDIV) { $KNOWNDIV="-knowndiv ".$KNOWNDIV; }
+  if ($KNOWNDIV)
+  {
+    my $DIVISOR = new Math::BigInt($KNOWNDIV);
+    die ("-> Error: knowndiv $DIVISOR does not divide N!\n") if ($N % $DIVISOR);
+    $NDIVFREE = $N / $DIVISOR;
+    $KNOWNDIVOPT = "-knowndiv ".$KNOWNDIV;
+  }
+  else { $NDIVFREE = $N; }
   if ($Q0==0) {
     $Q0 = ($LATSIEVE_SIDE) ? $RLIM/2 : $ALIM/2;
   }
@@ -1589,7 +1596,7 @@ if (!(-e $DEPFILE)) {
 $depnum=0;
 my $done = getPrimes;
 while (!($done)) {
-  $cmd="$NICE \"$SQRT\" $DISC -fb $NAME.fb -deps $DEPFILE -depnum $depnum $KNOWNDIV";
+  $cmd="$NICE \"$SQRT\" $DISC -fb $NAME.fb -deps $DEPFILE -depnum $depnum $KNOWNDIVOPT";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);
   $done = getPrimes;
@@ -1663,6 +1670,7 @@ if ($TYPE =~ /snfs/) {
   printf("SNFS difficulty: %d digits.\n", $SNFS_DIFFICULTY);
 }
 print "Divisors found:\n";
+print (" knowndiv: $KNOWNDIV\n") if $KNOWNDIV;
 
 # Sort ascending numerically
 @DIVISORS = sort {$a <=> $b} (@DIVISORS);
