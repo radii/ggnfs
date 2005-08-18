@@ -3,13 +3,7 @@ CC=gcc
 DEBUGOPT=-Wall -g -pg 
 
 LANCZOS=blanczos64-no-mmx
-# Choose one of these for some more optimization for
-# all but the lattice sieving code.
-#ALLOPT=-march=athlon-xp
-#ALLOPT=-march=athlon 
-ALLOPT=-mtune=970
-#ALLOPT=-march=pentium4
-#ALLOPT=-march=pentium3
+ALLOPT=-march=$(ARCH) -mtune=$(ARCH)
 
 OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
 OPT3=-O3 -fomit-frame-pointer -Wall $(ALLOPT)
@@ -86,7 +80,7 @@ clean : lasieve-clean ;
 	rm -f gnfs-lasieve4I1?e
 
 lasieve-clean: ;
-	make -C lasieve4 clean
+	make -C lasieve4 -f Makefile.ppc clean
 
 squeaky : clean ;
 	

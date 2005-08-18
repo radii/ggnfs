@@ -4,9 +4,7 @@ DEBUGOPT=-Wall -g -pg
 MAKE=make
 
 LANCZOS=blanczos64-no-mmx
-# Choose one of these for some more optimization for
-# all but the lattice sieving code.
-ALLOPT=-march=k8 -mtune=k8 -D__ppc__
+ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -D__ppc__
 # -D__ppc__ should be removed later
 # TODO: carefully inspect all ``#if defined(__ppc__)'' and
 # add ``#if defined(__x86_64__)'' where required

@@ -1,4 +1,3 @@
-ARCH=pentium3
 LOCALINC=-I/usr/local/include
 INC=-I../include $(LOCALINC)
 LIBFLAGS=-L/usr/local/lib
@@ -16,18 +15,12 @@ DLMALLOC=1
 endif
 
 LANCZOS=blanczos64
-# Choose one of these for some more optimization for
-# all but the lattice sieving code.
+ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -DMALLOC_REPORTING -ftracer -pipe
+
 # -DL2_CACHE_SIZE=512 works well on some Pentium 4 processors.
 # It brings the opposite effect on AMD chips and some Pentium 4 processors.
-#ALLOPT=-march=athlon-xp
-#ALLOPT=-DMALLOC_REPORTING
-#ALLOPT=-march=pentium4 -DL2_CACHE_SIZE=512
-#ALLOPT=-march=pentium3
 ifeq ($(ARCH),pentium4)
-    ALLOPT=-DMALLOC_REPORTING -march=$(ARCH) -DL2_CACHE_SIZE=512 -ftracer -pipe
-else
-    ALLOPT=-DMALLOC_REPORTING -march=$(ARCH) -ftracer -pipe
+    ALLOPT+=-DL2_CACHE_SIZE=512
 endif
 
 OPT2=-O2 -funroll-loops -fomit-frame-pointer -Wall $(ALLOPT)
