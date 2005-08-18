@@ -44,7 +44,7 @@
 #define START_MSG \
 " __________________________________________________________ \n"\
 "|          This is the sqrt program for GGNFS.             |\n"\
-"| Version: %-15s                                 |\n"\
+"| Version: %-25s                            |\n"\
 "| This program is copyright 2004, Chris Monico, and subject|\n"\
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"

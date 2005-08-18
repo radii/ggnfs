@@ -21,7 +21,7 @@ pentium4 :
 	@ARCH="pentium4" $(MAKE) x86common
 	
 athlon :
-	@ARCH="k7" $(MAKE) x86common
+	@ARCH="athlon" $(MAKE) x86common
 
 x86_64 :
 	@TARGET="x86_64" ARCH="k8" $(MAKE) common
@@ -38,7 +38,7 @@ EXCLUDE=$(foreach opt,$(EXCLUDE_FILES),--exclude=$(opt))
 
 x86common : src ;
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
-	@cd src/lasieve4 && rm -f asm && ln -s piii asm
+	@cd src/lasieve4 && rm -f -r asm && ln -s piii asm
 	@ARCH=$(ARCH) $(MAKE) -C src -f Makefile.x86
 
 common : src ;

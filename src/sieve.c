@@ -60,7 +60,7 @@ double defaultALambda[MAX_DEFAULTS]={1.0,1.1, 1.3, 1.4,    1.5,     1.6};
 "\n"\
 " __________________________________________________________ \n"\
 "|         This is the sieve program for GGNFS.             |\n"\
-"| Version: %-15s                                 |\n"\
+"| Version: %-25s                            |\n"\
 "| This program is copyright 2004, Chris Monico, and subject|\n"\
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"
