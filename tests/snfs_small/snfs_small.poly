@@ -1,0 +1,22 @@
+name: 2_123_minus
+type: snfs
+n: 10633823966279326983230456482242756607
+m: 33554432
+c5: 1
+c4: 0
+c3: 0
+c2: 0
+c1: 0
+c0: -4
+skew: 1
+
+rlim: 300000
+alim: 350000
+lpbr: 25
+lpba: 25
+mfbr: 43
+mfba: 43
+rlambda: 2.2
+alambda: 2.2
+q0: 350000
+qintsize: 250

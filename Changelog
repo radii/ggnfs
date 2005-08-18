@@ -1,3 +1,9 @@
+8/18/05 (asl)
+  * Added some small snfs_test. tst250 runs something about 30 mins for me,
+    so some quick test is required (F7 is still broken :)
+    Thanks to Dmitriy Gribenko for .poly file.
+  * Applied matbuild fixes to matbuild-tpie.
+
 8/18/05 (trilliwig)
   * Updated Perl script to properly handle the knowndiv option from the
     .poly file when checking if sqrt has found all the prime divisors of N.
