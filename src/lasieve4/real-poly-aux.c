@@ -36,7 +36,7 @@ void tpol(double *rop, double *op, i32_t deg, i32_t x0, i32_t x1,
 {
   i32_t d;
 
-  if (deg == U32_MAX)
+  if (deg == UINT_MAX)
     complain("Degree too large\n");
   if (deg == 0) {
     rop[0] = op[0];
@@ -93,7 +93,7 @@ double rpol_lb(double *pol, i32_t poldeg, double a, double b)
   i32_t i;
   double m1, m2, s1, s2;
 
-  if (poldeg == U32_MAX)
+  if (poldeg == UINT_MAX)
     complain("Degree too large\n");
   if (aux_alloc < poldeg + 1) {
     if (aux_alloc > 0)

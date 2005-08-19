@@ -43,7 +43,7 @@
 #ifdef __ppc__
 #include "ppc32/siever-config.h"
 #define asm_modinv32(x) modinv32(x)
-const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,U32_MAX};
+const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,UINT_MAX};
 const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
 #else
 #include "asm/lasieve-asm.h"
@@ -106,7 +106,7 @@ u32_t process_no;
 char *sysload_cmd;
 double sieveStartTime;
 
-int rho_factor(long *factors, mpz_t n);
+int rho_factor(i32_t *factors, mpz_t n);
 
 /****************************************************/
 static int tdcand_cmp(const void *x, const void *y)
@@ -1593,7 +1593,7 @@ int lasieve()
                     luub = (n_J+luub+2*CANDIDATE_SEARCH_STEPS-1)/(2*CANDIDATE_SEARCH_STEPS);
                     if (luub > n_J / CANDIDATE_SEARCH_STEPS)
                       luub = n_J / CANDIDATE_SEARCH_STEPS;
-                    for (i = lulb, sieve_threshold = I32_MAX; i < luub; i++)
+                    for (i = lulb, sieve_threshold = INT_MAX; i < luub; i++)
                       if (plog_lb1[i] < sieve_threshold)
                         sieve_threshold = plog_lb1[i];
                     sieve_threshold += lt;
@@ -1615,7 +1615,7 @@ int lasieve()
 #define bc_t unsigned long
 #define BC_MASK 0x80808080
 #else
-#define bc_t unsigned long long
+#define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
 #endif
                       {
@@ -1659,7 +1659,7 @@ int lasieve()
                       }
 #else
                       {
-                        unsigned long long x;
+                        uint64_t x;
 
                         x = st1 - 1;
                         x |= x << 8;
@@ -1730,7 +1730,7 @@ int lasieve()
                     i = luub;
                     luub = n_J / CANDIDATE_SEARCH_STEPS - lulb;
                     lulb = n_J / CANDIDATE_SEARCH_STEPS - i;
-                    for (i = lulb, sieve_threshold = I32_MAX; i < luub; i++)
+                    for (i = lulb, sieve_threshold = INT_MAX; i < luub; i++)
                       if (plog_lb1[i] < sieve_threshold)
                         sieve_threshold = plog_lb1[i];
                     sieve_threshold += lt;
@@ -1752,7 +1752,7 @@ int lasieve()
 #define bc_t unsigned long
 #define BC_MASK 0x80808080
 #else
-#define bc_t unsigned long long
+#define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
 #endif
                       {
@@ -1796,7 +1796,7 @@ int lasieve()
                       }
 #else
                       {
-                        unsigned long long x;
+                        uint64_t x;
 
                         x = st1 - 1;
                         x |= x << 8;
@@ -1894,7 +1894,7 @@ int lasieve()
                     luub = (n_J+luub+2*CANDIDATE_SEARCH_STEPS-1)/(2*CANDIDATE_SEARCH_STEPS);
                     if (luub > n_J / CANDIDATE_SEARCH_STEPS)
                       luub = n_J / CANDIDATE_SEARCH_STEPS;
-                    for (i = lulb, sieve_threshold = I32_MAX; i < luub; i++)
+                    for (i = lulb, sieve_threshold = INT_MAX; i < luub; i++)
                       if (plog_lb2[i] < sieve_threshold)
                         sieve_threshold = plog_lb2[i];
                     sieve_threshold += lt;
@@ -1917,7 +1917,7 @@ int lasieve()
 #define bc_t unsigned long
 #define BC_MASK 0x80808080
 #else
-#define bc_t unsigned long long
+#define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
 #endif
                       {
@@ -1960,7 +1960,7 @@ int lasieve()
                       }
 #else
                       {
-                        unsigned long long x;
+                        uint64_t x;
 
                         x = st1 - 1;
                         x |= x << 8;
@@ -2032,7 +2032,7 @@ int lasieve()
                     lulb = n_J / CANDIDATE_SEARCH_STEPS - i;
                     if (luub > n_J / CANDIDATE_SEARCH_STEPS)
                       luub = n_J / CANDIDATE_SEARCH_STEPS;
-                    for (i = lulb, sieve_threshold = I32_MAX; i < luub; i++)
+                    for (i = lulb, sieve_threshold = INT_MAX; i < luub; i++)
                       if (plog_lb2[i] < sieve_threshold)
                         sieve_threshold = plog_lb2[i];
                     sieve_threshold += lt;
@@ -2054,7 +2054,7 @@ int lasieve()
 #define bc_t unsigned long
 #define BC_MASK 0x80808080
 #else
-#define bc_t unsigned long long
+#define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
 #endif
                       {
@@ -2097,7 +2097,7 @@ int lasieve()
                       }
 #else
                       {
-                        unsigned long long x;
+                        uint64_t x;
 
                         x = st1 - 1;
                         x |= x << 8;
@@ -2273,7 +2273,7 @@ int lasieve()
                 if (ncand > 0)
                   p_bound = (2 * n_i * j_per_strip) / (5 * ncand);
                 else
-                  p_bound = U32_MAX;
+                  p_bound = UINT_MAX;
 
                 {
                   unsigned char ht, allcoll;
@@ -3056,7 +3056,7 @@ int main(int argc, char **argv)
     i32_t option;
 
     first_spq = 0;
-    sieve_count = U32_MAX;
+    sieve_count = UINT_MAX;
     ofile_name = "spairs.out";
     zip_output = 0;
     special_q_side = NO_SIDE;
@@ -3072,7 +3072,7 @@ int main(int argc, char **argv)
 
     first_psp_side = 2;
     first_mpqs_side = 0;
-    J_bits = U32_MAX;
+    J_bits = UINT_MAX;
 
 #define NumRead(x) if(sscanf(optarg, "%u" ,(unsigned int*)&x)!=1) Usage()
 #define NumRead16(x) if(sscanf(optarg, "%hu" ,(ushort*)&x)!=1) Usage()
@@ -3135,7 +3135,7 @@ int main(int argc, char **argv)
           zip_output = 1; break;
       }
     }
-    if (J_bits == U32_MAX)
+    if (J_bits == UINT_MAX)
       J_bits = I_bits - 1;
     if (first_psp_side == 2)
       first_psp_side = first_mpqs_side;
@@ -3156,8 +3156,8 @@ int main(int argc, char **argv)
       complain("Bad job file: %s\ngiving up...\n", basename);
 
     last_spq = first_spq + sieve_count;
-    if (last_spq >= I32_MAX / 2) {
-      complain("Cannot handle special q >= %d\n", I32_MAX / 2);
+    if (last_spq >= INT_MAX / 2) {
+      complain("Cannot handle special q >= %d\n", INT_MAX / 2);
     }
 
     for (i = 0; i < 2; i++) {

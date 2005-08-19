@@ -32,10 +32,6 @@
 #define M_SQRT2 1.41421356237309504880
 #endif
 
-
-
-#define MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
-#define MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b))
 #define MAX_IPBSIZE  100
 
 #define DEFAULT_LLLMAX_LOG 201.0*log(10.0)

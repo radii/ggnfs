@@ -1,3 +1,10 @@
+8/19/05 (relf)
+  * common code from lasieve4/ and pol5/ moved to src/ and shared
+  * extra types definitions removed in favor of #including ggnfs.h
+  * pol5 fixed with respect to suppost non-i386 platforms
+  * most "(unsigned) long long" types changed to "(u)int64_t"
+  * TODO: unify used types, e.g., use the same name for "u64", "u64_t", "uint64_t" etc.
+
 8/18/05 (asl)
   * Added some small snfs_test. tst250 runs something about 30 mins for me,
     so some quick test is required (F7 is still broken :)

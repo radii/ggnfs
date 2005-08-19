@@ -126,7 +126,7 @@ else
 endif
 
 polsel : ;
-	cd pol5; CFLAGS="$(OPT3) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) intel
+	CFLAGS="$(OPT3) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) -C pol5 intel
 ifeq ($(OS),Windows_NT)
 	ln -fs pol5/pol51m0b-intel.exe pol51m0b.exe
 	ln -fs pol5/pol51m0n-intel.exe pol51m0n.exe

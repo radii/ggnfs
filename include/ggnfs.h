@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+typedef unsigned char uchar;
+
 #include <stdarg.h>
 #define __STDC_FORMAT_MACROS
 #if defined (_MSC_VER) && !defined(__MINGW32__)
@@ -727,16 +729,30 @@ void   getTrace_ib(mpz_t t, mpz_poly a, nf_t *N);
 
 
 /* fbgen.c */
-s32 root_finder(s32 * root_buf, __mpz_struct * A, s32 adeg, s32 p);
-
-
-
+u32 root_finder(u32 * root_buf, mpz_t * A, u32 adeg, u32 p);
 
 int    factorN(mpz_t p, mpz_t q, s32 *dep, relation_t *R, nfs_fb_t *FB, nf_t *N);
 int    montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF,
                       multi_file_t *lpF, nfs_fb_t *FB, nf_t *N);
 double dickman(double x);
 double dickmanStrong(double x, int numTerms);
+
+/* assess.c */
+void init_assess(double b0, double b1, double area, int pb);
+uint invert(uint a, uint p);  /* 0<b<p */
+void murphy_en(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
+               double alpha0, double alpha1, double skewness, int nsm);
+void murphy_e(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
+              double alpha0, double alpha1, double skewness);
+int compute_alpha(double *alpha, int deg, uint **coeffmod, mpz_t *gmp_coeff, double alpha_targ);
+void compute_alpha_exact(double *alpha, int deg, uint **coeffmod, mpz_t *gmp_coeff, uint pb);
+  	       
+/* roots.c */
+int find_optima(int *deg, double **coeff, double skewness, double **optima);
+
+/* primes.c */
+void prime_table_init();
+uint get_next_prime();
 
 
 /*******************************************************/

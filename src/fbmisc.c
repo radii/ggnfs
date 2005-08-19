@@ -379,7 +379,7 @@ int generateAFB(nfs_fb_t *FB, int verbose)
        printf("\b");
     }
 #ifndef _OLD_ROOT_CODE
-    numZeros = root_finder(zeros, FB->f->coef, d, thisP);
+    numZeros = root_finder(zeros, (mpz_t*)FB->f->coef, d, thisP);
 #else
     mpz_poly_modp(f_, FB->f, thisP);
     numZeros = poly_getZeros(zeros, f_, thisP);

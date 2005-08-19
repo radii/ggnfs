@@ -39,7 +39,7 @@ redu2.o: lasieve.h
 primgen32.o ../fbgen.o: lasieve.h
 
 gnfs-lasieve4eI%.o: gnfs-lasieve4e.c lasieve.h 
-	$(CC) -fno-strict-aliasing -c -DI_bits=$* -o $@ $<
+	$(CC) -c -DI_bits=$* -o $@ $<
 
 libgmp-aux.a: gmp-aux.o mpz-ull.o
 	$(AR) rcs $@ $^

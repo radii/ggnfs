@@ -25,7 +25,7 @@ OBJS=getprimes.o modinv32.o \
      montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
      llist.o combparts.o if.o
 BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
-LSBINS=latsiever
+LSBINS=latsiever polsel
 TESTBIN=./tsrc
 TESTCODE=./tsrc
 
@@ -77,6 +77,12 @@ latsiever : ;
 	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
 	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
 	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
+
+polsel : ;
+	CFLAGS="$(OPT3) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) -C pol5
+	ln -fs pol5/pol51m0b pol51m0b
+	ln -fs pol5/pol51m0n pol51m0n
+	ln -fs pol5/pol51opt pol51opt
 
 clean : lasieve-clean ;
 	rm -f *.o core $(BINS)

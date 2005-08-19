@@ -323,12 +323,12 @@ u32_t polrootmod32(mpz_t * A, u32_t dT, u32_t * r)
   return i;
 }
 
-#if 0
+#if 1
 /*****************************************************/
-u32_t root_finder(u32_t * root_buf, mpz_t * A, u32_t adeg, u32_t p)
+u32 root_finder(u32 * root_buf, mpz_t * A, u32 adeg, u32 p)
 /*****************************************************/
 {
-  u32_t res;
+  u32 res;
 
   if (polr_alloc < 300 * adeg * adeg) {
     /* CAVE falls adeg==0? */
@@ -338,7 +338,7 @@ u32_t root_finder(u32_t * root_buf, mpz_t * A, u32_t adeg, u32_t p)
     polr = xmalloc(polr_alloc * sizeof(*polr));
   }
   if (p == 2) {
-    u32_t i, pv;
+    u32 i, pv;
 
     res = 0;
     if (mpz_fdiv_ui(A[0], p) == 0)
@@ -361,6 +361,7 @@ u32_t root_finder(u32_t * root_buf, mpz_t * A, u32_t adeg, u32_t p)
 }
 #endif
 
+#if 0
 /*****************************************************/
 s32 root_finder(s32 * root_buf, __mpz_struct * A, s32 adeg, s32 p)
 /*****************************************************/
@@ -396,3 +397,4 @@ s32 root_finder(s32 * root_buf, __mpz_struct * A, s32 adeg, s32 p)
     root_buf[res++] = p;
   return res;
 }
+#endif

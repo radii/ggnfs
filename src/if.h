@@ -21,8 +21,6 @@
 
 #include <ggnfs.h>
 
-typedef unsigned long long ullong;
-
 typedef uint16_t u16_t;
 typedef  int16_t i16_t;
 typedef uint32_t u32_t;
@@ -93,19 +91,19 @@ void mpz_mul_si(mpz_t x,mpz_t y,long int z);
   ({ int _s; _s= (s); \
      _s>=0 ? mpz_add_ui(r,o,(ulong)(_s)) : mpz_sub_ui(r,o,(ulong)(-_s)); })
 
-void mpz_set_ull(mpz_t targ,ullong src);
-ullong mpz_get_ull(mpz_t src);
-int mpz_cmp_ull(mpz_t op1,ullong op2);
+void mpz_set_ull(mpz_t targ,uint64_t src);
+uint64_t mpz_get_ull(mpz_t src);
+int mpz_cmp_ull(mpz_t op1,uint64_t op2);
 
 #ifdef ULL_NO_UL
 void mpz_ull_init();
-void mpz_mul_ull(mpz_t rop,mpz_t op1,ullong op2);
+void mpz_mul_ull(mpz_t rop,mpz_t op1,uint64_t op2);
 int mpz_fits_sllong_p(mpz_t);
 int mpz_fits_ullong_p(mpz_t);
-long long int mpz_get_sll(mpz_t);
-void mpz_set_sll(mpz_t,long long int);
-unsigned long long mpz_get_ull(mpz_t);
-void mpz_set_ull(mpz_t,unsigned long long);
+int64_t mpz_get_sll(mpz_t);
+void mpz_set_sll(mpz_t,int64_t);
+uint64_t mpz_get_ull(mpz_t);
+void mpz_set_ull(mpz_t,uint64_t);
 #else
 #define mpz_ull_init()
 #define mpz_mul_ull mpz_mul_ui
@@ -116,5 +114,8 @@ void mpz_set_ull(mpz_t,unsigned long long);
 #define mpz_get_ull mpz_get_ui
 #define mpz_set_ull mpz_set_ui
 #endif
+
+void numread(char *arg, unsigned *x);
+ssize_t getline(char **lineptr, size_t * n, FILE * stream);
 
 #endif

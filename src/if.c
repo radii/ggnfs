@@ -37,8 +37,6 @@ static size_t used_cols, ncol = 80;
 #define NEED_ASPRINTF
 #endif
 
-ssize_t getline(char **lineptr, size_t * n, FILE * stream);
-
 FILE *logfile = NULL;
 void complain(char * fmt, ...);
 

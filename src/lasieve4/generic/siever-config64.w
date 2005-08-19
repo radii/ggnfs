@@ -12,14 +12,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 @(siever-config.h@>=
 #define L1_BITS 14
 #define ULONG_RI
-typedef unsigned u32_t;
-typedef int i32_t;
-typedef short int i16_t;
-typedef unsigned short u16_t;
-typedef unsigned long u64_t;
-typedef long int i64_t;
-#define U32_MAX 0xffffffff
-#define I32_MAX INT_MAX
 #define asm_modinv32 modinv32
 
 #define PREINVERT

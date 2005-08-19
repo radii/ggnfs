@@ -105,7 +105,7 @@ u32_t nextprime32(pr32_struct * ps)
       ps->Prime += 2 * ps->PDiffs[ps->Pind++];
       return ps->Prime;
     } else {
-      if (ps->first_in_sieve < U32_MAX - 2 * P32_SIEVESIZE) {
+      if (ps->first_in_sieve < UINT_MAX - 2 * P32_SIEVESIZE) {
         ps->first_in_sieve += 2 * P32_SIEVESIZE;
 
         {
@@ -119,10 +119,10 @@ u32_t nextprime32(pr32_struct * ps)
           }
           memset(sieve, 1, P32_SIEVESIZE);
 
-          if (ps->first_in_sieve < U32_MAX - 2 * P32_SIEVESIZE)
+          if (ps->first_in_sieve < UINT_MAX - 2 * P32_SIEVESIZE)
             ssz = P32_SIEVESIZE;
           else
-            ssz = (U32_MAX - ps->first_in_sieve) / 2;
+            ssz = (UINT_MAX - ps->first_in_sieve) / 2;
           M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
           for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
             j = ps->first_in_sieve % q;
@@ -244,10 +244,10 @@ u32_t nextprime32(pr32_struct * ps)
       }
       memset(sieve, 1, P32_SIEVESIZE);
 
-      if (ps->first_in_sieve < U32_MAX - 2 * P32_SIEVESIZE)
+      if (ps->first_in_sieve < UINT_MAX - 2 * P32_SIEVESIZE)
         ssz = P32_SIEVESIZE;
       else
-        ssz = (U32_MAX - ps->first_in_sieve) / 2;
+        ssz = (UINT_MAX - ps->first_in_sieve) / 2;
       M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
       for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
         j = ps->first_in_sieve % q;
@@ -319,10 +319,10 @@ u32_t pr32_seek(pr32_struct * ps, u32_t lb)
     }
     memset(sieve, 1, P32_SIEVESIZE);
 
-    if (ps->first_in_sieve < U32_MAX - 2 * P32_SIEVESIZE)
+    if (ps->first_in_sieve < UINT_MAX - 2 * P32_SIEVESIZE)
       ssz = P32_SIEVESIZE;
     else
-      ssz = (U32_MAX - ps->first_in_sieve) / 2;
+      ssz = (UINT_MAX - ps->first_in_sieve) / 2;
     M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
     for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
       j = ps->first_in_sieve % q;
