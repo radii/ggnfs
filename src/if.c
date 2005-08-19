@@ -28,12 +28,7 @@
 #include <gmp.h>
 #include <limits.h>
 
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
-#include "lasieve.h"
+#include "if.h"
 
 int verbose = 0;
 static size_t used_cols, ncol = 80;
@@ -117,17 +112,46 @@ void complain(char *fmt, ...)
   exit(1);
 }
 
-/****************************************************/
+/*****************************************************/
 void Schlendrian(char *fmt, ...)
 /****************************************************/
 {
   va_list arglist;
-
   va_start(arglist, fmt);
   vfprintf(stderr, fmt, arglist);
   if (logfile != NULL)
     vfprintf(logfile, fmt, arglist);
   abort();
+}
+
+void numread(char *arg, unsigned *x)
+{
+  char*fmt;
+  int offs;
+  if (strlen(arg)==0) {
+    *x=0;
+    return;
+  }
+  if (*arg=='0') {
+    if (strlen(arg)==1) {
+      *x=0;
+      return;
+    }
+    if (*(arg+1)=='x') {
+      fmt="%X";
+      offs=2;
+    } else {
+      fmt="%o";
+      offs=1;
+    }
+  } else {
+    offs=0;
+    fmt="%u";
+  }
+  if (sscanf(arg+offs,fmt,x)!=1) {
+    fprintf(stderr,"Bad integer value for some option!\n");
+    /*Usage();*/ /* !!!!!!!!!!!!!!! */
+  }
 }
 
 #define NEW_NUMBER -0x10000

@@ -1,7 +1,6 @@
-INC=-I../include
+INC=-I. -I.. -I../include
 CC=gcc
 DEBUGOPT=-Wall -g -pg 
-MAKE=make
 
 LANCZOS=blanczos64-no-mmx
 ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -D__ppc__
@@ -24,7 +23,7 @@ OBJS=getprimes.o modinv32.o \
      $(LANCZOS).o poly.o mpz_poly.o \
      mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
      montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     llist.o combparts.o
+     llist.o combparts.o if.o
 BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
 LSBINS=latsiever
 TESTBIN=./tsrc
@@ -49,13 +48,13 @@ rels.o : rels.c ;
 
 latsieve.o : latsieve.c ;
 	gcc $(INC) $(OPT3) -c latsieve.c 
-
+	
 sieve : sieve.c clsieve.c $(OBJS) ;
 	gcc $(INC) $(OPT3) -o sieve sieve.c clsieve.c $(OBJS) $(LIBS)
 
 makefb : makefb.c $(OBJS) ;
 	gcc $(INC) $(OPT2) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
-             fbmisc.o poly.o mpz_poly.o smintfact.o modinv32.c \
+             fbmisc.o poly.o mpz_poly.o smintfact.o modinv32.c if.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o fbgen.o rels.o $(LIBS)
 
 procrels : procrels.c $(OBJS) ;

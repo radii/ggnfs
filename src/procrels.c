@@ -38,6 +38,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "if.h"
+
 /* After reading this many new relations, they will be added to the
    larger hash table, to reduce sort/searches which would otherwise
    slow down relation processing when processing many new relaitons.
@@ -142,7 +144,7 @@ typedef struct {
 #define CC_AUTO 2
 
 /***** Globals *****/
-int  verbose=0, discFact=1, cycleCount=CC_AUTO;
+int  discFact=1, cycleCount=CC_AUTO;
 s32  initialFF=0, initialRelations=0, finalFF=0;
 s32  totalLargePrimes=0;
 s32  minFF;

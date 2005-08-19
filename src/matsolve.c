@@ -25,6 +25,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#include "if.h"
 
 #ifndef _MSC_VER 
 #include <sys/time.h>
@@ -76,7 +77,6 @@ typedef struct {
 
 
 /***** Globals *****/
-int verbose=0;
 s32 delCols[2048], numDel=0;
 
 

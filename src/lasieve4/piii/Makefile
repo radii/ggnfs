@@ -13,7 +13,7 @@
 #CFLAGS= -O3 
 #CFLAGS= -O3 -march=athlon
 #CFLAGS= -g
-CC=gcc
+CC=gcc -I.. -I../.. -I../../../include
 SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c mpqs-hack.c montgomery_mul.c \
 	basemath.c asm_mul64.S \
 	asm_mul96.s asm_mul128.s sieve-from-sched.S lasched.c medsched.c \

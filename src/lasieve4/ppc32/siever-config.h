@@ -14,12 +14,11 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <stdarg.h>
 #include <gmp.h>
 
+#include "if.h"
+
 #define L1_BITS 14
 #define ULONG_RI
-typedef long int i32_t;
-typedef short int i16_t;
-typedef unsigned short u16_t;
-typedef long long int i64_t;
+
 #define U32_MAX 0xffffffff
 #define I32_MAX INT_MAX
 
@@ -27,9 +26,6 @@ typedef long long int i64_t;
 #define ULL_NO_UL
 typedef uint32_t ulong;
 #endif
-
-typedef uint32_t u32_t;
-typedef uint64_t u64_t;
 
 #define PREINVERT
 #define BIGENDIAN

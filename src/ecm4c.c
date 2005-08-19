@@ -141,6 +141,8 @@ Input number is 6078205681818343287459270474014067853989757008219115597639286750
 #include <time.h>
 #include <gmp.h>
 
+#include "if.h"
+
 #if defined (__MINGW32__) || defined (MINGW32)
 #ifndef _MSC_VER
 #define _MSC_VER
@@ -207,7 +209,7 @@ extern void DivThreeLongHalvesByTwo(mpz_t *,mpz_t *,mpz_t *,
 				    unsigned int, mpz_t *);
 
 /********* global variables ***********/
-static unsigned int bb, *prime, nbprimes, mul, gcdexts, verbose=0, base2=1, go=0;
+static unsigned int bb, *prime, nbprimes, mul, gcdexts, base2=1, go=0;
 static mp_size_t    sizen;
 static int          B1, ispower2, use_dickson=0; 
 static unsigned char *pr;
@@ -1461,7 +1463,7 @@ void polymul(a,b,c,k,t) mpz_t *a,*b,*c,*t; unsigned int k;
 
 
 /*******************************************************/
-int ecmFactor(mpz_t p, mpz_t N, long _B1, double B2, int iter, mpz_t s)
+int ecmFactor(mpz_t p, mpz_t N, s32 _B1, double B2, int iter, mpz_t s)
 { int r, e=32;
   static int initialized=0;
 

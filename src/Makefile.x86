@@ -1,5 +1,5 @@
 LOCALINC=-I/usr/local/include
-INC=-I../include $(LOCALINC)
+INC=-I. -I.. -I../include $(LOCALINC)
 LIBFLAGS=-L/usr/local/lib
 MAKE=make
 CC=gcc
@@ -31,20 +31,15 @@ OPT=-Wall -O $(ALLOPT)
 #OPT2=$(DEBUGOPT) $(ALLOPT)
 #OPT3=$(DEBUGOPT) $(ALLOPT) 
 
+OBJS=getprimes.o \
+     fbmisc.o mulmod32.s squfof.o rels.o \
+     $(LANCZOS).o poly.o mpz_poly.o \
+     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
+     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
+     modinv1002.S llist.o if.o
+
 ifeq ($(DLMALLOC),1)
-OBJS=getprimes.o \
-     fbmisc.o mulmod32.s squfof.o rels.o \
-     $(LANCZOS).o poly.o mpz_poly.o \
-     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
-     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     modinv1002.S llist.o dlmalloc.o
-else
-OBJS=getprimes.o \
-     fbmisc.o mulmod32.s squfof.o rels.o \
-     $(LANCZOS).o poly.o mpz_poly.o \
-     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
-     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     modinv1002.S llist.o
+OBJS+= dlmalloc.o
 endif
 
 BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
@@ -88,12 +83,12 @@ sieve : sieve.c clsieve.c $(OBJS) ;
 ifeq ($(DLMALLOC),1)
 makefb : makefb.c $(OBJS) ;
 	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
-             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
+             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o if.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o dlmalloc.o -lgmp -lm
 else
 makefb : makefb.c $(OBJS) ;
 	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
-             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o \
+             fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o if.o\
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o -lgmp -lm
 endif
 

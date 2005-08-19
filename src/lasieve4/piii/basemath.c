@@ -103,9 +103,9 @@ void gcd64(ulong * gcd, ulong * a, ulong * b)
 }
 
 /**************************************************/
-void gcd(ulong * gcd, ulong * a, ulong * b)
+//void gcd(ulong * gcd, ulong * a, ulong * b)
 /**************************************************/
-{ ulong r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
+/*{ ulong r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
   long i;
 
   for (i = 0; i < montgomery_ulongs; i++)
@@ -156,7 +156,7 @@ void gcd(ulong * gcd, ulong * a, ulong * b)
       asm_copy(bb, r);
   }
   asm_copy(gcd, aa);
-}
+}*/
 
 /**************************************************/
 void asm_half_old(ulong * a)

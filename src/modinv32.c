@@ -16,17 +16,8 @@
 #include <stdio.h>
 #include <gmp.h>
 
+#include "if.h"
 #include "lasieve4/ppc32/siever-config.h"
-
-void Schlendrian(char *fmt, ...)
-{
-  va_list arglist;
-
-  va_start(arglist, fmt);
-  vfprintf(stderr, fmt, arglist);
-  abort();
-}
-
 
 uint32_t modpow32(uint32_t x,uint32_t a)
 { /*  returns x^a mod modulo32  */
@@ -42,7 +33,7 @@ uint32_t modpow32(uint32_t x,uint32_t a)
 
 uint32_t modsqrt32(uint32_t x)
 {
-  uint32_t q,e,g,i,j,k,l,r,keinePZ;
+  uint32_t q,e,g=0,i,j,k,l,r,keinePZ;
   x%=modulo32;
   if(x==0) return x;
   if(!(modulo32&1)) Schlendrian("modsqrt: %u not a prime!\n",modulo32);

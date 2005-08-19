@@ -21,30 +21,21 @@
 #include <stdint.h>
 #endif
 
+#define ULL_NO_UL
+#include "if.h"
+
 /* siever-config.h */
 #define L1_BITS 14
 #define ULONG_RI
 #define HAVE_CMOV
 #define HAVE_SSIMD
-typedef unsigned long u32_t;
-typedef long int i32_t;
-typedef short int i16_t;
-typedef unsigned short u16_t;
-typedef unsigned long long u64_t;
-typedef long long int i64_t;
 
 #ifdef _MSC_VER
  typedef unsigned long ssize_t;
 #endif
 
-#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
- typedef unsigned long ulong;
- typedef unsigned short ushort;
-#endif
-
 #define U32_MAX 0xffffffff
 #define I32_MAX INT_MAX
-#define ULL_NO_UL
 
 #define PREINVERT
 #define HAVE_ASM_GETBC

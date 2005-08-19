@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "if.h"
 
 #ifndef _MSC_VER 
 #include <sys/time.h>
@@ -100,7 +101,7 @@ typedef struct {
 #define CC_AUTO 2
 
 /***** Globals *****/
-int  verbose=0, discFact=1, cycleCount=CC_AUTO;
+int  discFact=1, cycleCount=CC_AUTO;
 s32  initialFF=0, initialRelations=0, finalFF=0;
 s32  totalLargePrimes=0;
 s32  minFF;
