@@ -26,6 +26,8 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <math.h>
 #include <gmp.h>
 
+#include "lasieve-asm.h"
+
 /* begin hack */
 #ifndef _MSC_VER
 #define NAME(_a) asm(_a)
@@ -35,14 +37,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #endif
 
 #define ULONG_RI
-typedef unsigned long u32_t;
-typedef long int i32_t;
-typedef short int i16_t;
-typedef unsigned short u16_t;
-typedef unsigned long long u64_t;
-typedef long long int i64_t;
-#define U32_MAX 0xffffffff
-#define I32_MAX INT_MAX
 #define ULL_NO_UL
 #define PREINVERT
 #define asm_modinv32 modinv32
@@ -64,12 +58,11 @@ typedef long long int i64_t;
 #define N_PRIMEBOUNDS 1
 #endif
 #define BITS_PER_ULONG 32
-typedef unsigned long long ullong;
 int psp(mpz_t n);
 void Schlendrian(char *fmt, ...) NAME("Schlendrian");
 void complain(char *fmt, ...);
-void mpz_set_ull(mpz_t targ, unsigned long long src);
-ullong mpz_get_ull(mpz_t src);
+void mpz_set_ull(mpz_t targ, uint64_t src);
+uint64_t mpz_get_ull(mpz_t src);
 
 
 #define xmalloc malloc
@@ -101,10 +94,6 @@ extern u32_t stat_asm_div, stat_final_mulmod;
 #define MPQS_MULT_NTESTPR    25       /* prime(MPQS_MULT_NTESTPR)<2^8 */
 #define MPQS_MULT_NCAND      8        /* largest candidate<2^8 */
 #define MPQS_FB_MAXPRIME     4096     /* used in sieve and final */
-
-
-
-typedef unsigned char uchar;
 
 /* common with asm functions */
 u16_t mpqs_nFBk_1;
@@ -1520,7 +1509,7 @@ zeitB(12);
     }
     if (ulqx<1048576) { /*printf("%d ",x);*/  /* !!! */
       if (ulqx<=mpqs_pmax) {
-        printf("%d %Ld %lu ",x,qx,ulqx);
+        printf("%d %Ld %u ",x,qx,ulqx);
 return -1; /* CJM, 11/30/04. */
         complain("dec.2\n");
       }

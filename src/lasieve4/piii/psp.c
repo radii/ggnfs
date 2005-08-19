@@ -22,8 +22,6 @@
 #include <gmp.h>
 #include "lasieve-asm.h"
 
-typedef unsigned long long ull;
-
 extern ulong montgomery_inv_n;
 extern ulong *montgomery_modulo_n;
 extern ulong montgomery_modulo_R2[NMAX_ULONGS];

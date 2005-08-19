@@ -18,15 +18,10 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <math.h>
 #include <gmp.h>
 
-
-typedef unsigned long long    ull;
-
 extern ulong montgomery_inv_n;
 extern ulong *montgomery_modulo_n;
 extern ulong montgomery_modulo_R2[3];
 extern ulong montgomery_64bit;
-
-
 
 int psp(mpz_t n)
 {

@@ -29,10 +29,11 @@
 #include <sys/timeb.h>
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
+
+#include <ggnfs.h>
 
 clock_t *zeitcounter;
-ull *asmzeitcounter;
+uint64_t *asmzeitcounter;
 double *zeitsum;
 uint zeitcounteranz;
 #ifdef HAVE_ASM_ALPHA
@@ -42,7 +43,7 @@ uint *asmzeitcounter_begin;
 extern void *xmalloc(size_t size);
 
 #ifdef HAVE_ASM_INTEL
-static inline void asmgetclock(ull *clptr)
+static inline void asmgetclock(uint64_t *clptr)
 {
 #ifdef _MSC_VER
 	__asm
@@ -60,7 +61,7 @@ static inline void asmgetclock(ull *clptr)
 #endif
 }
 #elif defined HAVE_ASM_ALPHA
-static void asmgetclock(ull *clptr)
+static void asmgetclock(uint64_t *clptr)
 {
   asm_getclock(clptr);
 }
@@ -71,13 +72,13 @@ void zeita(int i)
 { 
 
 #ifdef HAVE_ASM_INTEL
-  ull asmcl;
+  uint64_t asmcl;
 
   zeitcounter[i]=clock();
   asmgetclock(&asmcl);
   asmzeitcounter[i]-=asmcl;
 #elif defined HAVE_ASM_ALPHA
-  ull asmcl;
+  uint64_t asmcl;
 
   zeitcounter[i]=clock();
   asm_getclock(&asmcl);
@@ -88,12 +89,12 @@ void zeita(int i)
 void zeitA(int i)
 {
 #ifdef HAVE_ASM_INTEL
-  ull asmcl;
+  uint64_t asmcl;
 
   asmgetclock(&asmcl);
   asmzeitcounter[i]-=asmcl;
 #elif defined HAVE_ASM_ALPHA
-  ull asmcl;
+  uint64_t asmcl;
 
   asm_getclock(&asmcl);
   asmzeitcounter_begin[i]=(uint)asmcl;
@@ -103,7 +104,7 @@ void zeitA(int i)
 void zeitb(int i)
 {
 #if defined(HAVE_ASM_INTEL) || defined(HAVE_ASM_ALPHA)
-  ull asmcl;
+  uint64_t asmcl;
 #endif
 
   zeitsum[i]+=(double)(clock()-zeitcounter[i]);
@@ -112,22 +113,22 @@ void zeitb(int i)
   asmzeitcounter[i]+=asmcl;
 #elif defined HAVE_ASM_ALPHA
   asm_getclock(&asmcl);
-  asmzeitcounter[i]+=(ull)((uint)(asmcl)-asmzeitcounter_begin[i]);
+  asmzeitcounter[i]+=(uint64_t)((uint)(asmcl)-asmzeitcounter_begin[i]);
 #endif
 }
 
 void zeitB(int i)
 {
 #ifdef HAVE_ASM_INTEL
-  ull asmcl;
+  uint64_t asmcl;
 
   asmgetclock(&asmcl);
   asmzeitcounter[i]+=asmcl;
 #elif defined HAVE_ASM_ALPHA
-  ull asmcl;
+  uint64_t asmcl;
 
   asm_getclock(&asmcl);
-  asmzeitcounter[i]+=(ull)((uint)(asmcl)-asmzeitcounter_begin[i]);
+  asmzeitcounter[i]+=(uint64_t)((uint)(asmcl)-asmzeitcounter_begin[i]);
 #endif
 }
 
@@ -137,8 +138,8 @@ void initzeit(int i)
   memset(zeitcounter,0,i*sizeof(clock_t));
   zeitsum=(double *)xmalloc(i*sizeof(double));
   memset(zeitsum,0,i*sizeof(double));
-  asmzeitcounter=(ull *)xmalloc(i*sizeof(ull));
-  memset(asmzeitcounter,0,i*sizeof(ull));
+  asmzeitcounter=(uint64_t *)xmalloc(i*sizeof(uint64_t));
+  memset(asmzeitcounter,0,i*sizeof(uint64_t));
 #ifdef HAVE_ASM_ALPHA
   asmzeitcounter_begin=(uint *)xmalloc(i*sizeof(uint));
 #endif

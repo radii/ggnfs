@@ -28,10 +28,11 @@
 #include <stdio.h>
 #include "gmp.h"
 #include "if.h"
-#include "defs.h"
 #include <limits.h>
 #include "fnmatch.h"
 #include <string.h>
+
+#include <ggnfs.h>
 
 #define START_MESSAGE \
 "----------------------------------------------------\n"\
@@ -60,7 +61,7 @@ uint primes[46]={
 };
 
 mpz_t gmp_N;
-int compress, verbose=0;
+int compress;
 char *input_line=NULL;
 size_t input_line_alloc=0;
 char *basename, *filename_data, *output_name, *m_name;
@@ -78,22 +79,9 @@ double bound0, bound1, area;
 int p_bound;
 
 /* statistics */
-long long lanz0=0, lanz1=0, lanz2=0, lanz3=0, lanz4=0, lanz5=0;
+int64_t lanz0=0, lanz1=0, lanz2=0, lanz3=0, lanz4=0, lanz5=0;
 
 /* ----------------------------------------------- */
-#if 0
-int invert(int b, int p)
-{
-  int v1=0, v2=1, v3, r, oldp=p;
-
-  while (b>1) {
-    v3=v1-(p/b)*v2; v1=v2; v2=v3;
-    r=p%b; p=b; b=r;
-  }
-  if (v2<0) v2+=oldp;
-  return v2;
-}
-#endif
 
 int divmod(int a, int b, int pk)  /* a/b mod pk , a, b < 2^15 */
 {
@@ -574,7 +562,7 @@ int pol_expand()
 void optimize_1()
 {
   int dk, i, niter;
-  long long di1, di0;
+  int64_t di1, di0;
   double dbl_a0[6];
   double value, v0;
   double s, s0, ds, d;
@@ -586,8 +574,8 @@ void optimize_1()
   s=sqrt(fabs(dbl_a[2]/dbl_a[4]));
   s0=fabs(dbl_a[2]/dbl_a[3]); if (s0>s) s=s0;
   ds=2.;
-  di1=(long long)(dbl_a[1]/dbl_d);
-  di0=(long long)(dbl_a[0]/dbl_d);
+  di1=(int64_t)(dbl_a[1]/dbl_d);
+  di0=(int64_t)(dbl_a[0]/dbl_d);
   value=ifs(dbl_a,s);
   while (1) {
     if (niter>10000) {
@@ -639,7 +627,7 @@ printf("\n");*/
       mpz_add(gmp_a[2],gmp_a[2],gmp_help2);
       mpz_mul(gmp_help1,gmp_help1,gmp_d);
       mpz_sub(gmp_a[1],gmp_a[1],gmp_help1);
-      value=v0; di1=(long long)(1+1.1*(double)di1);
+      value=v0; di1=(int64_t)(1+1.1*(double)di1);
     } else {
       dbl_a[2]-=2*d*dbl_p; dbl_a[1]+=2*d*dbl_d; v0=ifs(dbl_a,s);
       if (v0<value) {
@@ -648,10 +636,10 @@ printf("\n");*/
         mpz_add(gmp_a[2],gmp_a[2],gmp_help2);
         mpz_mul(gmp_help1,gmp_help1,gmp_d);
         mpz_sub(gmp_a[1],gmp_a[1],gmp_help1);
-        value=v0; di1=(long long)(1+1.1*(double)di1);
+        value=v0; di1=(int64_t)(1+1.1*(double)di1);
       } else {
         dbl_a[2]+=d*dbl_p; dbl_a[1]-=d*dbl_d; /* set it back */
-        di1=(long long)(0.9*(double)di1-1);
+        di1=(int64_t)(0.9*(double)di1-1);
         if (di1<1) di1=1;
       }
     }
@@ -667,7 +655,7 @@ printf("\n");*/
       mpz_add(gmp_a[1],gmp_a[1],gmp_help2);
       mpz_mul(gmp_help1,gmp_help1,gmp_d);
       mpz_sub(gmp_a[0],gmp_a[0],gmp_help1);
-      value=v0; di0=(long long)(1+1.1*(double)di0);
+      value=v0; di0=(int64_t)(1+1.1*(double)di0);
     } else {
       dbl_a[1]-=2*d*dbl_p; dbl_a[0]+=2*d*dbl_d; v0=ifs(dbl_a,s);
       if (v0<value) {
@@ -676,10 +664,10 @@ printf("\n");*/
         mpz_add(gmp_a[1],gmp_a[1],gmp_help2);
         mpz_mul(gmp_help1,gmp_help1,gmp_d);
         mpz_sub(gmp_a[0],gmp_a[0],gmp_help1);
-        value=v0; di0=(long long)(1+1.1*(double)di0);
+        value=v0; di0=(int64_t)(1+1.1*(double)di0);
       } else {
         dbl_a[1]+=d*dbl_p; dbl_a[0]-=d*dbl_d; /* set it back */
-        di0=(long long)(0.9*(double)di0-1);
+        di0=(int64_t)(0.9*(double)di0-1);
         if (di0<1) di0=1;
       }
     }

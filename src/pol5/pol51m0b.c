@@ -46,6 +46,7 @@
 #include "fnmatch.h"
 #include <string.h>
 
+#include <ggnfs.h>
 
 #define  MULTIPLIER            60   /* 2*2*3*5 */
 #define  P0_MAX             46300   /* <=2^15.5 */
@@ -65,7 +66,7 @@ extern int asm_hash1();
 extern int asm_hash2();
 
 mpz_t gmp_N, gmp_a5_begin, gmp_a5_end;
-int compress, verbose=0;
+int compress;
 char *input_line=NULL;
 size_t input_line_alloc=0;
 double norm_max, skewness_min, skewness_max, a3_max;
@@ -104,26 +105,26 @@ mpz_t gmp_kappa0, gmp_kappa[NPR5][5];
 mpz_t gmp_kappa_help[NPR5+1];
 double dbl_kappa_help[NPR5+1];
 
-ull ull_kappa0, ull_kappa[NPR5][5], raw_ull_kappa[NPR5][5];
+uint64_t ull_kappa0, ull_kappa[NPR5][5], raw_ull_kappa[NPR5][5];
 uint ul_d_help[NPR5][5];
-ull *s1, *s2, *s1sort, *s2sort;
+uint64_t *s1, *s2, *s1sort, *s2sort;
 int s1len, s2len;
-ull ull_bound, lambda0, raw_ull_bound;
+uint64_t ull_bound, lambda0, raw_ull_bound;
 volatile uint raw_bound asm("raw_bound");
-ull *stored_pairs, *raw_stored_pairs;
+uint64_t *stored_pairs, *raw_stored_pairs;
 int store_len, nstore, raw_store_len, nraw_store;
 int *raw_cand, nraw_cand;
 volatile int*raw_cand_ptr asm ("raw_cand_ptr");
 
 uint *raw_cand_hash;
 
-ull ull_kappa_p_inv[NPR5+1];
+uint64_t ull_kappa_p_inv[NPR5+1];
 uint ull_kappa_help0[NPR5+1];
 
 uint prep_p[NPR5], prep_5a5[NPR5], prep_N_mod_p2[NPR5];
 uint prep_other_mod_p2[NPR5];
 uint prep_inv_table[NPR5][NPR5];
-ull ull_p_inv[NPR5];
+uint64_t ull_p_inv[NPR5];
 
 
 #define HASHSHIFT  52  /*dont change this (or disable/adapt the asm-functions)*/
@@ -141,7 +142,7 @@ uint *s12l asm("s12l");
 uint *s21l asm("s21l");
 uint *s22l asm("s22l");;
 
-ull *shelp;
+uint64_t *shelp;
 uint s11len asm ("s11len");
 uint s12len asm ("s12len");
 uint s21len asm ("s21len");
@@ -150,7 +151,7 @@ int len1, len2, len11, len12, len21, len22;
 
 
 int sort[NHASH];
-ull *hashptr[NHASH];
+uint64_t *hashptr[NHASH];
 
 uint pr_mod5[]={
 11, 31, 41, 61, 71, 101, 131, 151, 181, 191, 
@@ -179,8 +180,8 @@ uint smallprimes[]={
 uint nsmallprimes=54;
 
 /* statistics */
-ull stat_n_a5=0, stat_n_pr=0, stat_n_p=0, stat_n_p_p0=0, stat_n_raw=0;
-ull stat_n_polexpand=0, stat_n_survivors=0;
+uint64_t stat_n_a5=0, stat_n_pr=0, stat_n_p=0, stat_n_p_p0=0, stat_n_raw=0;
+uint64_t stat_n_polexpand=0, stat_n_survivors=0;
 
 /* ----------------------------------------------- */
 
@@ -220,10 +221,10 @@ static inline uint modmul32(uint x,uint y)
 #else
 static inline uint modmul32(uint x,uint y)
 {
-  ull yy, rr;
+  uint64_t yy, rr;
 
-  rr=(ull)x; yy=(ull)y;
-  rr*=yy; rr%=((ull)modulo32);
+  rr=(uint64_t)x; yy=(uint64_t)y;
+  rr*=yy; rr%=((uint64_t)modulo32);
   return (uint)rr;
 }
 #endif
@@ -232,10 +233,10 @@ static inline uint modmul32(uint x,uint y)
 static inline uint modmul32(uint x,uint y)
 {
   uint res;
-  ull xx, yy, rr;
+  uint64_t xx, yy, rr;
 
-  xx=(ull)x; yy=(ull)y;
-  rr=xx*yy; rr%=((ull)modulo32);
+  xx=(uint64_t)x; yy=(uint64_t)y;
+  rr=xx*yy; rr%=((uint64_t)modulo32);
   res=(uint)rr;
   return res;
 }
@@ -258,14 +259,14 @@ uint powmod32(uint a, uint e)
 }
 
 
-void mpz_get_ull_64(ull* targptr, mpz_t src)
+void mpz_get_ull_64(uint64_t* targptr, mpz_t src)
 {
   if (src->_mp_size == 0) *targptr=0;
-  else if (src->_mp_size ==1) *targptr=(ull)(src->_mp_d[0]);
+  else if (src->_mp_size ==1) *targptr=(uint64_t)(src->_mp_d[0]);
   else {
-    *targptr=(ull)(src->_mp_d[1]);
+    *targptr=(uint64_t)(src->_mp_d[1]);
     *targptr<<=32;
-    *targptr+=(ull)(src->_mp_d[0]);
+    *targptr+=(uint64_t)(src->_mp_d[0]);
   }
 }
 
@@ -290,39 +291,6 @@ long double mpz_get_ld(mpz_t src) /* long double has 64bit precision */
   return res;
 }
 #endif
-
-uint invert(uint a, uint p)  /* 0<b<p */
-{
-  uint v1=0, v2=1, q, b=a, oldp=p;
-
-  if (a==0) complain("cannot invert 0\n");
-  while (b>1) {
-    p-=b; v1+=v2;
-    if (p>=b) {
-      p-=b; v1+=v2;
-      if (p>=b) {
-        q=p/b;
-        v1+=q*v2;
-        q*=b;
-        p-=q;
-      }
-    }
-    if (p<=1) { v2=oldp-v1; break; }
-    b-=p; v2+=v1;
-    if (b>=p) {
-      b-=p; v2+=v1;
-      if (b>=p) {
-        q=b/p;
-        v2+=q*v1;
-        q*=p;
-        b-=q;
-      }
-    }
-  }
-  if ((v2*a-1)%oldp) complain("invert %u %u %u \n",v2,a,oldp);
-  return v2;
-}
-
 
 int five_pow(int n)
 {
@@ -702,20 +670,20 @@ d. Therefore the search is first done in an approximate manner
 */
 
 #ifdef HAVE_FLOAT64
-inline ull dull(long double d)
+inline uint64_t dull(long double d)
 {
   long double dh;
 
   dh=d-(long double)((int)d);
   dh*=18446744073709551616.L;
-  return (ull)dh;
+  return (uint64_t)dh;
 }
 #endif
 
 void combine_raw0(int len, int ind)
 {
   int i, j, disp;
-  ull add;
+  uint64_t add;
 
   if (raw_ull_kappa[ind][0]) complain("combine_raw0\n");
   disp=len;
@@ -730,7 +698,7 @@ void combine_raw0(int len, int ind)
 void combine_raw0last(uint *targ, int len, int ind)
 {
   int i, j, disp;
-  ull add;
+  uint64_t add;
 
   if (raw_ull_kappa[ind][0]) complain("combine_raw0last\n");
   for (i=0; i<len; i++) targ[i]=(uint)(shelp[i]>>32);
@@ -766,7 +734,7 @@ void raw_store(int i1, int i2)
 {
   while (nraw_store+1>=raw_store_len) {
     raw_store_len+=16;
-    raw_stored_pairs=(ull *)xrealloc(raw_stored_pairs,2*raw_store_len*sizeof(ull));
+    raw_stored_pairs=(uint64_t *)xrealloc(raw_stored_pairs,2*raw_store_len*sizeof(uint64_t));
   }
   raw_stored_pairs[2*nraw_store]=i1; raw_stored_pairs[2*nraw_store+1]=i2;
   nraw_store++;
@@ -884,7 +852,7 @@ void raw_hash_4()
   uint ind, h, h1, hh;
   uint add, *hash;
   uchar *sort;
-  ull sum1, sum2;
+  uint64_t sum1, sum2;
 
   sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
   for (i=0; i<s11len; i++) {
@@ -939,7 +907,7 @@ void raw_hash_4()
 /* ---------------------------------------------------- */
 
 #ifdef HAVE_ASM_INTEL
-static void ulladdmul(ull *resptr, uint ulf, ull *ullfptr)
+static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
 {
 #ifdef _MSC_VER
 		__asm
@@ -966,22 +934,22 @@ static void ulladdmul(ull *resptr, uint ulf, ull *ullfptr)
 #endif
 }
 #elif defined HAVE_ASM_ALPHA
-static void inline ulladdmul(ull *resptr, uint ulf, ull *ullfptr)
+static void inline ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
 {
-  ull res, ullf, h;
+  uint64_t res, ullf, h;
 
   res=*resptr;
-  h=(*ullfptr)*((ull)ulf);
+  h=(*ullfptr)*((uint64_t)ulf);
   res+=h;
   *resptr=res;
 }
 #else
-static void ulladdmul(ull *resptr, uint ulf, ull *ullfptr)
+static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
 {
-  ull res, h;
+  uint64_t res, h;
 
   res=*resptr;
-  h=(*ullfptr)*((ull)ulf);
+  h=(*ullfptr)*((uint64_t)ulf);
   res+=h;
   *resptr=res;
 }
@@ -989,7 +957,7 @@ static void ulladdmul(ull *resptr, uint ulf, ull *ullfptr)
 
 #ifdef HAVE_ASM_INTEL
 /* for intel this is not necessary since we have 64bit long double */
-static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
+static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
 #ifdef _MSC_VER
 	__asm
@@ -1031,11 +999,11 @@ static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
 #endif
 }
 #elif defined HAVE_ASM_ALPHA
-static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
+static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
 #if 0
-  ull res, f1, f2;
-  ull f10, f11, f20, f21, h;
+  uint64_t res, f1, f2;
+  uint64_t f10, f11, f20, f21, h;
 
   f1=*ullf1; f2=*ullf2;
   f10=f1&0xffffffffULL; f11=f1>>32;
@@ -1045,7 +1013,7 @@ static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
   res+=h;
   *resptr=res;
 #else
-  ull res;
+  uint64_t res;
   __asm__ __volatile__("umulh %1,%2,%0" :
            "=r" (res) :
            "r" (*ullf1), "r" (*ullf2) :
@@ -1054,10 +1022,10 @@ static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
 #endif
 }
 #else
-static void ull_mulh(ull *resptr, ull *ullf1, ull *ullf2)
+static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
-  ull res, f1, f2;
-  ull f10, f11, f20, f21, h;
+  uint64_t res, f1, f2;
+  uint64_t f10, f11, f20, f21, h;
 
   f1=*ullf1; f2=*ullf2;
   f10=f1&0xffffffffULL; f11=f1>>32;
@@ -1081,7 +1049,7 @@ void init_knapsack_raw()
   long double dbl_prod;
   long double dbl_5a5p;
 #else
-  ull ull_5a5p;
+  uint64_t ull_5a5p;
 #endif
 
   mpz_set(gmp_m0,gmp_root);
@@ -1261,21 +1229,21 @@ zeitA(25);
 #ifdef HAVE_FLOAT64
 { 
 /* compute kappa0/prod - 5*a5*(D0-root)/prod^2 + 10*a5*(D0-root)^2/prod^2/D0 */ 
-ull ullh;
+uint64_t ullh;
 long double ddd, dde;
   mpz_sub(gmp_help2,gmp_root,gmp_D0);
   dde=-mpz_get_ld(gmp_help2);
 
   ddd=dde/dbl_prod;
   ddd*=dbl_5a5p;
-  ullh=(ull)(18446744073709551616.L*(ddd-floorl(ddd)));
+  ullh=(uint64_t)(18446744073709551616.L*(ddd-floorl(ddd)));
   ddd*=2.*dde; ddd/=mpz_get_ld(gmp_root);
-  ullh-=(ull)(18446744073709551616.L*(ddd-floorl(ddd)));
+  ullh-=(uint64_t)(18446744073709551616.L*(ddd-floorl(ddd)));
   lambda0=ullh+ull_kappa0;
 }
 #else
 {
-  ull ullh1, ullh2;
+  uint64_t ullh1, ullh2;
 
   mpz_sub(gmp_help2,gmp_D0,gmp_root);  /* D0-root */
   mpz_mul_ui(gmp_help1,gmp_a5,5);      /* 5*a5 */
@@ -1309,7 +1277,7 @@ zeitA(19);
 #endif
 
 {
-  ull ullh;
+  uint64_t ullh;
 
   for (i=0; i<npr_in_p; i++) {
 #ifdef HAVE_FLOAT64
@@ -1334,8 +1302,8 @@ zeitB(19);
   if ((db>=1.) || (db<0.))
     complain("a3-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
-  raw_ull_bound=(ull)db;
-  raw_ull_bound+=(ull)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
+  raw_ull_bound=(uint64_t)db;
+  raw_ull_bound+=(uint64_t)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
   if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
   raw_bound=(uint)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
@@ -1355,7 +1323,7 @@ void init_knapsack_raw_p0(uint p0, uint r0)
   long double dbl_prod;
   long double dbl_5a5p;
 #else
-  ull ull_5a5p;
+  uint64_t ull_5a5p;
 #endif
   uint p_minus5a5_mod_p0;
 
@@ -1377,7 +1345,7 @@ void init_knapsack_raw_p0(uint p0, uint r0)
   modulo32=p0;
   prep_p[npr_in_p]=p0;
   p_minus5a5_mod_p0=modmul32(mpz_fdiv_ui(gmp_a5,p0),5*p0-5);;
-  ull_kappa_p_inv[npr_in_p]=18446744073709551615ULL/((ull)p0);
+  ull_kappa_p_inv[npr_in_p]=18446744073709551615ULL/((uint64_t)p0);
 
   for (i=0; i<npr_in_p; i++)
     for (j=0; j<npr_in_p; j++)
@@ -1575,21 +1543,21 @@ zeitA(25);
 #ifdef HAVE_FLOAT64
 { 
 /* compute kappa0/prod - 5*a5*(D0-root)/prod^2 + 10*a5*(D0-root)^2/prod^2/D0 */ 
-ull ullh;
+uint64_t ullh;
 long double ddd, dde;
   mpz_sub(gmp_help2,gmp_root,gmp_D0);
   dde=-mpz_get_ld(gmp_help2);
 
   ddd=dde/dbl_prod;
   ddd*=dbl_5a5p;
-  ullh=(ull)(18446744073709551616.L*(ddd-floorl(ddd)));
+  ullh=(uint64_t)(18446744073709551616.L*(ddd-floorl(ddd)));
   ddd*=2.*dde; ddd/=mpz_get_ld(gmp_root);
-  ullh-=(ull)(18446744073709551616.L*(ddd-floorl(ddd)));
+  ullh-=(uint64_t)(18446744073709551616.L*(ddd-floorl(ddd)));
   lambda0=ullh+ull_kappa0;
 }
 #else
 {
-  ull ullh1, ullh2;
+  uint64_t ullh1, ullh2;
 
   mpz_sub(gmp_help2,gmp_D0,gmp_root);  /* D0-root */
   mpz_mul_ui(gmp_help1,gmp_a5,5);      /* 5*a5 */
@@ -1620,7 +1588,7 @@ zeitB(25);
 #endif
 
 {
-  ull ullh;
+  uint64_t ullh;
 
   for (i=0; i<npr_in_p; i++) {
 #ifdef HAVE_FLOAT64
@@ -1642,8 +1610,8 @@ zeitB(25);
   if ((db>=1.) || (db<0.))
     complain("a3-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
-  raw_ull_bound=(ull)db;
-  raw_ull_bound+=(ull)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
+  raw_ull_bound=(uint64_t)db;
+  raw_ull_bound+=(uint64_t)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
   if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
   raw_bound=(uint)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
@@ -1772,9 +1740,9 @@ In fact this is quite old and should be revised.
 
 #define DEG 5
 
-ull renorm(mpz_t n)
+uint64_t renorm(mpz_t n)
 {
-  ull res;
+  uint64_t res;
 
   mpz_mul_2exp(gmp_help1,n,64);
   mpz_fdiv_q(gmp_help1,gmp_help1,gmp_prod);
@@ -1784,9 +1752,9 @@ ull renorm(mpz_t n)
 }
 
 
-ull renorm2(mpz_t n)
+uint64_t renorm2(mpz_t n)
 {
-  ull res;
+  uint64_t res;
 
   mpz_mul_2exp(gmp_help1,n,64);
   mpz_mul(gmp_help1,gmp_help1,gmp_a5);
@@ -1802,7 +1770,7 @@ void init_knapsack_exact()
 {
   int i, j, l;
   uint p, h, hh, inv;
-  ull lambda0;
+  uint64_t lambda0;
   uint dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
   double db, dq;
 
@@ -1962,7 +1930,7 @@ void init_knapsack_exact()
   if ((db>=1.) || (db<0.))
     complain("a_n-2-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
-  ull_bound=(ull)db;
+  ull_bound=(uint64_t)db;
   if (verbose>3) printf("ull_bound: %" PRIu64 "\n",ull_bound);
 /*  bound=ull_bound+1;*/
 
@@ -1975,7 +1943,7 @@ void init_knapsack_exact_p0(uint p0, uint r0)
 {
   int i, j, l;
   uint p, h, hh, inv;
-  ull lambda0;
+  uint64_t lambda0;
   uint dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
   double db, dq;
 
@@ -2179,7 +2147,7 @@ void init_knapsack_exact_p0(uint p0, uint r0)
   if ((db>=1.) || (db<0.))
     complain("a_n-2-bound so high that all pols will pass: %f\n",db);
   db*=18446744073709551616.;
-  ull_bound=(ull)db;
+  ull_bound=(uint64_t)db;
   if (verbose>3) printf("ull_bound: %" PRIu64 "\n",ull_bound);
 /*  bound=ull_bound+1;*/
 
@@ -2191,7 +2159,7 @@ void init_knapsack_exact_p0(uint p0, uint r0)
 void check_raw()
 {
   int i, j, i1, i2;
-  ull sum1, sum2;
+  uint64_t sum1, sum2;
 
   i=0; /* remove duplicates: */
   while (i<nraw_store-1) {
@@ -2383,17 +2351,17 @@ void store(int i1, int i2)
 {
   while (nstore+1>=store_len) {
     store_len+=16;
-    stored_pairs=(ull *)xrealloc(stored_pairs,2*store_len*sizeof(ull));
+    stored_pairs=(uint64_t *)xrealloc(stored_pairs,2*store_len*sizeof(uint64_t));
   }
   stored_pairs[2*nstore]=s1sort[i1]; stored_pairs[2*nstore+1]=s2sort[i2];
   nstore++;
 }
 
 
-void combine0(ull *targ, int len, int ind)
+void combine0(uint64_t *targ, int len, int ind)
 {
   int i, j, disp;
-  ull add;
+  uint64_t add;
 
   if (ull_kappa[ind][0]) complain("combine0\n");
   disp=len;
@@ -2405,10 +2373,10 @@ void combine0(ull *targ, int len, int ind)
 }
 
 
-void combinelast0(ull *targ, int len, int ind)
+void combinelast0(uint64_t *targ, int len, int ind)
 {
   int i, j, disp;
-  ull add, h;
+  uint64_t add, h;
 
   if (ull_kappa[ind][0]) complain("combinelast0\n");
   memset(sort,0,NHASH*sizeof(int));
@@ -2426,10 +2394,10 @@ void combinelast0(ull *targ, int len, int ind)
 }
 
 
-void combine(ull *targ, ull *targsort, int i0, int i1)
+void combine(uint64_t *targ, uint64_t *targsort, int i0, int i1)
 {
   int i, len;
-  ull h, hh, *ptr;
+  uint64_t h, hh, *ptr;
 
   if (i1-i0<1) complain("combine\n");
   for (i=0; i<5; i++) targ[i]=ull_kappa[i0][i];
@@ -2479,7 +2447,7 @@ void combine(ull *targ, ull *targsort, int i0, int i1)
 void knapsack_exact()
 {
   int i, i1, i2;
-  ull bound, v1, v2;
+  uint64_t bound, v1, v2;
 
   combine(s1,s1sort,0,len1);
   combine(s2,s2sort,len1,len1+len2);
@@ -2727,7 +2695,7 @@ void init_all_pr()
 #ifdef HAVE_FLOAT64
     ld_p_inv[i]=1.L/((long double)p);
 #endif
-    ull_p_inv[i]=18446744073709551615ULL/((ull)p);
+    ull_p_inv[i]=18446744073709551615ULL/((uint64_t)p);
     fifth_root(p_fr[i],h,p);
   }
   for (i=0; i<npr_total; i++)
@@ -2811,17 +2779,17 @@ void init_search()
   s11len=five_pow(len11); s12len=five_pow(len12);
   s21len=five_pow(len21); s22len=five_pow(len22);
   s1len=s11len*s12len; s2len=s21len*s22len;
-  shelp=(ull *)xmalloc(s21len*sizeof(ull)); /* s21len is maximum */
+  shelp=(uint64_t *)xmalloc(s21len*sizeof(uint64_t)); /* s21len is maximum */
   s11l=(uint *)xmalloc(s11len*sizeof(uint));
   s12l=(uint *)xmalloc(s12len*sizeof(uint));
   s21l=(uint *)xmalloc(s21len*sizeof(uint));
   s22l=(uint *)xmalloc(s22len*sizeof(uint));
   s1sortl=(uint *)xmalloc(s1len*sizeof(uint));
   s2sortl=(uint *)xmalloc(s2len*sizeof(uint));
-  s1=(ull *)xmalloc(s1len*sizeof(ull));
-  s2=(ull *)xmalloc(s2len*sizeof(ull));
-  s1sort=(ull *)xmalloc(s1len*sizeof(ull));
-  s2sort=(ull *)xmalloc(s2len*sizeof(ull));
+  s1=(uint64_t *)xmalloc(s1len*sizeof(uint64_t));
+  s2=(uint64_t *)xmalloc(s2len*sizeof(uint64_t));
+  s1sort=(uint64_t *)xmalloc(s1len*sizeof(uint64_t));
+  s2sort=(uint64_t *)xmalloc(s2len*sizeof(uint64_t));
 
   raw_cand=(int *)xmalloc(s2len*sizeof(int));
   raw_cand_hash=(uint *)xmalloc(s2len*sizeof(uint));
@@ -3025,7 +2993,7 @@ initzeit(26); zeita(0);
     printf("a5-values: %" PRIu64 ", suitable for %d primes: %" PRIu64 "\n",stat_n_a5,npr_in_p,stat_n_pr);
     printf("raw checks of (a5,p): %" PRIu64 " (%" PRIu64 "),  fine checks of (a5,p): %" PRIu64 "\n",stat_n_p,stat_n_p_p0,stat_n_raw);
     printf("polynomials computed: %" PRIu64 ",  survivors: %" PRIu64 "\n",stat_n_polexpand,stat_n_survivors);
-    printf("Total number of checked polynomials: %" PRIu64 "\n",(ull)(five_pow(npr_in_p))*stat_n_p);
+    printf("Total number of checked polynomials: %" PRIu64 "\n",(uint64_t)(five_pow(npr_in_p))*stat_n_p);
   }
   if (success) printf("success\n");
 #ifdef ZEIT

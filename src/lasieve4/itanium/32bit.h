@@ -18,12 +18,12 @@ u32_t modinv32(u32_t x);
 
 static inline u32_t modsq32(u32_t x)
 {
-  return ((unsigned long long)x*(unsigned long long)x%modulo32);
+  return ((uint64_t)x*(uint64_t)x%modulo32);
 }
 
 static inline u32_t modmul32(u32_t x,u32_t y)
 {
-  return ((unsigned long long)x*(unsigned long long)y%modulo32);
+  return ((uint64_t)x*(uint64_t)y%modulo32);
 }
 
 static inline u32_t modsub32(u32_t minuend,u32_t subtrahend)

@@ -19,9 +19,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define L1_BITS 14
 #define ULONG_RI
 
-#define U32_MAX 0xffffffff
-#define I32_MAX INT_MAX
-
 #ifndef __x86_64__
 #define ULL_NO_UL
 typedef uint32_t ulong;

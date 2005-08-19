@@ -13,9 +13,8 @@
 #ifndef _LASIEVE_ASM_H
 #define _LASIEVE_ASM_H
 
-
-#include <gmp.h>
 #include <limits.h>
+#include <gmp.h>
 #include <sys/types.h>
 #ifndef _MSC_VER
 #include <stdint.h>
@@ -33,9 +32,6 @@
 #ifdef _MSC_VER
  typedef unsigned long ssize_t;
 #endif
-
-#define U32_MAX 0xffffffff
-#define I32_MAX INT_MAX
 
 #define PREINVERT
 #define HAVE_ASM_GETBC
@@ -265,7 +261,7 @@ int asm_sieve() NAME("asm_sieve");
 ushort asm_evaluate(ulong *, ulong *, ushort *, long) NAME("asm_evaluate");
 
 /* mpqs_td.s */
-int asm_td(ushort *, ushort, unsigned long long*, ulong*) NAME("asm_td");
+int asm_td(ushort *, ushort, uint64_t*, ulong*) NAME("asm_td");
 
 /* misc arithmetic files: */
 

@@ -53,9 +53,6 @@ extern u32_t stat_asm_div, stat_final_mulmod;
 #define MPQS_FB_MAXPRIME     4096     /* used in sieve and final */
 
 
-
-typedef unsigned char uchar;
-
 /* common with asm functions */
 u16_t mpqs_nFBk_1;
 u16_t mpqs_td_begin, mpqs_sievebegin;

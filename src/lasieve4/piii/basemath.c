@@ -102,10 +102,10 @@ void gcd64(ulong * gcd, ulong * a, ulong * b)
   gcd[1] = aa[1];
 }
 
-/**************************************************/
-//void gcd(ulong * gcd, ulong * a, ulong * b)
-/**************************************************/
-/*{ ulong r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
+/**************************************************
+void gcd(ulong * gcd, ulong * a, ulong * b)
+**************************************************
+{ ulong r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
   long i;
 
   for (i = 0; i < montgomery_ulongs; i++)
