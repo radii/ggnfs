@@ -16,8 +16,13 @@
 #include <stdio.h>
 #include <gmp.h>
 
+#ifdef __ppc__
+#include "ppc32/siever-config.h"
+#else
+#include "asm/lasieve-asm.h"
+#endif
+
 #include "if.h"
-#include "lasieve4/ppc32/siever-config.h"
 
 uint32_t modpow32(uint32_t x,uint32_t a)
 { /*  returns x^a mod modulo32  */
