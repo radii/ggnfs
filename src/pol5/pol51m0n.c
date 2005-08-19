@@ -28,8 +28,6 @@
 
 #ifdef _MSC_VER
 #include "ggnfs.h"
-typedef unsigned char uchar;
-typedef unsigned long long uint64_t;
 #endif
 
 /* We need to write a floorl() for Cygwin. In the meantime: */

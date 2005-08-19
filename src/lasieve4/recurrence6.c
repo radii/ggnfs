@@ -22,10 +22,6 @@
 #endif
 #include "lasieve.h"
 
-#ifdef _MSC_VER
-typedef int	i32_t;
-#endif
-
 static u32_t A, A_bits, ub;
 
 void rec_info_init(u32_t A1, u32_t ub1)

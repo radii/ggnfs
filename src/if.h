@@ -21,17 +21,6 @@
 
 #include "ggnfs.h"
 
-#if defined(_MSC_VER) && !defined(__MINGW32__)
- typedef unsigned long ssize_t;
-#endif
-
-typedef uint16_t u16_t;
-typedef  int16_t i16_t;
-typedef uint32_t u32_t;
-typedef  int32_t i32_t;
-typedef uint64_t u64_t;
-typedef  int64_t i64_t;
-
 void*xmalloc(size_t size);
 void*xvalloc(size_t size);
 void*xcalloc(size_t n,size_t s);
@@ -63,15 +52,15 @@ int read_u32(FILE*,uint32_t*,size_t);
 #define read_i32(ofile,buffer,count) fread((void*)buffer,sizeof(int32_t),count,ofile)
 #endif 
 int yn_query(char*fmt,...);
-ssize_t skip_blank_comments(char**,size_t*,FILE*);
+int skip_blank_comments(char**,size_t*,FILE*);
 
 #ifdef NEED_ASPRINTF
 int asprintf(char**,const char*,...);
 #endif
 
-#ifdef NEED_GETLINE
-ssize_t getline(char**,size_t*,FILE*);
-#endif
+//#ifdef NEED_GETLINE
+size_t getline(char**,size_t*,FILE*);
+//#endif
 
 
 /* These are supposed to be obtained by #define _GNU_SOURCE
@@ -120,6 +109,5 @@ void mpz_set_ull(mpz_t,uint64_t);
 #endif
 
 void numread(char *arg, unsigned *x);
-ssize_t getline(char **lineptr, size_t * n, FILE * stream);
 
 #endif

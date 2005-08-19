@@ -21,10 +21,6 @@
 #endif
 #include "lasieve.h"
 
-#ifdef _MSC_VER
-typedef int	i32_t;
-#endif
-
 i32_t n_iter = 0;
 
 /**************************************************************/

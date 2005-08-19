@@ -35,10 +35,10 @@ extern "C" {
 
 typedef unsigned char uchar;
 
+#include <stdio.h>
 #include <stdarg.h>
 #define __STDC_FORMAT_MACROS
 #if defined (_MSC_VER) && !defined(__MINGW32__)
-#include <stdio.h>
 #include <basetsd.h>
 
 #define int8_t  INT8
@@ -98,6 +98,14 @@ typedef unsigned char uchar;
 #else
 #include <inttypes.h>
 #endif
+
+typedef uint16_t u16_t;
+typedef  int16_t i16_t;
+typedef uint32_t u32_t;
+typedef  int32_t i32_t;
+typedef uint64_t u64_t;
+typedef  int64_t i64_t;
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "version.h"

@@ -37,13 +37,6 @@
 #include <sys/time.h>
 #endif
 
-#ifdef _MSC_VER
-typedef unsigned short u16_t;
-typedef short i16_t;
-typedef unsigned int u32_t;
-typedef int i32_t;
-#endif
-
 #include <gmp.h>
 #include <signal.h>
 #include <setjmp.h>

@@ -25,10 +25,10 @@
 #include "../lasieve.h"
 
 
-unsigned long montgomery_inv_n;
-unsigned long *montgomery_modulo_n;
-unsigned long montgomery_modulo_R2[NMAX_ULONGS], montgomery_modulo_R4[NMAX_ULONGS];
-unsigned long montgomery_ulongs;
+uint32_t montgomery_inv_n;
+uint32_t *montgomery_modulo_n;
+uint32_t montgomery_modulo_R2[NMAX_ULONGS], montgomery_modulo_R4[NMAX_ULONGS];
+uint32_t montgomery_ulongs;
 mpz_t montgomery_gmp_help;
 
 /* CJM: The best thing would be to declare a macro, ASM(x) which
@@ -37,127 +37,127 @@ mpz_t montgomery_gmp_help;
 */
 #if !defined(_MSC_VER) || defined(__MINGW32__)
 /* function pointers */
-void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *) = NULL;
-extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm64");
-extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm96");
-extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm128");
+void (*asm_mulmod) (uint32_t *, uint32_t *, uint32_t *) = NULL;
+extern void asm_mulm64(uint32_t *, uint32_t *, uint32_t *) asm("asm_mulm64");
+extern void asm_mulm96(uint32_t *, uint32_t *, uint32_t *) asm("asm_mulm96");
+extern void asm_mulm128(uint32_t *, uint32_t *, uint32_t *) asm("asm_mulm128");
 
-void (*asm_squmod) (unsigned long *, unsigned long *) = NULL;
-extern void asm_sqm64(unsigned long *, unsigned long *) asm("asm_sqm64");
-extern void asm_sqm96(unsigned long *, unsigned long *) asm("asm_sqm96");
-extern void asm_sqm128(unsigned long *, unsigned long *) asm("asm_sqm128");
+void (*asm_squmod) (uint32_t *, uint32_t *) = NULL;
+extern void asm_sqm64(uint32_t *, uint32_t *) asm("asm_sqm64");
+extern void asm_sqm96(uint32_t *, uint32_t *) asm("asm_sqm96");
+extern void asm_sqm128(uint32_t *, uint32_t *) asm("asm_sqm128");
 
-void (*asm_add2) (unsigned long *, unsigned long *) = NULL;
-extern void asm_add64(unsigned long *, unsigned long *) asm("asm_add64");
-extern void asm_add96(unsigned long *, unsigned long *) asm("asm_add96");
-extern void asm_add128(unsigned long *, unsigned long *) asm("asm_add128");
+void (*asm_add2) (uint32_t *, uint32_t *) = NULL;
+extern void asm_add64(uint32_t *, uint32_t *) asm("asm_add64");
+extern void asm_add96(uint32_t *, uint32_t *) asm("asm_add96");
+extern void asm_add128(uint32_t *, uint32_t *) asm("asm_add128");
 
-void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *) = NULL;
-extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff64");
-extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff96");
-extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff128");
+void (*asm_diff) (uint32_t *, uint32_t *, uint32_t *) = NULL;
+extern void asm_diff64(uint32_t *, uint32_t *, uint32_t *) asm("asm_diff64");
+extern void asm_diff96(uint32_t *, uint32_t *, uint32_t *) asm("asm_diff96");
+extern void asm_diff128(uint32_t *, uint32_t *, uint32_t *) asm("asm_diff128");
 
-void (*asm_sub) (unsigned long *, unsigned long *, unsigned long *) = NULL;
-extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub64");
-extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub96");
-extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub128");
+void (*asm_sub) (uint32_t *, uint32_t *, uint32_t *) = NULL;
+extern void asm_sub64(uint32_t *, uint32_t *, uint32_t *) asm("asm_sub64");
+extern void asm_sub96(uint32_t *, uint32_t *, uint32_t *) asm("asm_sub96");
+extern void asm_sub128(uint32_t *, uint32_t *, uint32_t *) asm("asm_sub128");
 
-void (*asm_add2_ui) (unsigned long *, unsigned long) = NULL;
-extern void asm_add64_ui(unsigned long *, unsigned long) asm("asm_add64_ui");
-extern void asm_add96_ui(unsigned long *, unsigned long) asm("asm_add96_ui");
-extern void asm_add128_ui(unsigned long *, unsigned long) asm("asm_add128_ui");
+void (*asm_add2_ui) (uint32_t *, uint32_t) = NULL;
+extern void asm_add64_ui(uint32_t *, uint32_t) asm("asm_add64_ui");
+extern void asm_add96_ui(uint32_t *, uint32_t) asm("asm_add96_ui");
+extern void asm_add128_ui(uint32_t *, uint32_t) asm("asm_add128_ui");
 
-void (*asm_zero) (unsigned long *, unsigned long *) = NULL;
-extern void asm_zero64(unsigned long *, unsigned long *) asm("asm_zero64");
-extern void asm_zero96(unsigned long *, unsigned long *) asm("asm_zero96");
-extern void asm_zero128(unsigned long *, unsigned long *) asm("asm_zero128");
+void (*asm_zero) (uint32_t *, uint32_t *) = NULL;
+extern void asm_zero64(uint32_t *, uint32_t *) asm("asm_zero64");
+extern void asm_zero96(uint32_t *, uint32_t *) asm("asm_zero96");
+extern void asm_zero128(uint32_t *, uint32_t *) asm("asm_zero128");
 
-void (*asm_copy) (unsigned long *, unsigned long *) = NULL;
-extern void asm_copy64(unsigned long *, unsigned long *) asm("asm_copy64");
-extern void asm_copy96(unsigned long *, unsigned long *) asm("asm_copy96");
-extern void asm_copy128(unsigned long *, unsigned long *) asm("asm_copy128");
+void (*asm_copy) (uint32_t *, uint32_t *) = NULL;
+extern void asm_copy64(uint32_t *, uint32_t *) asm("asm_copy64");
+extern void asm_copy96(uint32_t *, uint32_t *) asm("asm_copy96");
+extern void asm_copy128(uint32_t *, uint32_t *) asm("asm_copy128");
 
-void (*asm_sub_n) (unsigned long *, unsigned long *) = NULL;
-extern void asm_sub_n64(unsigned long *, unsigned long *) asm("asm_sub_n64");
-extern void asm_sub_n96(unsigned long *, unsigned long *) asm("asm_sub_n96");
-extern void asm_sub_n128(unsigned long *, unsigned long *) asm("asm_sub_n128");
+void (*asm_sub_n) (uint32_t *, uint32_t *) = NULL;
+extern void asm_sub_n64(uint32_t *, uint32_t *) asm("asm_sub_n64");
+extern void asm_sub_n96(uint32_t *, uint32_t *) asm("asm_sub_n96");
+extern void asm_sub_n128(uint32_t *, uint32_t *) asm("asm_sub_n128");
 
-void (*asm_half) (unsigned long *) = NULL;
-extern void asm_half64(unsigned long *) asm("asm_half64");
-extern void asm_half96(unsigned long *) asm("asm_half96");
-extern void asm_half128(unsigned long *) asm("asm_half128");
+void (*asm_half) (uint32_t *) = NULL;
+extern void asm_half64(uint32_t *) asm("asm_half64");
+extern void asm_half96(uint32_t *) asm("asm_half96");
+extern void asm_half128(uint32_t *) asm("asm_half128");
 
 #else
 
 /* function pointers */
-void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+void (*asm_mulmod) (uint32_t *, uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *)
-extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *);
-extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_mulm64(uint32_t *, uint32_t *, uint32_t *)
+extern void asm_mulm96(uint32_t *, uint32_t *, uint32_t *);
+extern void asm_mulm128(uint32_t *, uint32_t *, uint32_t *);
 #endif
 
-void (*asm_squmod) (unsigned long *, unsigned long *) = NULL;
+void (*asm_squmod) (uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sqm64(unsigned long *, unsigned long *);
-extern void asm_sqm96(unsigned long *, unsigned long *);
-extern void asm_sqm128(unsigned long *, unsigned long *);
+extern void asm_sqm64(uint32_t *, uint32_t *);
+extern void asm_sqm96(uint32_t *, uint32_t *);
+extern void asm_sqm128(uint32_t *, uint32_t *);
 #endif
 
-void (*asm_add2) (unsigned long *, unsigned long *) = NULL;
+void (*asm_add2) (uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_add64(unsigned long *, unsigned long *);
-extern void asm_add96(unsigned long *, unsigned long *);
-extern void asm_add128(unsigned long *, unsigned long *);
+extern void asm_add64(uint32_t *, uint32_t *);
+extern void asm_add96(uint32_t *, uint32_t *);
+extern void asm_add128(uint32_t *, uint32_t *);
 #endif
 
-void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+void (*asm_diff) (uint32_t *, uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *);
-extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *);
-extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_diff64(uint32_t *, uint32_t *, uint32_t *);
+extern void asm_diff96(uint32_t *, uint32_t *, uint32_t *);
+extern void asm_diff128(uint32_t *, uint32_t *, uint32_t *);
 #endif
 
-void (*asm_sub) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+void (*asm_sub) (uint32_t *, uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *);
-extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *);
-extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_sub64(uint32_t *, uint32_t *, uint32_t *);
+extern void asm_sub96(uint32_t *, uint32_t *, uint32_t *);
+extern void asm_sub128(uint32_t *, uint32_t *, uint32_t *);
 #endif
 
-void (*asm_add2_ui) (unsigned long *, unsigned long) = NULL;
+void (*asm_add2_ui) (uint32_t *, uint32_t) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_add64_ui(unsigned long *, unsigned long);
-extern void asm_add96_ui(unsigned long *, unsigned long);
-extern void asm_add128_ui(unsigned long *, unsigned long);
+extern void asm_add64_ui(uint32_t *, uint32_t);
+extern void asm_add96_ui(uint32_t *, uint32_t);
+extern void asm_add128_ui(uint32_t *, uint32_t);
 #endif
 
-void (*asm_zero) (unsigned long *, unsigned long *) = NULL;
+void (*asm_zero) (uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_zero64(unsigned long *, unsigned long *);
-extern void asm_zero96(unsigned long *, unsigned long *);
-extern void asm_zero128(unsigned long *, unsigned long *);
+extern void asm_zero64(uint32_t *, uint32_t *);
+extern void asm_zero96(uint32_t *, uint32_t *);
+extern void asm_zero128(uint32_t *, uint32_t *);
 #endif
 
-void (*asm_copy) (unsigned long *, unsigned long *) = NULL;
+void (*asm_copy) (uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_copy64(unsigned long *, unsigned long *);
-extern void asm_copy96(unsigned long *, unsigned long *);
-extern void asm_copy128(unsigned long *, unsigned long *);
+extern void asm_copy64(uint32_t *, uint32_t *);
+extern void asm_copy96(uint32_t *, uint32_t *);
+extern void asm_copy128(uint32_t *, uint32_t *);
 #endif
 
-void (*asm_sub_n) (unsigned long *, unsigned long *) = NULL;
+void (*asm_sub_n) (uint32_t *, uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sub_n64(unsigned long *, unsigned long *);
-extern void asm_sub_n96(unsigned long *, unsigned long *);
-extern void asm_sub_n128(unsigned long *, unsigned long *);
+extern void asm_sub_n64(uint32_t *, uint32_t *);
+extern void asm_sub_n96(uint32_t *, uint32_t *);
+extern void asm_sub_n128(uint32_t *, uint32_t *);
 #endif
 
-void (*asm_half) (unsigned long *) = NULL;
+void (*asm_half) (uint32_t *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_half64(unsigned long *);
-extern void asm_half96(unsigned long *);
-extern void asm_half128(unsigned long *);
+extern void asm_half64(uint32_t *);
+extern void asm_half96(uint32_t *);
+extern void asm_half128(uint32_t *);
 #endif
 
 #endif
@@ -168,7 +168,7 @@ extern void asm_half128(unsigned long *);
 void init_montgomery_R2_2()
 /***************************************************/
 { long i;
-  unsigned long h[2], c;
+  uint32_t h[2], c;
 
   h[0] = 1;
   h[1] = 0;
@@ -203,7 +203,7 @@ void init_montgomery_R2_2()
 void init_montgomery_R2_3()
 /***************************************************/
 { long i;
-  unsigned long h[3], c;
+  uint32_t h[3], c;
 
   h[0] = 1;
   h[1] = 0;
@@ -255,7 +255,7 @@ void init_montgomery_R2_3()
 void init_montgomery_R2()
 /***************************************************/
 { long i, j;
-  unsigned long h[NMAX_ULONGS], c;
+  uint32_t h[NMAX_ULONGS], c;
 
   h[0] = 1;
   for (i = 1; i < montgomery_ulongs; i++)
@@ -309,9 +309,9 @@ void init_montgomery_R2()
 }
 
 /***************************************************/
-unsigned long montgomery_inverse()
+uint32_t montgomery_inverse()
 /***************************************************/
-{ unsigned long v1, v2, q, b, p;
+{ uint32_t v1, v2, q, b, p;
 
   if (montgomery_modulo_n[0] == 1)
     return -1;
@@ -362,7 +362,7 @@ unsigned long montgomery_inverse()
 /***************************************************/
 int set_montgomery_multiplication(mpz_t n)
 /***************************************************/
-{ unsigned long bl, old;
+{ uint32_t bl, old;
   long j;
 
   old = montgomery_ulongs;
@@ -392,7 +392,7 @@ int set_montgomery_multiplication(mpz_t n)
   zeitB(2);
 #endif
   if (montgomery_inv_n * montgomery_modulo_n[0] + 1) {
-    fprintf(stderr, "init_montgomery_multiplication failed %lu %lu\n",
+    fprintf(stderr, "init_montgomery_multiplication failed %u %u\n",
             montgomery_inv_n, montgomery_modulo_n[0]);
     return 0;
   }
@@ -455,6 +455,6 @@ void init_montgomery_multiplication()
 /***************************************************/
 {
   mpz_init(montgomery_gmp_help);
-  montgomery_modulo_n = (unsigned long *) xmalloc(NMAX_ULONGS * sizeof(unsigned long));
+  montgomery_modulo_n = (uint32_t *) xmalloc(NMAX_ULONGS * sizeof(uint32_t));
   montgomery_ulongs = 0;
 }

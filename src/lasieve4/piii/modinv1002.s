@@ -303,8 +303,4 @@ have_inverse1:
 	ret
 badargs:
 	pushl $.error_string
-#if defined (__CYGWIN__) || defined (__MINGW32__) || defined (MINGW32)
-	call _Schlendrian
-#else
 	call Schlendrian
-#endif

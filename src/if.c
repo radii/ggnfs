@@ -396,17 +396,16 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 #ifdef NEED_GETLINE
 #define GETL_INCR 128
 /****************************************************/
-ssize_t getline(char **lineptr, size_t * n, FILE * stream)
+size_t getline(char **lineptr, size_t * n, FILE * stream)
 /****************************************************/
 {
-  int rv;
+  size_t rv = 0;
 
   if (*n == 0) {
     *n = GETL_INCR;
     *lineptr = xmalloc(*n);
   }
 
-  rv = 0;
   for (;;) {
     int m;
 
