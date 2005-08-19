@@ -24,6 +24,7 @@
 #if defined (_MSC_VER) || defined (__MINGW32__)
 #include <winsock2.h>
 #include "getopt.h"
+#include "if.h"
 #define popen  _popen
 #define pclose _pclose
 #define bzero(x,n)	memset(x,0,n)
@@ -35,6 +36,13 @@
 #endif
 #ifndef _MSC_VER
 #include <sys/time.h>
+#endif
+
+#ifdef _MSC_VER
+typedef unsigned short u16_t;
+typedef short i16_t;
+typedef unsigned int u32_t;
+typedef int i32_t;
 #endif
 
 #include <gmp.h>

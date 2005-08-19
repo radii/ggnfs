@@ -1,3 +1,7 @@
+
+8/19/05 (Brian Gladman)
+  * Lots of changes to restore broken VC++ compilation
+
 8/19/05 (relf)
   * common code from lasieve4/ and pol5/ moved to src/ and shared
   * extra types definitions removed in favor of #including ggnfs.h

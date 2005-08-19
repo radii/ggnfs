@@ -24,6 +24,10 @@
 #endif
 #include "lasieve.h"
 
+#ifdef _MSC_VER
+typedef int	i32_t;
+#endif
+
 static double *aux;
 static size_t aux_alloc = 0;
 

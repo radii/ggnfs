@@ -19,7 +19,11 @@
 #include <stdarg.h> 
 #include <stdio.h> 
 
-#include <ggnfs.h>
+#include "ggnfs.h"
+
+#if defined(_MSC_VER) && !defined(__MINGW32__)
+ typedef unsigned long ssize_t;
+#endif
 
 typedef uint16_t u16_t;
 typedef  int16_t i16_t;

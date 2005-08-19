@@ -18,6 +18,14 @@
 #include <sys/types.h>
 #ifndef _MSC_VER
 #include <stdint.h>
+#else
+#include "ggnfs.h"
+typedef short i16_t;
+typedef int i32_t;
+typedef long long i64_t;
+typedef unsigned short u16_t;
+typedef unsigned int u32_t;
+typedef unsigned long long u64_t;
 #endif
 
 #define ULL_NO_UL
