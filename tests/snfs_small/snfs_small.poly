@@ -9,6 +9,9 @@ c2: 0
 c1: 0
 c0: -4
 skew: 1
+lss: 1
+knowndiv: 93569
+mrif: 2
 
 rlim: 300000
 alim: 350000
