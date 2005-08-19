@@ -26,6 +26,8 @@ athlon :
 x86_64 :
 	@TARGET="x86_64" ARCH="k8" $(MAKE) common
 	
+x86_32 :
+	@TARGET="x86_64" ARCH="athlon" $(MAKE) common
 ppc :
 	@TARGET="ppc" ARCH="970" $(MAKE) common
 

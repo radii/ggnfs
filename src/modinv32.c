@@ -17,9 +17,9 @@
 #include <gmp.h>
 
 #ifdef __ppc__
-#include "ppc32/siever-config.h"
+#include "lasieve4/ppc32/siever-config.h"
 #else
-#include "asm/lasieve-asm.h"
+#include "lasieve4/asm/lasieve-asm.h"
 #endif
 
 #include "if.h"
