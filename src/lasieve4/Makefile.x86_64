@@ -9,6 +9,7 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
+BINDIR=../../bin
 CFLAGS= -O3 -Wall -I.. -I../../include
 #CFLAGS= -g -Wno-strict-aliasing
 CC=gcc $(CFLAGS) -D__ppc__
@@ -17,7 +18,7 @@ CC=gcc $(CFLAGS) -D__ppc__
 MAKE=make
 
 FACT=prho.o
-all : gnfs-lasieve4I12e gnfs-lasieve4I13e gnfs-lasieve4I14e
+all : $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e $(BINDIR)/gnfs-lasieve4I14e
 
 .SUFFIXES:
 
@@ -46,19 +47,19 @@ libgmp-aux.a: gmp-aux.o mpz-ull.o
 
 lasieve-prepn.o: lasieve.h
 
-gnfs-lasieve4I12e: gnfs-lasieve4eI12.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	ppc32/liblasieve.a ppc32/liblasieveI12.a $(FACT)
 	$(CC)  -o $@ $^ -lgmp -lm
 
-gnfs-lasieve4I13e: gnfs-lasieve4eI13.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	ppc32/liblasieve.a ppc32/liblasieveI13.a $(FACT)
 	$(CC)  -o $@ $^ -lgmp -lm
 
-gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	ppc32/liblasieve.a ppc32/liblasieveI14.a $(FACT)
@@ -66,7 +67,7 @@ gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
 
 ppc32/lib%.a: ;
 	cd ppc32; CFLAGS=-D__ppc__ make
-clean : ;
-	rm -f *.o *.a gnfs-lasieve4I1?e 
-	make -C ppc32 clean
 
+clean : ;
+	rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e 
+	make -C ppc32 clean

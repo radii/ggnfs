@@ -9,15 +9,15 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
+BINDIR=../../bin
 # passed in from higher-level directory now
 #CFLAGS= -O3 -Wall
 #CFLAGS= -g -Wno-strict-aliasing
 #LIBFLAGS=-L/usr/local/lib
 CC=gcc $(CFLAGS) -I.. -I../../include
-MAKE=make
 
 FACT=prho.o
-all : gnfs-lasieve4I12e gnfs-lasieve4I13e gnfs-lasieve4I14e
+all : $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e $(BINDIR)/gnfs-lasieve4I14e
 
 .SUFFIXES:
 
@@ -67,19 +67,19 @@ libgmp-aux.a: gmp-aux.o mpz-ull.o
 
 lasieve-prepn.o: lasieve.h
 
-gnfs-lasieve4I12e: gnfs-lasieve4eI12.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI12.a $(FACT)
 	$(CC) $(LIBFLAGS) -o $@ $^ -lgmp -lm
 
-gnfs-lasieve4I13e: gnfs-lasieve4eI13.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI13.a $(FACT)
 	$(CC) $(LIBFLAGS) -o $@ $^ -lgmp -lm
 
-gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
+$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
 	recurrence6.o ../fbgen.o real-poly-aux.o \
 	primgen32.o libgmp-aux.a lasieve-prepn.o \
 	asm/liblasieve.a asm/liblasieveI14.a $(FACT)
@@ -87,10 +87,8 @@ gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
 
 clean : ;
 ifeq ($(OS),Windows_NT)
-	rm -f *.o *.a gnfs-lasieve4I1?e.exe
+	rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e.exe
 else
-	rm -f *.o *.a gnfs-lasieve4I1?e 
+	rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e 
 endif
 	(test -d asm && $(MAKE) -C asm clean) || exit 0
-	
-

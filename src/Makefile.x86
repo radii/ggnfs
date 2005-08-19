@@ -1,3 +1,4 @@
+BINDIR=../bin
 LOCALINC=-I/usr/local/include
 INC=-I. -I.. -I../include $(LOCALINC)
 LIBFLAGS=-L/usr/local/lib
@@ -42,7 +43,7 @@ ifeq ($(DLMALLOC),1)
 OBJS+= dlmalloc.o
 endif
 
-BINS=sieve procrels sqrt polyselect makefb matsolve matbuild
+BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
 
 ifeq ($(MATBUILD_TPIE),1)
 BINS+= matbuild-tpie
@@ -77,71 +78,53 @@ rels.o : rels.c ;
 latsieve.o : latsieve.c ;
 	$(CC) $(INC) $(OPT3) -c latsieve.c 
 
-sieve : sieve.c clsieve.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o sieve sieve.c clsieve.c $(OBJS) -lgmp -lm 
+$(BINDIR)/sieve : sieve.c clsieve.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ sieve.c clsieve.c $(OBJS) -lgmp -lm 
 
 ifeq ($(DLMALLOC),1)
-makefb : makefb.c $(OBJS) ;
-	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+$(BINDIR)/makefb : makefb.c $(OBJS) ;
+	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o $@ makefb.c getprimes.o \
              fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o if.o \
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o dlmalloc.o -lgmp -lm
 else
-makefb : makefb.c $(OBJS) ;
-	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o makefb makefb.c getprimes.o \
+$(BINDIR)/makefb : makefb.c $(OBJS) ;
+	$(CC) $(INC) $(OPT2) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o $@ makefb.c getprimes.o \
              fbmisc.o mulmod32.s poly.o mpz_poly.o smintfact.o if.o\
              misc.o nfmisc.o mpz_mat.o ecm4c.o modinv1002.S fbgen.o rels.o -lgmp -lm
 endif
 
-procrels : procrels.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o procrels procrels.c $(OBJS) -lgmp -lm 
-#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o procrels procrels.c $(OBJS) -lgmp -lm 
+$(BINDIR)/procrels : procrels.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ procrels.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o $@ procrels.c $(OBJS) -lgmp -lm 
 
-matbuild : matbuild.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild matbuild.c combparts.c $(OBJS) -lgmp -lm 
-#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o matbuild matbuild.c $(OBJS) -lgmp -lm 
+$(BINDIR)/matbuild : matbuild.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ matbuild.c combparts.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(DEBUGOPT) $(LIBFLAGS) -o $@ matbuild.c $(OBJS) -lgmp -lm 
 
-matbuild-tpie : matbuild-tpie.c $(OBJS)
-	$(CXX) $(INC) $(OPT3) $(LIBFLAGS) -o matbuild-tpie matbuild-tpie.c experimental/combparts_tpie.cpp experimental/llist_tpie.cpp $(OBJS) -lgmp -lm -ltpie
+$(BINDIR)/matbuild-tpie : matbuild-tpie.c $(OBJS)
+	$(CXX) $(INC) $(OPT3) $(LIBFLAGS) -o $@ matbuild-tpie.c experimental/combparts_tpie.cpp experimental/llist_tpie.cpp $(OBJS) -lgmp -lm -ltpie
 
-matsolve : matsolve.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o matsolve matsolve.c $(OBJS) -lgmp -lm 
-#	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -g -o matsolve matsolve.c $(OBJS) -lgmp -lm -lefence
+$(BINDIR)/matsolve : matsolve.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ matsolve.c $(OBJS) -lgmp -lm 
+#	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -g -o $@ matsolve.c $(OBJS) -lgmp -lm -lefence
 
-sqrt : sqrt.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o sqrt sqrt.c $(OBJS) -lgmp -lm 
+$(BINDIR)/sqrt : sqrt.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ sqrt.c $(OBJS) -lgmp -lm 
 
-polyselect : polyselect.c $(OBJS) ;
-	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o polyselect polyselect.c $(OBJS) -lgmp -lm 
+$(BINDIR)/polyselect : polyselect.c $(OBJS) ;
+	$(CC) $(INC) $(OPT3) $(LIBFLAGS) -o $@ polyselect.c $(OBJS) -lgmp -lm 
 
 latsiever : ;
 	cd lasieve4; LIBFLAGS="$(LIBFLAGS)" CFLAGS="$(OPT3) $(LOCALINC)" $(MAKE) -f Makefile.x86
-ifeq ($(OS),Windows_NT)
-	ln -fs lasieve4/gnfs-lasieve4I12e.exe gnfs-lasieve4I12e.exe
-	ln -fs lasieve4/gnfs-lasieve4I13e.exe gnfs-lasieve4I13e.exe
-	ln -fs lasieve4/gnfs-lasieve4I14e.exe gnfs-lasieve4I14e.exe
-else
-	ln -fs lasieve4/gnfs-lasieve4I12e gnfs-lasieve4I12e
-	ln -fs lasieve4/gnfs-lasieve4I13e gnfs-lasieve4I13e
-	ln -fs lasieve4/gnfs-lasieve4I14e gnfs-lasieve4I14e
-endif
 
 polsel : ;
 	CFLAGS="$(OPT3) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) -C pol5 intel
-ifeq ($(OS),Windows_NT)
-	ln -fs pol5/pol51m0b-intel.exe pol51m0b.exe
-	ln -fs pol5/pol51m0n-intel.exe pol51m0n.exe
-	ln -fs pol5/pol51opt-intel.exe pol51opt.exe
-else
-	ln -fs pol5/pol51m0b-intel pol51m0b
-	ln -fs pol5/pol51m0n-intel pol51m0n
-	ln -fs pol5/pol51opt-intel pol51opt
-endif
 
 strip : ;
 ifeq ($(OS),Windows_NT)
-	strip *.exe
+	strip $(BINDIR)/*.exe
 else
-	strip $(BINS) gnfs-lasieve4I1?e pol51m0? pol51opt
+	strip $(BINS) $(BINDIR)/gnfs-lasieve4I1?e $(BINDIR)/pol51m0* $(BINDIR)/pol51opt*
 endif
 
 clean : lasieve-clean polsel-clean ;
