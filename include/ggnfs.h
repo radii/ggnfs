@@ -565,7 +565,6 @@ int createFB(nfs_fb_t *FB, char *ofname);
 	
 	
 /* muldmod32.s */
-#ifndef _MSC_VER
 #ifdef __ppc__
 #include <stdint.h>
 static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
@@ -575,7 +574,8 @@ static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
 #else
 extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
 #endif
-#else
+
+#ifdef _MSC_VER
 extern s32 mulmod32(s32 op1, s32 op2, s32 modulus);
 #endif
 

@@ -22,13 +22,13 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #ifndef __x86_64__
 #define ULL_NO_UL
 typedef uint32_t ulong;
+#define BIGENDIAN
+#define GNFS_CS32
 #endif
 
 #define PREINVERT
-#define BIGENDIAN
 #define NEED_GETLINE
 #define N_PRIMEBOUNDS 7
-#define GNFS_CS32
 
 #include "32bit.h"
 

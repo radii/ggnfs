@@ -1431,7 +1431,7 @@ int lasieve()
             s1_clock[s] += clock_diff;
             sieve_clock += clock_diff;
             last_clock = new_clock;
-#ifdef __ppc__
+#ifdef BIGENDIAN
 #define MEDSCHED_SI_OFFS 1
 #else
 #define MEDSCHED_SI_OFFS 0
@@ -1474,7 +1474,7 @@ int lasieve()
 #endif
             sieve_clock += clock_diff;
             last_clock = new_clock;
-#ifdef __ppc__
+#ifdef BIGENDIAN
 #define SCHED_SI_OFFS 1
 #else
 #define SCHED_SI_OFFS 0
@@ -1612,8 +1612,8 @@ int lasieve()
 
 #ifndef HAVE_SSIMD
 #ifdef GNFS_CS32
-#define bc_t unsigned long
-#define BC_MASK 0x80808080
+#define bc_t uint32_t
+#define BC_MASK 0x80808080U
 #else
 #define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
@@ -1749,8 +1749,8 @@ int lasieve()
 
 #ifndef HAVE_SSIMD
 #ifdef GNFS_CS32
-#define bc_t unsigned long
-#define BC_MASK 0x80808080
+#define bc_t uint32_t
+#define BC_MASK 0x80808080U
 #else
 #define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
@@ -1914,8 +1914,8 @@ int lasieve()
 
 #ifndef HAVE_SSIMD
 #ifdef GNFS_CS32
-#define bc_t unsigned long
-#define BC_MASK 0x80808080
+#define bc_t uint32_t
+#define BC_MASK 0x80808080U
 #else
 #define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
@@ -2051,8 +2051,8 @@ int lasieve()
 
 #ifndef HAVE_SSIMD
 #ifdef GNFS_CS32
-#define bc_t unsigned long
-#define BC_MASK 0x80808080
+#define bc_t uint32_t
+#define BC_MASK 0x80808080U
 #else
 #define bc_t uint64_t
 #define BC_MASK 0x8080808080808080ULL
