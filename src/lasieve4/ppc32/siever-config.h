@@ -22,7 +22,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #ifndef __x86_64__
 #define ULL_NO_UL
 typedef uint32_t ulong;
-#define BIGENDIAN
+#define GGNFS_BIGENDIAN
 #define GNFS_CS32
 #endif
 

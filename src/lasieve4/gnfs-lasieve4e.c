@@ -22,7 +22,6 @@
 #include <string.h>
 #include <time.h>
 #if defined (_MSC_VER) || defined (__MINGW32__)
-#include <winsock2.h>
 #include "getopt.h"
 #include "if.h"
 #define popen  _popen
@@ -1439,7 +1438,7 @@ int lasieve()
             s1_clock[s] += clock_diff;
             sieve_clock += clock_diff;
             last_clock = new_clock;
-#ifdef BIGENDIAN
+#ifdef GGNFS_BIGENDIAN
 #define MEDSCHED_SI_OFFS 1
 #else
 #define MEDSCHED_SI_OFFS 0
@@ -1482,7 +1481,7 @@ int lasieve()
 #endif
             sieve_clock += clock_diff;
             last_clock = new_clock;
-#ifdef BIGENDIAN
+#ifdef GGNFS_BIGENDIAN
 #define SCHED_SI_OFFS 1
 #else
 #define SCHED_SI_OFFS 0

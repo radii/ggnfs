@@ -20,7 +20,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 @
 @(siever-config.h@>=
 #if 0
-#define BIGENDIAN
+#define GGNFS_BIGENDIAN
 #endif
 
 @ Use this if your compiler cannot handle inline funtions.

@@ -1,3 +1,6 @@
+8/19/05 (asl)
+  * Renamed BIGENDIAN define to GGNFS_BIGENDIAN due to collision with
+    winsock2.h
 
 8/19/05 (Brian Gladman)
   * Lots of changes to restore broken VC++ compilation
@@ -1298,4 +1301,3 @@ Cygwin.
     Cygwin bug and further sped up addNewRelations4() by another 
     18% or so. Many thanks to Makoto for his hard work in tracking
     that bug down and speeding up the various functions in getdeps.c.
-

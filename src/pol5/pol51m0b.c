@@ -51,8 +51,6 @@
 #define  MULTIPLIER            60   /* 2*2*3*5 */
 #define  P0_MAX             46300   /* <=2^15.5 */
 
-#define  uchar                 unsigned char
-
 #define START_MESSAGE \
 "----------------------------------------------------\n"\
 "|    pol51m0b GNFS polynomial selection program    |\n"\
@@ -96,8 +94,8 @@ unsigned int p_inv_table[NPR5][NPR5];
 unsigned int p_mod_p2[NPR5+1];
 int npr_in_p, npr_excess, npr_total;
 unsigned int pr_step[NPR5], pr_start[NPR5];
-uchar *bitarray_5power[NPR5];
-uchar ucmask[8]={ 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+unsigned char *bitarray_5power[NPR5];
+unsigned char ucmask[8]={ 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 
 mpz_t gmp_prod, gmp_d, gmp_disp;
 mpz_t gmp_D0, gmp_D[NPR5][5];
@@ -746,10 +744,10 @@ int raw_hash_1()
   int i, j;
   unsigned int ind, h;
   unsigned int add, *hash;
-  uchar *sort;
+  unsigned char *sort;
 
-  memset(hashdata,0,NHASH*sizeof(uchar));
-  sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
+  memset(hashdata,0,NHASH*sizeof(unsigned char));
+  sort=(unsigned char *)hashdata; hash=hashdata+(NHASH>>2);
   for (i=0; i<s11len; i++) {
     add=s11l[i];
     for (j=0; j<s12len; j++) {
@@ -769,9 +767,9 @@ void raw_hash_2()
   int i, j, k;
   unsigned int ind, h;
   unsigned int add, *hash;
-  uchar *sort;
+  unsigned char *sort;
 
-  sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
+  sort=(unsigned char *)hashdata; hash=hashdata+(NHASH>>2);
   for (i=0; i<s21len; i++) {
     add=s21l[i];
     for (j=0; j<s22len; j++) {
@@ -792,13 +790,13 @@ void check_raw_hash_2()
   int i, j, k;
   unsigned int ind, h;
   unsigned int add, *hash;
-  uchar *sort;
+  unsigned char *sort;
   unsigned int *ccand, ci;
 
 
   ccand=(unsigned int *)xmalloc(s2len*sizeof(unsigned int));
   ci=0;
-  sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
+  sort=(unsigned char *)hashdata; hash=hashdata+(NHASH>>2);
   for (i=0; i<s21len; i++) {
     add=s21l[i];
     for (j=0; j<s22len; j++) {
@@ -828,11 +826,11 @@ int raw_hash_3()
 {
   int k, i, j;
   unsigned int h, ind, *hash;
-  uchar *sort;
+  unsigned char *sort;
 
   nraw_cand=raw_cand_ptr-raw_cand;
-  memset(hashdata,0,NHASH*sizeof(uchar));
-  sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
+  memset(hashdata,0,NHASH*sizeof(unsigned char));
+  sort=(unsigned char *)hashdata; hash=hashdata+(NHASH>>2);
   for (k=0; k<nraw_cand; k++) {
     i=raw_cand[k]&0x0000ffff; j=raw_cand[k]>>16;
     h=s21l[i]+s22l[j];
@@ -851,10 +849,10 @@ void raw_hash_4()
   int i, j, k, l, m, i1, i2;
   unsigned int ind, h, h1, hh;
   unsigned int add, *hash;
-  uchar *sort;
+  unsigned char *sort;
   uint64_t sum1, sum2;
 
-  sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
+  sort=(unsigned char *)hashdata; hash=hashdata+(NHASH>>2);
   for (i=0; i<s11len; i++) {
     add=s11l[i];
     for (j=0; j<s12len; j++) {
@@ -2806,8 +2804,8 @@ void init_search()
 
   len=0;
   for (i=0; i<npr_mod5; i++) len+=(pr_mod5[i]/8+1);
-  bitarray_5power[0]=(uchar *)xmalloc(len*sizeof(uchar));
-  memset(bitarray_5power[0],0,len*sizeof(uchar));
+  bitarray_5power[0]=(unsigned char *)xmalloc(len*sizeof(unsigned char));
+  memset(bitarray_5power[0],0,len*sizeof(unsigned char));
   for (i=1; i<npr_mod5; i++)
     bitarray_5power[i]=bitarray_5power[i-1]+(pr_mod5[i-1]/8+1);
   for (i=0; i<npr_mod5; i++)

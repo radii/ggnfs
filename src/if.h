@@ -43,7 +43,7 @@ void adjust_bufsize(void**,size_t*,size_t,size_t,size_t);
 extern int verbose;
 extern FILE*logfile;
 void Schlendrian(char*fmt,...);
-#if !defined( _MSC_VER ) && !defined(__MINGW32__) && defined( BIGENDIAN)
+#if defined(GGNFS_BIGENDIAN)
 int write_i64(FILE*,int64_t*,size_t);
 int write_u64(FILE*,uint64_t*,size_t);
 int write_i32(FILE*,int32_t*,size_t);
@@ -93,7 +93,7 @@ void mpz_mul_si(mpz_t x,mpz_t y,long int z);
 
 #define mpz_add_si(r,o,s) \
   ({ int _s; _s= (s); \
-     _s>=0 ? mpz_add_ui(r,o,(ulong)(_s)) : mpz_sub_ui(r,o,(ulong)(-_s)); })
+     _s>=0 ? mpz_add_ui(r,o,(unsigned long)(_s)) : mpz_sub_ui(r,o,(unsigned long)(-_s)); })
 
 void mpz_set_ull(mpz_t targ,uint64_t src);
 uint64_t mpz_get_ull(mpz_t src);

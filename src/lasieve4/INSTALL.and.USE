@@ -11,7 +11,7 @@ The first is for machines (like Pentium, R5000, R10000) for which 'ulong' has
 32 bits, while 'unsigned long long' has 64 bits. The second is for machines for
 which 'ulong' has 64 bits, while 'unsigned' has 32 bits. Copy one of them
 to siever-config.w and edit this file, setting 'L1_BITS' to its correct value.
-Also, make it known to the compiler if your machine is bigendian. If you dont
+Also, make it known to the compiler if your machine is GGNFS_BIGENDIAN. If you dont
 use GNU libc, you must edit siever-config.w to make sure that the makeshift
 replacements for asprintf and getline are compiled.
 4) One of the parameters of the lattice siever has to be selected at compile

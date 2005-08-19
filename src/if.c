@@ -257,7 +257,7 @@ int skip_blanks_comments(char **iline, size_t * iline_alloc, FILE * ifi)
   return 0;
 }
 
-#ifdef BIGENDIAN
+#ifdef GGNFS_BIGENDIAN
 
 /****************************************************/
 static u32_t bswap_32(u32_t x)
