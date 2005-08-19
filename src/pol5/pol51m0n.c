@@ -26,6 +26,12 @@
 #define HAVE_ASM
 #endif
 
+#ifdef _MSC_VER
+#include "ggnfs.h"
+typedef unsigned char uchar;
+typedef unsigned long long uint64_t;
+#endif
+
 /* We need to write a floorl() for Cygwin. In the meantime: */
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(MINGW32)
 #undef HAVE_FLOAT64
