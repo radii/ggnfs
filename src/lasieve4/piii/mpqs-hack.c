@@ -29,12 +29,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "lasieve-asm.h"
 
 /* begin hack */
-#ifndef _MSC_VER
-#define NAME(_a) asm(_a)
-#else
-#define NAME(_a)
-#define inline __inline
-#endif
 
 #define ULONG_RI
 #define ULL_NO_UL
@@ -59,7 +53,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #endif
 #define BITS_PER_ULONG 32
 int psp(mpz_t n);
-void Schlendrian(char *fmt, ...) NAME("Schlendrian");
 void complain(char *fmt, ...);
 void mpz_set_ull(mpz_t targ, uint64_t src);
 uint64_t mpz_get_ull(mpz_t src);

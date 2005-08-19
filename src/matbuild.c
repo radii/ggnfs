@@ -70,7 +70,7 @@
 "\n"\
 " __________________________________________________________ \n"\
 "|        This is the matbuild program for GGNFS.           |\n"\
-"| Version: %-25s                            |\n"\
+"| Version: %-25s                       |\n"\
 "| This program is copyright 2004, Chris Monico, and subject|\n"\
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"

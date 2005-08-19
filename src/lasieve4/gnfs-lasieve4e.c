@@ -1666,7 +1666,7 @@ int lasieve()
                         x |= x << 16;
                         x |= x << 32;
                         while (i_o < i_max) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 							__asm
 							{	
 								mov		esi,[i_o]
@@ -1803,7 +1803,7 @@ int lasieve()
                         x |= x << 16;
                         x |= x << 32;
                         while (i_o < i_max) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 							__asm
 							{		mov		esi,[i_o]
 									mov		edi,[i_max]
@@ -1967,7 +1967,7 @@ int lasieve()
                         x |= x << 16;
                         x |= x << 32;
                         while (i_o < i_max) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 							__asm
 							{	mov		esi,[i_o]
 								mov		edi,[i_max]
@@ -2104,7 +2104,7 @@ int lasieve()
                         x |= x << 16;
                         x |= x << 32;
                         while (i_o < i_max) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 							__asm
 							{		mov		esi,[i_o]
 									mov		edi,[i_max]
@@ -3075,7 +3075,7 @@ int main(int argc, char **argv)
     J_bits = UINT_MAX;
 
 #define NumRead(x) if(sscanf(optarg, "%u" ,(unsigned int*)&x)!=1) Usage()
-#define NumRead16(x) if(sscanf(optarg, "%hu" ,(ushort*)&x)!=1) Usage()
+#define NumRead16(x) if(sscanf(optarg, "%hu" ,(unsigned short*)&x)!=1) Usage()
 
     while ((option =
             getopt(argc, argv, "FJ:L:M:N:P:S:ab:c:f:i:kn:o:rt:vz")) != -1) {

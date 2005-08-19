@@ -33,12 +33,12 @@ void*xvalloc(size_t size);
 void*xcalloc(size_t n,size_t s);
 void*xrealloc(void*x,size_t size);
 void complain(char*fmt,...);
-void Schlendrian(char*fmt,...);
 void logbook(int l,char*fmt,...);
 int errprintf(char*fmt,...);
 void adjust_bufsize(void**,size_t*,size_t,size_t,size_t);
 extern int verbose;
 extern FILE*logfile;
+void Schlendrian(char*fmt,...);
 #if !defined( _MSC_VER ) && !defined(__MINGW32__) && defined( BIGENDIAN)
 int write_i64(FILE*,int64_t*,size_t);
 int write_u64(FILE*,uint64_t*,size_t);

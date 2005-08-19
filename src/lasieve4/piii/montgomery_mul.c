@@ -25,139 +25,139 @@
 #include "../lasieve.h"
 
 
-ulong montgomery_inv_n;
-ulong *montgomery_modulo_n;
-ulong montgomery_modulo_R2[NMAX_ULONGS], montgomery_modulo_R4[NMAX_ULONGS];
-ulong montgomery_ulongs;
+unsigned long montgomery_inv_n;
+unsigned long *montgomery_modulo_n;
+unsigned long montgomery_modulo_R2[NMAX_ULONGS], montgomery_modulo_R4[NMAX_ULONGS];
+unsigned long montgomery_ulongs;
 mpz_t montgomery_gmp_help;
 
 /* CJM: The best thing would be to declare a macro, ASM(x) which
    evaluates to asm(x) on gcc, empty on others. This way we would
    have just the one collection of prototypes here. I'll get to it.
 */
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW32__)
 /* function pointers */
-void (*asm_mulmod) (ulong *, ulong *, ulong *) = NULL;
-extern void asm_mulm64(ulong *, ulong *, ulong *) asm("asm_mulm64");
-extern void asm_mulm96(ulong *, ulong *, ulong *) asm("asm_mulm96");
-extern void asm_mulm128(ulong *, ulong *, ulong *) asm("asm_mulm128");
+void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm64");
+extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm96");
+extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *) asm("asm_mulm128");
 
-void (*asm_squmod) (ulong *, ulong *) = NULL;
-extern void asm_sqm64(ulong *, ulong *) asm("asm_sqm64");
-extern void asm_sqm96(ulong *, ulong *) asm("asm_sqm96");
-extern void asm_sqm128(ulong *, ulong *) asm("asm_sqm128");
+void (*asm_squmod) (unsigned long *, unsigned long *) = NULL;
+extern void asm_sqm64(unsigned long *, unsigned long *) asm("asm_sqm64");
+extern void asm_sqm96(unsigned long *, unsigned long *) asm("asm_sqm96");
+extern void asm_sqm128(unsigned long *, unsigned long *) asm("asm_sqm128");
 
-void (*asm_add2) (ulong *, ulong *) = NULL;
-extern void asm_add64(ulong *, ulong *) asm("asm_add64");
-extern void asm_add96(ulong *, ulong *) asm("asm_add96");
-extern void asm_add128(ulong *, ulong *) asm("asm_add128");
+void (*asm_add2) (unsigned long *, unsigned long *) = NULL;
+extern void asm_add64(unsigned long *, unsigned long *) asm("asm_add64");
+extern void asm_add96(unsigned long *, unsigned long *) asm("asm_add96");
+extern void asm_add128(unsigned long *, unsigned long *) asm("asm_add128");
 
-void (*asm_diff) (ulong *, ulong *, ulong *) = NULL;
-extern void asm_diff64(ulong *, ulong *, ulong *) asm("asm_diff64");
-extern void asm_diff96(ulong *, ulong *, ulong *) asm("asm_diff96");
-extern void asm_diff128(ulong *, ulong *, ulong *) asm("asm_diff128");
+void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff64");
+extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff96");
+extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *) asm("asm_diff128");
 
-void (*asm_sub) (ulong *, ulong *, ulong *) = NULL;
-extern void asm_sub64(ulong *, ulong *, ulong *) asm("asm_sub64");
-extern void asm_sub96(ulong *, ulong *, ulong *) asm("asm_sub96");
-extern void asm_sub128(ulong *, ulong *, ulong *) asm("asm_sub128");
+void (*asm_sub) (unsigned long *, unsigned long *, unsigned long *) = NULL;
+extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub64");
+extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub96");
+extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *) asm("asm_sub128");
 
-void (*asm_add2_ui) (ulong *, ulong) = NULL;
-extern void asm_add64_ui(ulong *, ulong) asm("asm_add64_ui");
-extern void asm_add96_ui(ulong *, ulong) asm("asm_add96_ui");
-extern void asm_add128_ui(ulong *, ulong) asm("asm_add128_ui");
+void (*asm_add2_ui) (unsigned long *, unsigned long) = NULL;
+extern void asm_add64_ui(unsigned long *, unsigned long) asm("asm_add64_ui");
+extern void asm_add96_ui(unsigned long *, unsigned long) asm("asm_add96_ui");
+extern void asm_add128_ui(unsigned long *, unsigned long) asm("asm_add128_ui");
 
-void (*asm_zero) (ulong *, ulong *) = NULL;
-extern void asm_zero64(ulong *, ulong *) asm("asm_zero64");
-extern void asm_zero96(ulong *, ulong *) asm("asm_zero96");
-extern void asm_zero128(ulong *, ulong *) asm("asm_zero128");
+void (*asm_zero) (unsigned long *, unsigned long *) = NULL;
+extern void asm_zero64(unsigned long *, unsigned long *) asm("asm_zero64");
+extern void asm_zero96(unsigned long *, unsigned long *) asm("asm_zero96");
+extern void asm_zero128(unsigned long *, unsigned long *) asm("asm_zero128");
 
-void (*asm_copy) (ulong *, ulong *) = NULL;
-extern void asm_copy64(ulong *, ulong *) asm("asm_copy64");
-extern void asm_copy96(ulong *, ulong *) asm("asm_copy96");
-extern void asm_copy128(ulong *, ulong *) asm("asm_copy128");
+void (*asm_copy) (unsigned long *, unsigned long *) = NULL;
+extern void asm_copy64(unsigned long *, unsigned long *) asm("asm_copy64");
+extern void asm_copy96(unsigned long *, unsigned long *) asm("asm_copy96");
+extern void asm_copy128(unsigned long *, unsigned long *) asm("asm_copy128");
 
-void (*asm_sub_n) (ulong *, ulong *) = NULL;
-extern void asm_sub_n64(ulong *, ulong *) asm("asm_sub_n64");
-extern void asm_sub_n96(ulong *, ulong *) asm("asm_sub_n96");
-extern void asm_sub_n128(ulong *, ulong *) asm("asm_sub_n128");
+void (*asm_sub_n) (unsigned long *, unsigned long *) = NULL;
+extern void asm_sub_n64(unsigned long *, unsigned long *) asm("asm_sub_n64");
+extern void asm_sub_n96(unsigned long *, unsigned long *) asm("asm_sub_n96");
+extern void asm_sub_n128(unsigned long *, unsigned long *) asm("asm_sub_n128");
 
-void (*asm_half) (ulong *) = NULL;
-extern void asm_half64(ulong *) asm("asm_half64");
-extern void asm_half96(ulong *) asm("asm_half96");
-extern void asm_half128(ulong *) asm("asm_half128");
+void (*asm_half) (unsigned long *) = NULL;
+extern void asm_half64(unsigned long *) asm("asm_half64");
+extern void asm_half96(unsigned long *) asm("asm_half96");
+extern void asm_half128(unsigned long *) asm("asm_half128");
 
 #else
 
 /* function pointers */
-void (*asm_mulmod) (ulong *, ulong *, ulong *) = NULL;
+void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_mulm64(ulong *, ulong *, ulong *)
-extern void asm_mulm96(ulong *, ulong *, ulong *);
-extern void asm_mulm128(ulong *, ulong *, ulong *);
+extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *)
+extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *);
 #endif
 
-void (*asm_squmod) (ulong *, ulong *) = NULL;
+void (*asm_squmod) (unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sqm64(ulong *, ulong *);
-extern void asm_sqm96(ulong *, ulong *);
-extern void asm_sqm128(ulong *, ulong *);
+extern void asm_sqm64(unsigned long *, unsigned long *);
+extern void asm_sqm96(unsigned long *, unsigned long *);
+extern void asm_sqm128(unsigned long *, unsigned long *);
 #endif
 
-void (*asm_add2) (ulong *, ulong *) = NULL;
+void (*asm_add2) (unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_add64(ulong *, ulong *);
-extern void asm_add96(ulong *, ulong *);
-extern void asm_add128(ulong *, ulong *);
+extern void asm_add64(unsigned long *, unsigned long *);
+extern void asm_add96(unsigned long *, unsigned long *);
+extern void asm_add128(unsigned long *, unsigned long *);
 #endif
 
-void (*asm_diff) (ulong *, ulong *, ulong *) = NULL;
+void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_diff64(ulong *, ulong *, ulong *);
-extern void asm_diff96(ulong *, ulong *, ulong *);
-extern void asm_diff128(ulong *, ulong *, ulong *);
+extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *);
 #endif
 
-void (*asm_sub) (ulong *, ulong *, ulong *) = NULL;
+void (*asm_sub) (unsigned long *, unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sub64(ulong *, ulong *, ulong *);
-extern void asm_sub96(ulong *, ulong *, ulong *);
-extern void asm_sub128(ulong *, ulong *, ulong *);
+extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *);
 #endif
 
-void (*asm_add2_ui) (ulong *, ulong) = NULL;
+void (*asm_add2_ui) (unsigned long *, unsigned long) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_add64_ui(ulong *, ulong);
-extern void asm_add96_ui(ulong *, ulong);
-extern void asm_add128_ui(ulong *, ulong);
+extern void asm_add64_ui(unsigned long *, unsigned long);
+extern void asm_add96_ui(unsigned long *, unsigned long);
+extern void asm_add128_ui(unsigned long *, unsigned long);
 #endif
 
-void (*asm_zero) (ulong *, ulong *) = NULL;
+void (*asm_zero) (unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_zero64(ulong *, ulong *);
-extern void asm_zero96(ulong *, ulong *);
-extern void asm_zero128(ulong *, ulong *);
+extern void asm_zero64(unsigned long *, unsigned long *);
+extern void asm_zero96(unsigned long *, unsigned long *);
+extern void asm_zero128(unsigned long *, unsigned long *);
 #endif
 
-void (*asm_copy) (ulong *, ulong *) = NULL;
+void (*asm_copy) (unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_copy64(ulong *, ulong *);
-extern void asm_copy96(ulong *, ulong *);
-extern void asm_copy128(ulong *, ulong *);
+extern void asm_copy64(unsigned long *, unsigned long *);
+extern void asm_copy96(unsigned long *, unsigned long *);
+extern void asm_copy128(unsigned long *, unsigned long *);
 #endif
 
-void (*asm_sub_n) (ulong *, ulong *) = NULL;
+void (*asm_sub_n) (unsigned long *, unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_sub_n64(ulong *, ulong *);
-extern void asm_sub_n96(ulong *, ulong *);
-extern void asm_sub_n128(ulong *, ulong *);
+extern void asm_sub_n64(unsigned long *, unsigned long *);
+extern void asm_sub_n96(unsigned long *, unsigned long *);
+extern void asm_sub_n128(unsigned long *, unsigned long *);
 #endif
 
-void (*asm_half) (ulong *) = NULL;
+void (*asm_half) (unsigned long *) = NULL;
 #if !defined( ASM_SUBS_DECLARED )
-extern void asm_half64(ulong *);
-extern void asm_half96(ulong *);
-extern void asm_half128(ulong *);
+extern void asm_half64(unsigned long *);
+extern void asm_half96(unsigned long *);
+extern void asm_half128(unsigned long *);
 #endif
 
 #endif
@@ -168,7 +168,7 @@ extern void asm_half128(ulong *);
 void init_montgomery_R2_2()
 /***************************************************/
 { long i;
-  ulong h[2], c;
+  unsigned long h[2], c;
 
   h[0] = 1;
   h[1] = 0;
@@ -203,7 +203,7 @@ void init_montgomery_R2_2()
 void init_montgomery_R2_3()
 /***************************************************/
 { long i;
-  ulong h[3], c;
+  unsigned long h[3], c;
 
   h[0] = 1;
   h[1] = 0;
@@ -255,7 +255,7 @@ void init_montgomery_R2_3()
 void init_montgomery_R2()
 /***************************************************/
 { long i, j;
-  ulong h[NMAX_ULONGS], c;
+  unsigned long h[NMAX_ULONGS], c;
 
   h[0] = 1;
   for (i = 1; i < montgomery_ulongs; i++)
@@ -309,9 +309,9 @@ void init_montgomery_R2()
 }
 
 /***************************************************/
-ulong montgomery_inverse()
+unsigned long montgomery_inverse()
 /***************************************************/
-{ ulong v1, v2, q, b, p;
+{ unsigned long v1, v2, q, b, p;
 
   if (montgomery_modulo_n[0] == 1)
     return -1;
@@ -362,7 +362,7 @@ ulong montgomery_inverse()
 /***************************************************/
 int set_montgomery_multiplication(mpz_t n)
 /***************************************************/
-{ ulong bl, old;
+{ unsigned long bl, old;
   long j;
 
   old = montgomery_ulongs;
@@ -455,6 +455,6 @@ void init_montgomery_multiplication()
 /***************************************************/
 {
   mpz_init(montgomery_gmp_help);
-  montgomery_modulo_n = (ulong *) xmalloc(NMAX_ULONGS * sizeof(ulong));
+  montgomery_modulo_n = (unsigned long *) xmalloc(NMAX_ULONGS * sizeof(unsigned long));
   montgomery_ulongs = 0;
 }

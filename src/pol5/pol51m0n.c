@@ -58,8 +58,8 @@
 #define  MULTIPLIER            60   /* 2*2*3*5 */
 #define  P0_MAX             46300   /* <=2^15.5 */
 
-extern int asm_hash1(uint);
-extern int asm_hash2(uint);
+extern int asm_hash1(unsigned int);
+extern int asm_hash2(unsigned int);
 
 mpz_t gmp_N, gmp_a5_begin, gmp_a5_end;
 int compress;
@@ -78,8 +78,8 @@ double alpha, dbl_a5_min, dbl_a5_max, a3_b_help, dbl_N, dbl_a5;
 
 #define NPR5      50
 
-uint N_mod_pr[NPR5], p_N_inv[NPR5], p_N_mod_p2[NPR5], p_a5_mod_p2[NPR5];
-uint N_inv_mod_pr[NPR5], a5_mod_pr[NPR5], p_minus5a5_mod_p[NPR5];
+unsigned int N_mod_pr[NPR5], p_N_inv[NPR5], p_N_mod_p2[NPR5], p_a5_mod_p2[NPR5];
+unsigned int N_inv_mod_pr[NPR5], a5_mod_pr[NPR5], p_minus5a5_mod_p[NPR5];
 double p_log[NPR5], p_size_max;
 
 #ifdef HAVE_FLOAT64
@@ -87,11 +87,11 @@ long double ld_p_inv[NPR5];
 #endif
 
 int p_ind[NPR5];
-uint p_pr[NPR5], p_fr[NPR5][5];
-uint p_inv_table[NPR5][NPR5];
-uint p_mod_p2[NPR5+1];
+unsigned int p_pr[NPR5], p_fr[NPR5][5];
+unsigned int p_inv_table[NPR5][NPR5];
+unsigned int p_mod_p2[NPR5+1];
 int npr_in_p, npr_excess, npr_total;
-uint pr_step[NPR5], pr_start[NPR5];
+unsigned int pr_step[NPR5], pr_start[NPR5];
 uchar *bitarray_5power[NPR5];
 uchar ucmask[8]={ 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 
@@ -102,23 +102,23 @@ mpz_t gmp_kappa_help[NPR5+1];
 double dbl_kappa_help[NPR5+1];
 
 uint64_t ull_kappa0, ull_kappa[NPR5][5], raw_ull_kappa[NPR5][5];
-uint ul_d_help[NPR5][5];
+unsigned int ul_d_help[NPR5][5];
 uint64_t *s1, *s2, *s1sort, *s2sort;
 int s1len, s2len;
 uint64_t ull_bound, lambda0, raw_ull_bound;
-volatile uint raw_bound asm("raw_bound");
+volatile unsigned int raw_bound asm("raw_bound");
 uint64_t *stored_pairs, *raw_stored_pairs;
 int store_len, nstore, raw_store_len, nraw_store;
 int *raw_cand, nraw_cand;
 volatile int*raw_cand_ptr asm ("raw_cand_ptr");
-uint *raw_cand_hash;
+unsigned int *raw_cand_hash;
 
 uint64_t ull_kappa_p_inv[NPR5+1];
-uint ull_kappa_help0[NPR5+1];
+unsigned int ull_kappa_help0[NPR5+1];
 
-uint prep_p[NPR5], prep_5a5[NPR5], prep_N_mod_p2[NPR5];
-uint prep_other_mod_p2[NPR5];
-uint prep_inv_table[NPR5][NPR5];
+unsigned int prep_p[NPR5], prep_5a5[NPR5], prep_N_mod_p2[NPR5];
+unsigned int prep_other_mod_p2[NPR5];
+unsigned int prep_inv_table[NPR5][NPR5];
 uint64_t ull_p_inv[NPR5];
 
 
@@ -127,28 +127,28 @@ uint64_t ull_p_inv[NPR5];
 
 #define HASHSHIFT32  (HASHSHIFT-32)
 
-uint hashdata[32*NHASH+(NHASH>>2)];
-volatile uint *hashdataptr asm ("hashdataptr");
+unsigned int hashdata[32*NHASH+(NHASH>>2)];
+volatile unsigned int *hashdataptr asm ("hashdataptr");
 
-uint *hashptr32[NHASH];
-uint *s1sortl, *s2sortl;
-uint *s11l asm("s11l");
-uint *s12l asm("s12l");
-uint *s21l asm("s21l");
-uint *s22l asm("s22l");;
+unsigned int *hashptr32[NHASH];
+unsigned int *s1sortl, *s2sortl;
+unsigned int *s11l asm("s11l");
+unsigned int *s12l asm("s12l");
+unsigned int *s21l asm("s21l");
+unsigned int *s22l asm("s22l");;
 
 uint64_t *shelp;
-uint s11len asm ("s11len");
-uint s12len asm ("s12len");
-uint s21len asm ("s21len");
-uint s22len asm ("s22len");
+unsigned int s11len asm ("s11len");
+unsigned int s12len asm ("s12len");
+unsigned int s21len asm ("s21len");
+unsigned int s22len asm ("s22len");
 int len1, len2, len11, len12, len21, len22;
 
 
 int sort[NHASH];
 uint64_t *hashptr[NHASH];
 
-uint pr_mod5[]={
+unsigned int pr_mod5[]={
 11, 31, 41, 61, 71, 101, 131, 151, 181, 191, 
 211, 241, 251, 271, 281, 311, 331, 401, 421, 431, 
 461, 491, 521, 541, 571, 601, 631, 641, 661, 691, 
@@ -158,13 +158,13 @@ uint pr_mod5[]={
 int npr_mod5=50;
 int success=0;
 
-uint *p0_list, *p0_root, last_p0, p0_limit;
+unsigned int *p0_list, *p0_root, last_p0, p0_limit;
 int p0_list_len, p0_list_len_max;
 int data_not_copied;
 mpz_t gmp_prod_1;
-uint ul_d_help_1[NPR5][5], p0_inv_p[NPR5], p_inv_p0[NPR5];
+unsigned int ul_d_help_1[NPR5][5], p0_inv_p[NPR5], p_inv_p0[NPR5];
 
-uint smallprimes[]={
+unsigned int smallprimes[]={
 2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
@@ -172,23 +172,23 @@ uint smallprimes[]={
 179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
 233, 239, 241, 251
 };
-uint nsmallprimes=54;
+unsigned int nsmallprimes=54;
 
 
 /* new sorted knapsack: */
 
-volatile uint hashpart_shift asm ("hashpart_shift");
-volatile uint hash_shift asm ("hash_shift");
-uint n_hash_parts;
-uint *s12l_sort asm("s12l_sort");
-uint *s12l_ind, s12l_sort_maxlen, s12l_sort_len;
+volatile unsigned int hashpart_shift asm ("hashpart_shift");
+volatile unsigned int hash_shift asm ("hash_shift");
+unsigned int n_hash_parts;
+unsigned int *s12l_sort asm("s12l_sort");
+unsigned int *s12l_ind, s12l_sort_maxlen, s12l_sort_len;
 
-uint *s22l_sort asm ("s22l_sort");
-uint *s22l_ind, s22l_sort_maxlen, s22l_sort_len;
+unsigned int *s22l_sort asm ("s22l_sort");
+unsigned int *s22l_ind, s22l_sort_maxlen, s22l_sort_len;
 uint64_t *shelpsort;
 int *indhelpsort, *indhelp;
-uint *s11_begin asm ("s11_begin");
-uint *s21_begin asm ("s21_begin");
+unsigned int *s11_begin asm ("s11_begin");
+unsigned int *s21_begin asm ("s21_begin");
 
 
 /* statistics */
@@ -197,14 +197,14 @@ uint64_t stat_n_polexpand=0, stat_n_survivors=0;
 
 /* ----------------------------------------------- */
 
-volatile uint modulo32 asm ("modulo32");
+volatile unsigned int modulo32 asm ("modulo32");
 
 #ifdef HAVE_ASM
 #ifdef HAVE_ASM_INTEL
-static inline uint modmul32(uint x,uint y)
+static inline unsigned int modmul32(unsigned int x,unsigned int y)
 {
-  uint res,clobber;
-#ifdef _MSC_VER
+  unsigned int res,clobber;
+#if defined(_MSC_VER) && !defined(__MINGW32__)
   __asm
   {
 		mov		eax,x
@@ -221,9 +221,9 @@ static inline uint modmul32(uint x,uint y)
 }
 #else
 #if 0
-static inline uint modmul32(uint x,uint y)
+static inline unsigned int modmul32(unsigned int x,unsigned int y)
 {
-  uint res;
+  unsigned int res;
   __asm__ __volatile__("mulq %1,%2,%0\n"
            "remq %0,%3,%0" : "=r" (res) :
            "r" (x), "r" (y), "r" (modulo32) :
@@ -231,34 +231,34 @@ static inline uint modmul32(uint x,uint y)
   return res;
 }
 #else
-static inline uint modmul32(uint x,uint y)
+static inline unsigned int modmul32(unsigned int x,unsigned int y)
 {
   uint64_t yy, rr;
 
   rr=(uint64_t)x; yy=(uint64_t)y;
   rr*=yy; rr%=((uint64_t)modulo32);
-  return (uint)rr;
+  return (unsigned int)rr;
 }
 #endif
 #endif
 #else
-static inline uint modmul32(uint x,uint y)
+static inline unsigned int modmul32(unsigned int x,unsigned int y)
 {
-  uint res;
+  unsigned int res;
   uint64_t xx, yy, rr;
 
   xx=(uint64_t)x; yy=(uint64_t)y;
   rr=xx*yy; rr%=((uint64_t)modulo32);
-  res=(uint)rr;
+  res=(unsigned int)rr;
   return res;
 }
 #endif
 
 
-uint powmod32(uint a, uint e)
+unsigned int powmod32(unsigned int a, unsigned int e)
 {
-  uint ex=e;
-  uint aa, res;
+  unsigned int ex=e;
+  unsigned int aa, res;
 
   if (!ex) return 1;
   aa=a; res=1;
@@ -776,12 +776,12 @@ void combine_raw_sort0(int len, int ind)
 }
 
 
-void combine_raw_sort0last(uint *targ, uint *index, int len, int ind)
+void combine_raw_sort0last(unsigned int *targ, unsigned int *index, int len, int ind)
 {
   int i, j, i0, i1, i2, ii, jj;
   uint64_t h, v0, v1, v2;
   int bt_len, bt_ind[DEG], bt_j[DEG];
-  uint bt_s[DEG];
+  unsigned int bt_s[DEG];
   int crs_begin[DEG], crs_end[DEG];
   uint64_t *ruk;
 
@@ -807,7 +807,7 @@ void combine_raw_sort0last(uint *targ, uint *index, int len, int ind)
 /* initialize binary tree */
   bt_len=DEG;
   for (j=0; j<DEG; j++) {
-    bt_s[j]=(uint)((shelpsort[crs_begin[j]]+ruk[j])>>32);
+    bt_s[j]=(unsigned int)((shelpsort[crs_begin[j]]+ruk[j])>>32);
     bt_ind[j]=j*len+indhelpsort[crs_begin[j]];
     bt_j[j]=j;
     crs_begin[j]++;
@@ -830,7 +830,7 @@ zeitA(22);
     targ[ii]=bt_s[0]; index[ii]=bt_ind[0];
     j=bt_j[0];
     if (crs_begin[j]<crs_end[j]) {
-      bt_s[0]=(uint)((shelpsort[crs_begin[j]]+ruk[j])>>32);
+      bt_s[0]=(unsigned int)((shelpsort[crs_begin[j]]+ruk[j])>>32);
       bt_ind[0]=j*len+indhelpsort[crs_begin[j]];
       crs_begin[j]++;  /* bt_j[0] already contains j */
     } else {
@@ -862,7 +862,7 @@ zeitB(22);
 }
 
 
-void combine_raw_sort(uint *targ, uint *index, int i0, int i1)
+void combine_raw_sort(unsigned int *targ, unsigned int *index, int i0, int i1)
 {
   int i, len;
 
@@ -879,7 +879,7 @@ void combine_raw_sort(uint *targ, uint *index, int i0, int i1)
 void raw_hash_sort_extend()
 {
   int i;
-  uint targ, i0, i1, i2, v0, v1, v2, *s;
+  unsigned int targ, i0, i1, i2, v0, v1, v2, *s;
 
   targ=1<<hashpart_shift;
   s=s12l_sort;
@@ -898,8 +898,8 @@ void raw_hash_sort_extend()
 /* append first i0 entries and targ */
   if (s12len+i0+1>s12l_sort_maxlen) {
     s12l_sort_maxlen=s12len+i0+1;
-    s12l_sort=(uint *)xrealloc(s12l_sort,s12l_sort_maxlen*sizeof(uint));
-    s12l_ind=(uint *)xrealloc(s12l_ind,s12l_sort_maxlen*sizeof(uint));
+    s12l_sort=(unsigned int *)xrealloc(s12l_sort,s12l_sort_maxlen*sizeof(unsigned int));
+    s12l_ind=(unsigned int *)xrealloc(s12l_ind,s12l_sort_maxlen*sizeof(unsigned int));
   }
   s12l_sort_len=s12len+i0+1;
   for (i=0; i<i0; i++) {
@@ -925,8 +925,8 @@ void raw_hash_sort_extend()
 /* append first i0 entries and targ */
   if (s22len+i0+1>s22l_sort_maxlen) {
     s22l_sort_maxlen=s22len+i0+1;
-    s22l_sort=(uint *)xrealloc(s22l_sort,s22l_sort_maxlen*sizeof(uint));
-    s22l_ind=(uint *)xrealloc(s22l_ind,s22l_sort_maxlen*sizeof(uint));
+    s22l_sort=(unsigned int *)xrealloc(s22l_sort,s22l_sort_maxlen*sizeof(unsigned int));
+    s22l_ind=(unsigned int *)xrealloc(s22l_ind,s22l_sort_maxlen*sizeof(unsigned int));
   }
   s22l_sort_len=s22len+i0+1;
   for (i=0; i<i0; i++) {
@@ -938,10 +938,10 @@ void raw_hash_sort_extend()
 }
 
 
-void raw_hash_sort_init(uint *sort, uint sortlen, uint *data, uint *begin, uint beginlen)
+void raw_hash_sort_init(unsigned int *sort, unsigned int sortlen, unsigned int *data, unsigned int *begin, unsigned int beginlen)
 {
   int i;
-  uint v, i0, i1, i2, v0, v1, v2;
+  unsigned int v, i0, i1, i2, v0, v1, v2;
 
   for (i=0; i<beginlen; i++) { /* search j min. s.th. data[i]+sort[j]>=2^32 */
     v=-data[i];
@@ -962,11 +962,11 @@ void raw_hash_sort_init(uint *sort, uint sortlen, uint *data, uint *begin, uint 
 }
 
 
-int raw_hash_sort_1(uint hb)
+int raw_hash_sort_1(unsigned int hb)
 {
   int i, j;
-  uint ind, h, hsub, hp;
-  uint add, *hash, mask;
+  unsigned int ind, h, hsub, hp;
+  unsigned int add, *hash, mask;
   uchar *sort;
 
   mask=(1<<hashpart_shift)-1; mask=~mask;
@@ -998,11 +998,11 @@ int raw_hash_sort_1(uint hb)
 }
 
 
-void raw_hash_sort_2(uint hb)
+void raw_hash_sort_2(unsigned int hb)
 {
   int i, j, k;
-  uint ind, h, hsub, hp;
-  uint add, *hash;
+  unsigned int ind, h, hsub, hp;
+  unsigned int add, *hash;
   uchar *sort;
 
   hsub=hb<<hashpart_shift;
@@ -1030,10 +1030,10 @@ void raw_hash_sort_2(uint hb)
 }
 
 
-int raw_hash_sort_3(uint hb)
+int raw_hash_sort_3(unsigned int hb)
 {
   int k, i, j;
-  uint h, ind, *hash, hsub;
+  unsigned int h, ind, *hash, hsub;
   uchar *sort;
 
   nraw_cand=raw_cand_ptr-raw_cand;
@@ -1056,11 +1056,11 @@ int raw_hash_sort_3(uint hb)
 
 void raw_store(int i1, int i2);
 
-void raw_hash_sort_4(uint hb)
+void raw_hash_sort_4(unsigned int hb)
 {
   int i, j, k, l, m, i1, i2;
-  uint ind, h, h1, hh;
-  uint add, *hash, hsub, hp;
+  unsigned int ind, h, h1, hh;
+  unsigned int add, *hash, hsub, hp;
   uchar *sort;
   uint64_t sum1, sum2;
 
@@ -1094,13 +1094,13 @@ void raw_hash_sort_4(uint hb)
               }
 #if 1
 /* check */
-              hh=(uint)((sum1+(8589934592ULL+raw_ull_bound))>>32);
+              hh=(unsigned int)((sum1+(8589934592ULL+raw_ull_bound))>>32);
               if (hh>h) {
                 if (hh-h>3) complain("hash4.0\n");
               } else {
                 if (h-hh>3) complain("%u %u %u %u %" PRIu64 " hash4.1\n",h,hh,h1,raw_bound,raw_ull_bound);
               }
-              hh=(uint)(sum2>>32);
+              hh=(unsigned int)(sum2>>32);
               if (hh>h1) {
                 if (hh-h1>3) complain("%u %u %u %u hash4.2\n",h,hh,h1,raw_bound);
               } else {
@@ -1137,29 +1137,29 @@ void combine_raw0(int len, int ind)
 }
 
 
-void combine_raw0last(uint *targ, int len, int ind)
+void combine_raw0last(unsigned int *targ, int len, int ind)
 {
   int i, j, disp;
   uint64_t add;
 
   if (raw_ull_kappa[ind][0]) complain("combine_raw0last\n");
-  for (i=0; i<len; i++) targ[i]=(uint)(shelp[i]>>32);
+  for (i=0; i<len; i++) targ[i]=(unsigned int)(shelp[i]>>32);
   disp=len;
   for (j=1; j<5; j++) {
     add=raw_ull_kappa[ind][j];
-    for (i=0; i<len; i++) targ[i+disp]=(uint)((add+shelp[i])>>32);
+    for (i=0; i<len; i++) targ[i+disp]=(unsigned int)((add+shelp[i])>>32);
     disp+=len;
   }
 }
 
 
-void combine_raw(uint *targ, int i0, int i1)
+void combine_raw(unsigned int *targ, int i0, int i1)
 {
   int i, len;
 
   if (i1-i0<1) complain("combine_raw\n");
   if (i1-i0==1) {
-    for (i=0; i<5; i++) targ[i]=(uint)(raw_ull_kappa[i0][i]>>32);
+    for (i=0; i<5; i++) targ[i]=(unsigned int)(raw_ull_kappa[i0][i]>>32);
     return;
   }
   for (i=0; i<5; i++) shelp[i]=raw_ull_kappa[i0][i];
@@ -1186,8 +1186,8 @@ void raw_store(int i1, int i2)
 int raw_hash_1()
 {
   int i, j;
-  uint ind, h;
-  uint add, *hash;
+  unsigned int ind, h;
+  unsigned int add, *hash;
   uchar *sort;
 
   memset(hashdata,0,NHASH*sizeof(uchar));
@@ -1209,8 +1209,8 @@ int raw_hash_1()
 void raw_hash_2()
 {
   int i, j, k;
-  uint ind, h;
-  uint add, *hash;
+  unsigned int ind, h;
+  unsigned int add, *hash;
   uchar *sort;
 
   sort=(uchar *)hashdata; hash=hashdata+(NHASH>>2);
@@ -1233,7 +1233,7 @@ void raw_hash_2()
 int raw_hash_3()
 {
   int k, i, j;
-  uint h, ind, *hash;
+  unsigned int h, ind, *hash;
   uchar *sort;
 
   nraw_cand=raw_cand_ptr-raw_cand;
@@ -1255,8 +1255,8 @@ int raw_hash_3()
 void raw_hash_4()
 {
   int i, j, k, l, m, i1, i2;
-  uint ind, h, h1, hh;
-  uint add, *hash;
+  unsigned int ind, h, h1, hh;
+  unsigned int add, *hash;
   uchar *sort;
   uint64_t sum1, sum2;
 
@@ -1284,13 +1284,13 @@ void raw_hash_4()
               }
 #if 1
 /* check */
-              hh=(uint)((sum1+(8589934592ULL+raw_ull_bound))>>32);
+              hh=(unsigned int)((sum1+(8589934592ULL+raw_ull_bound))>>32);
               if (hh>h) {
                 if (hh-h>3) complain("hash4.0\n");
               } else {
                 if (h-hh>3) complain("%u %u %u %u %" PRIu64 " hash4.1\n",h,hh,h1,raw_bound,raw_ull_bound);
               }
-              hh=(uint)(sum2>>32);
+              hh=(unsigned int)(sum2>>32);
               if (hh>h1) {
                 if (hh-h1>3) complain("%u %u %u %u hash4.2\n",h,hh,h1,raw_bound);
               } else {
@@ -1313,9 +1313,9 @@ void raw_hash_4()
 /* ---------------------------------------------------- */
 
 #ifdef HAVE_ASM_INTEL
-static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
+static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 		__asm
 		{	mov		esi,ullfptr
 			mov		edi,resptr
@@ -1340,7 +1340,7 @@ static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
 #endif
 }
 #elif defined HAVE_ASM_ALPHA
-static void inline ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
+static void inline ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 {
   uint64_t res, ullf, h;
 
@@ -1350,7 +1350,7 @@ static void inline ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
   *resptr=res;
 }
 #else
-static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
+static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 {
   uint64_t res, h;
 
@@ -1365,7 +1365,7 @@ static void ulladdmul(uint64_t *resptr, uint ulf, uint64_t *ullfptr)
 /* for intel this is not necessary since we have 64bit long double */
 static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 	__asm
 	{
 		mov		esi,ullf1
@@ -1449,8 +1449,8 @@ static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 void init_knapsack_raw()
 {
   int i, j, l;
-  uint p, h, hh, inv, h6;
-  uint dp, d0p, p2, hp, N_mod_p2, a5_mod_p2;
+  unsigned int p, h, hh, inv, h6;
+  unsigned int dp, d0p, p2, hp, N_mod_p2, a5_mod_p2;
   double db;
 #ifdef HAVE_FLOAT64
   long double dbl_prod;
@@ -1712,7 +1712,7 @@ zeitB(19);
   raw_ull_bound=(uint64_t)db;
   raw_ull_bound+=(uint64_t)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
   if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
-  raw_bound=(uint)(raw_ull_bound>>31)+1+4;
+  raw_bound=(unsigned int)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
 zeitB(9);
 #endif
@@ -1720,11 +1720,11 @@ zeitB(9);
 }
 
 
-void init_knapsack_raw_p0(uint p0, uint r0)
+void init_knapsack_raw_p0(unsigned int p0, unsigned int r0)
 {
   int i, j, l;
-  uint p, h, hh, h6, inv;
-  uint dp, d0p, p2, hp, N_mod_p2, a5_mod_p2;
+  unsigned int p, h, hh, h6, inv;
+  unsigned int dp, d0p, p2, hp, N_mod_p2, a5_mod_p2;
   double db;
 #ifdef HAVE_FLOAT64
   long double dbl_prod;
@@ -1732,7 +1732,7 @@ void init_knapsack_raw_p0(uint p0, uint r0)
 #else
   uint64_t ull_5a5p;
 #endif
-  uint p_minus5a5_mod_p0;
+  unsigned int p_minus5a5_mod_p0;
 
   if (data_not_copied) {
     mpz_set(gmp_prod_1,gmp_prod);
@@ -2020,7 +2020,7 @@ zeitB(19);
   raw_ull_bound=(uint64_t)db;
   raw_ull_bound+=(uint64_t)((npr_in_p+2)*npr_in_p*p_pr[p_ind[npr_in_p-1]]);
   if (verbose>3) printf("raw_ull_bound: %" PRIu64 "\n",raw_ull_bound);
-  raw_bound=(uint)(raw_ull_bound>>31)+1+4;
+  raw_bound=(unsigned int)(raw_ull_bound>>31)+1+4;
 #ifdef ZEIT
 zeitB(9);
 #endif
@@ -2066,7 +2066,7 @@ to the description above.)
 int knapsack_raw()
 {
   int j;
-  uint h;
+  unsigned int h;
   int res;
 
 #ifdef ZEIT
@@ -2154,7 +2154,7 @@ zeitB(14);
 }
 
 
-int knapsack_raw_p0(uint p0)
+int knapsack_raw_p0(unsigned int p0)
 {
   return knapsack_raw();
 }
@@ -2197,9 +2197,9 @@ uint64_t renorm2(mpz_t n)
 void init_knapsack_exact()
 {
   int i, j, l;
-  uint p, h, hh, inv;
+  unsigned int p, h, hh, inv;
   uint64_t lambda0;
-  uint dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
+  unsigned int dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
   double db, dq;
 
 /* compute D_{i,j} */
@@ -2288,7 +2288,7 @@ void init_knapsack_exact()
           dq+=(((double)h)*dbl_kappa_help[l]);
         }
 
-      h=(uint)(dq);
+      h=(unsigned int)(dq);
       mpz_mul_ui(gmp_help3,gmp_prod,h);
       mpz_sub(gmp_kappa[i][j],gmp_help4,gmp_help3);
       if ((mpz_sgn(gmp_kappa[i][j])<0)
@@ -2367,12 +2367,12 @@ void init_knapsack_exact()
 }
 
 
-void init_knapsack_exact_p0(uint p0, uint r0)
+void init_knapsack_exact_p0(unsigned int p0, unsigned int r0)
 {
   int i, j, l;
-  uint p, h, hh, inv;
+  unsigned int p, h, hh, inv;
   uint64_t lambda0;
-  uint dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
+  unsigned int dp, d0p, p2, hp, N_mod_p2, an_mod_p2;
   double db, dq;
 
 /* compute D_{i,j} */
@@ -2504,7 +2504,7 @@ void init_knapsack_exact_p0(uint p0, uint r0)
           dq+=(((double)h)*dbl_kappa_help[l]);
         }
 
-      h=(uint)(dq);
+      h=(unsigned int)(dq);
       mpz_mul_ui(gmp_help3,gmp_prod,h);
       mpz_sub(gmp_kappa[i][j],gmp_help4,gmp_help3);
       if ((mpz_sgn(gmp_kappa[i][j])<0)
@@ -2690,7 +2690,7 @@ void check_raw()
 }
 
 
-void check_raw_p0(uint p0)
+void check_raw_p0(unsigned int p0)
 {
   return check_raw();
 }
@@ -2919,21 +2919,21 @@ zeitB(19);
 Preparations of auxilary factors.
 */
 
-int coprime(uint a, uint b)
+int coprime(unsigned int a, unsigned int b)
 {
-  uint r, bb=b, aa=a;
+  unsigned int r, bb=b, aa=a;
 
   while (bb) { r=aa%bb; aa=bb; bb=r; }
   return (aa==1);
 }
 
 
-void aux_factor_store(uint n, uint r)
+void aux_factor_store(unsigned int n, unsigned int r)
 {
   if (p0_list_len>=p0_list_len_max) {
     p0_list_len_max+=16;
-    p0_list=(uint *)xrealloc(p0_list,p0_list_len_max*sizeof(uint));
-    p0_root=(uint *)xrealloc(p0_root,p0_list_len_max*sizeof(uint));
+    p0_list=(unsigned int *)xrealloc(p0_list,p0_list_len_max*sizeof(unsigned int));
+    p0_root=(unsigned int *)xrealloc(p0_root,p0_list_len_max*sizeof(unsigned int));
     if (p0_list_len>=p0_list_len_max) complain("aux_factor_store\n");
   }
   p0_list[p0_list_len]=n;
@@ -2942,10 +2942,10 @@ void aux_factor_store(uint n, uint r)
 }
 
 
-uint aux_factor_phi(uint n)  /* n<=2^16 */
+unsigned int aux_factor_phi(unsigned int n)  /* n<=2^16 */
 {
   int i;
-  uint phi, d, p;
+  unsigned int phi, d, p;
 
   if (n>65536) complain("aux_factor_phi\n");
   d=n; phi=1;
@@ -2962,10 +2962,10 @@ uint aux_factor_phi(uint n)  /* n<=2^16 */
 }
 
 
-void aux_factor_roots(uint n)
+void aux_factor_roots(unsigned int n)
 {
   int i;
-  uint h, r, a5, N, p;
+  unsigned int h, r, a5, N, p;
 
   a5=mpz_fdiv_ui(gmp_a5,n);
   if (!coprime(a5,n)) return;
@@ -3002,11 +3002,11 @@ void aux_factor_roots(uint n)
 
 void init_aux_factors(double dbl_p0_max)
 {
-  uint n, p0m;
+  unsigned int n, p0m;
 
   p0_list[0]=1; p0_root[0]=0; p0_list_len=1;
   if (dbl_p0_max>(double)p0_limit) p0m=p0_limit;
-  else p0m=(uint)rint(dbl_p0_max);
+  else p0m=(unsigned int)rint(dbl_p0_max);
   if (p0m<2) return;
   for (n=2; n<=p0m; n++) {
     if (!coprime(n,MULTIPLIER)) continue;
@@ -3020,10 +3020,10 @@ All the initialising functions for finding suitable a5's, i. e.
 such that N=a5*x^5 mod p has many solutions modulo small p=1 (5)
 */
 
-uint powmod(uint a, uint e, uint p)  /* assumes a<2^16 */
+unsigned int powmod(unsigned int a, unsigned int e, unsigned int p)  /* assumes a<2^16 */
 {
-  uint ex=e;
-  uint aa, res;
+  unsigned int ex=e;
+  unsigned int aa, res;
 
   if (!ex) return 1;
   aa=a; res=1;
@@ -3037,7 +3037,7 @@ uint powmod(uint a, uint e, uint p)  /* assumes a<2^16 */
 }
 
 
-int is_5power(uint a, uint p) /* p!=5, 0 is not considered as fifth power */
+int is_5power(unsigned int a, unsigned int p) /* p!=5, 0 is not considered as fifth power */
 {
   if (p%5!=1) return 0;
   if (powmod(a,(p-1)/5,p)==1) return 1;
@@ -3048,7 +3048,7 @@ int is_5power(uint a, uint p) /* p!=5, 0 is not considered as fifth power */
 int find_primes()
 {
   int i, j, ind;
-  uint h, p;
+  unsigned int h, p;
   double size;
 
   ind=0;
@@ -3089,10 +3089,10 @@ int find_primes()
 }
 
 
-void fifth_root(uint *ro, uint a, uint p) /* perhaps improve this */
+void fifth_root(unsigned int *ro, unsigned int a, unsigned int p) /* perhaps improve this */
 {
   int ind;
-  uint h, r;
+  unsigned int h, r;
 
   ind=0;
   for (r=1; r<p; r++) {
@@ -3109,7 +3109,7 @@ void fifth_root(uint *ro, uint a, uint p) /* perhaps improve this */
 void init_all_pr()
 {
   int i, j;
-  uint h, p;
+  unsigned int h, p;
 
   for (i=0; i<npr_total; i++) {
     p=p_pr[i]; modulo32=p;
@@ -3212,18 +3212,18 @@ void init_search()
   s1len=s11len*s12len; s2len=s21len*s22len;
   shelp=(uint64_t *)xmalloc(s22len*sizeof(uint64_t)); /* s22len is maximum */
 
-  s11l=(uint *)xmalloc(s11len*sizeof(uint));
-  s12l=(uint *)xmalloc(s12len*sizeof(uint));
-  s21l=(uint *)xmalloc(s21len*sizeof(uint));
-  s22l=(uint *)xmalloc(s22len*sizeof(uint));
-  s1sortl=(uint *)xmalloc(s1len*sizeof(uint));
-  s2sortl=(uint *)xmalloc(s2len*sizeof(uint));
+  s11l=(unsigned int *)xmalloc(s11len*sizeof(unsigned int));
+  s12l=(unsigned int *)xmalloc(s12len*sizeof(unsigned int));
+  s21l=(unsigned int *)xmalloc(s21len*sizeof(unsigned int));
+  s22l=(unsigned int *)xmalloc(s22len*sizeof(unsigned int));
+  s1sortl=(unsigned int *)xmalloc(s1len*sizeof(unsigned int));
+  s2sortl=(unsigned int *)xmalloc(s2len*sizeof(unsigned int));
   s1=(uint64_t *)xmalloc(s1len*sizeof(uint64_t));
   s2=(uint64_t *)xmalloc(s2len*sizeof(uint64_t));
   s1sort=(uint64_t *)xmalloc(s1len*sizeof(uint64_t));
   s2sort=(uint64_t *)xmalloc(s2len*sizeof(uint64_t));
   raw_cand=(int *)xmalloc(s2len*sizeof(int));
-  raw_cand_hash=(uint *)xmalloc(s2len*sizeof(uint));
+  raw_cand_hash=(unsigned int *)xmalloc(s2len*sizeof(unsigned int));
 
   hashpart_shift=1;
   while (s22len/(1<<hashpart_shift)>64) hashpart_shift++;  /* 32 or 64 or 128 seem to be best on PIII */
@@ -3235,16 +3235,16 @@ void init_search()
   shelpsort=(uint64_t *)xmalloc(2*s22len/DEG*sizeof(uint64_t));
   indhelpsort=(int *)xmalloc(2*s22len/DEG*sizeof(int)); /* s22len>=s12len */
   indhelp=(int *)xmalloc(s22len*sizeof(int));
-  s11_begin=(uint *)xmalloc(s11len*sizeof(uint));
-  s21_begin=(uint *)xmalloc(s21len*sizeof(uint));
+  s11_begin=(unsigned int *)xmalloc(s11len*sizeof(unsigned int));
+  s21_begin=(unsigned int *)xmalloc(s21len*sizeof(unsigned int));
 
   s12l_sort_maxlen=s12len+(s12len/(1<<(31-hashpart_shift)));
   s22l_sort_maxlen=s22len+(s22len/(1<<(31-hashpart_shift)));
   s12l_sort_len=0; s22l_sort_len=0;
-  s12l_sort=(uint *)xmalloc(s12l_sort_maxlen*sizeof(uint));
-  s12l_ind=(uint *)xmalloc(s12l_sort_maxlen*sizeof(uint));
-  s22l_sort=(uint *)xmalloc(s22l_sort_maxlen*sizeof(uint));
-  s22l_ind=(uint *)xmalloc(s22l_sort_maxlen*sizeof(uint));
+  s12l_sort=(unsigned int *)xmalloc(s12l_sort_maxlen*sizeof(unsigned int));
+  s12l_ind=(unsigned int *)xmalloc(s12l_sort_maxlen*sizeof(unsigned int));
+  s22l_sort=(unsigned int *)xmalloc(s22l_sort_maxlen*sizeof(unsigned int));
+  s22l_ind=(unsigned int *)xmalloc(s22l_sort_maxlen*sizeof(unsigned int));
 
   mpz_sub_ui(gmp_a5,gmp_a5,MULTIPLIER);
   for (i=0; i<npr_mod5; i++) {
@@ -3268,8 +3268,8 @@ void init_search()
         bitarray_5power[i][j>>3]|=ucmask[j&7];
 
   p0_list_len_max=256;
-  p0_list=(uint *)xmalloc(p0_list_len_max*sizeof(uint));
-  p0_root=(uint *)xmalloc(p0_list_len_max*sizeof(uint));
+  p0_list=(unsigned int *)xmalloc(p0_list_len_max*sizeof(unsigned int));
+  p0_root=(unsigned int *)xmalloc(p0_list_len_max*sizeof(unsigned int));
 }
 
 
@@ -3278,9 +3278,9 @@ void search_a5()
 {
   int i, j, ind;
   double p_size, dp0_max;
-  uint p0, p0_max, r0;
+  unsigned int p0, p0_max, r0;
   int passed;
-  uint shift=0;
+  unsigned int shift=0;
 
   while (1) { stat_n_a5++;
     shift++;
@@ -3336,7 +3336,7 @@ zeitA(2);
 #endif
         dp0_max=exp(p_size_max-p_size);
         if (dp0_max>(double)(p0_limit)) p0_max=p0_limit;
-        else p0_max=(uint)(rint(dp0_max)-1);
+        else p0_max=(unsigned int)(rint(dp0_max)-1);
         if (p0_max<1) p0_max=1;
         p0=1;
         for (ind=0; ind<p0_list_len; ind++) {

@@ -35,9 +35,9 @@
 clock_t *zeitcounter;
 uint64_t *asmzeitcounter;
 double *zeitsum;
-uint zeitcounteranz;
+unsigned int zeitcounteranz;
 #ifdef HAVE_ASM_ALPHA
-uint *asmzeitcounter_begin;
+unsigned int *asmzeitcounter_begin;
 #endif
 
 extern void *xmalloc(size_t size);
@@ -45,7 +45,7 @@ extern void *xmalloc(size_t size);
 #ifdef HAVE_ASM_INTEL
 static inline void asmgetclock(uint64_t *clptr)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 	__asm
 	{
 		rdtsc
@@ -82,7 +82,7 @@ void zeita(int i)
 
   zeitcounter[i]=clock();
   asm_getclock(&asmcl);
-  asmzeitcounter_begin[i]=(uint)asmcl;
+  asmzeitcounter_begin[i]=(unsigned int)asmcl;
 #endif
 }
 
@@ -97,7 +97,7 @@ void zeitA(int i)
   uint64_t asmcl;
 
   asm_getclock(&asmcl);
-  asmzeitcounter_begin[i]=(uint)asmcl;
+  asmzeitcounter_begin[i]=(unsigned int)asmcl;
 #endif
 }
 
@@ -113,7 +113,7 @@ void zeitb(int i)
   asmzeitcounter[i]+=asmcl;
 #elif defined HAVE_ASM_ALPHA
   asm_getclock(&asmcl);
-  asmzeitcounter[i]+=(uint64_t)((uint)(asmcl)-asmzeitcounter_begin[i]);
+  asmzeitcounter[i]+=(uint64_t)((unsigned int)(asmcl)-asmzeitcounter_begin[i]);
 #endif
 }
 
@@ -128,7 +128,7 @@ void zeitB(int i)
   uint64_t asmcl;
 
   asm_getclock(&asmcl);
-  asmzeitcounter[i]+=(uint64_t)((uint)(asmcl)-asmzeitcounter_begin[i]);
+  asmzeitcounter[i]+=(uint64_t)((unsigned int)(asmcl)-asmzeitcounter_begin[i]);
 #endif
 }
 
@@ -141,7 +141,7 @@ void initzeit(int i)
   asmzeitcounter=(uint64_t *)xmalloc(i*sizeof(uint64_t));
   memset(asmzeitcounter,0,i*sizeof(uint64_t));
 #ifdef HAVE_ASM_ALPHA
-  asmzeitcounter_begin=(uint *)xmalloc(i*sizeof(uint));
+  asmzeitcounter_begin=(unsigned int *)xmalloc(i*sizeof(unsigned int));
 #endif
   zeitcounteranz=i;
 }

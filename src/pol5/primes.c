@@ -27,19 +27,17 @@
 #define NSMALLPRIMES      6542
 #define TABLELEN          32768         /* SMALLPRIMELIMIT=2*TABLELEN */
 
-#define uchar   unsigned char
-
-ushort table_small_primes[NSMALLPRIMES];
-ushort *table_small_ptr_end, *prime_small_ptr;
-uchar table_primes[TABLELEN];
-uchar *table_ptr_end, *prime_ptr;
-uint table_displacement;
+unsigned short table_small_primes[NSMALLPRIMES];
+unsigned short *table_small_ptr_end, *prime_small_ptr;
+unsigned char table_primes[TABLELEN];
+unsigned char *table_ptr_end, *prime_ptr;
+unsigned int table_displacement;
 
 
 void prime_table_init()
 {
-  ushort pr[]={ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31 };
-  uchar tmp[SMALLPRIMELIMIT];
+  unsigned short pr[]={ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31 };
+  unsigned char tmp[SMALLPRIMELIMIT];
   int ind, i, p, x;
 
   table_small_ptr_end=table_small_primes+NSMALLPRIMES;
@@ -78,12 +76,12 @@ void prime_table_zero()
 
 void compute_prime_table()
 {
-  uint i, p, x;
+  unsigned int i, p, x;
 
   table_displacement+=2*TABLELEN;
   memset(table_primes,1,TABLELEN);
   for (i=1; i<NSMALLPRIMES; i++) {
-    p=(uint)(table_small_primes[i]);
+    p=(unsigned int)(table_small_primes[i]);
     x=(table_displacement+1)%p;
     if (x) x=p-x;
     if (x&1) x+=p; x/=2;
@@ -93,13 +91,13 @@ void compute_prime_table()
 }
 
 
-void set_prime_table(uint p)
+void set_prime_table(unsigned int p)
 {
   if (p<=SMALLPRIMELIMIT) {
     prime_ptr=NULL;
     prime_small_ptr=table_small_primes;
     while (prime_small_ptr<table_small_ptr_end) {
-      if ((uint)(*prime_small_ptr)>=p) {
+      if ((unsigned int)(*prime_small_ptr)>=p) {
         prime_small_ptr--;
         return;
       }
@@ -114,12 +112,12 @@ void set_prime_table(uint p)
 }
 
 
-uint get_next_prime()
+unsigned int get_next_prime()
 {
   if (prime_ptr==NULL) {
     prime_small_ptr++;
     if (prime_small_ptr<table_small_ptr_end)
-      return ((uint)(*prime_small_ptr));
+      return ((unsigned int)(*prime_small_ptr));
     table_displacement=0;
     compute_prime_table();
     prime_ptr--;

@@ -17,24 +17,24 @@
 #include <sys/types.h>
 #include "lasieve-asm.h"
 
-extern ulong montgomery_inv_n;
-extern ulong *montgomery_modulo_n;
-extern ulong montgomery_modulo_R2[NMAX_ULONGS];
-extern ulong montgomery_modulo_R4[NMAX_ULONGS];
-extern ulong montgomery_ulongs;
+extern unsigned long montgomery_inv_n;
+extern unsigned long *montgomery_modulo_n;
+extern unsigned long montgomery_modulo_R2[NMAX_ULONGS];
+extern unsigned long montgomery_modulo_R4[NMAX_ULONGS];
+extern unsigned long montgomery_ulongs;
 
-extern void (*asm_mulmod) (ulong *, ulong *, ulong *);
-extern void (*asm_add2) (ulong *, ulong *);
-extern void (*asm_diff) (ulong *, ulong *, ulong *);
-extern void (*asm_zero) (ulong *);
-extern void (*asm_copy) (ulong *, ulong *);
-extern void (*asm_add2_ui) (ulong *, ulong);
-extern void (*asm_sub) (ulong *, ulong *, ulong *);
-extern void (*asm_sub_n) (ulong *, ulong *);
-extern void (*asm_half) (ulong *);
+extern void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *);
+extern void (*asm_add2) (unsigned long *, unsigned long *);
+extern void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *);
+extern void (*asm_zero) (unsigned long *);
+extern void (*asm_copy) (unsigned long *, unsigned long *);
+extern void (*asm_add2_ui) (unsigned long *, unsigned long);
+extern void (*asm_sub) (unsigned long *, unsigned long *, unsigned long *);
+extern void (*asm_sub_n) (unsigned long *, unsigned long *);
+extern void (*asm_half) (unsigned long *);
 
 /**************************************************/
-int asm_cmp64(ulong * a, ulong * b)
+int asm_cmp64(unsigned long * a, unsigned long * b)
 /**************************************************/
 {
   if (a[0] != b[0])
@@ -45,7 +45,7 @@ int asm_cmp64(ulong * a, ulong * b)
 }
 
 /**************************************************/
-int asm_cmp(ulong * a, ulong * b)
+int asm_cmp(unsigned long * a, unsigned long * b)
 /**************************************************/
 { long i;
 
@@ -56,9 +56,9 @@ int asm_cmp(ulong * a, ulong * b)
 }
 
 /**************************************************/
-void gcd64(ulong * gcd, ulong * a, ulong * b)
+void gcd64(unsigned long * gcd, unsigned long * a, unsigned long * b)
 /**************************************************/
-{ ulong r[2], bb[2], aa[2];
+{ unsigned long r[2], bb[2], aa[2];
 
   if (!(a[0] | a[1])) {
     gcd[0] = b[0];
@@ -103,9 +103,9 @@ void gcd64(ulong * gcd, ulong * a, ulong * b)
 }
 
 /**************************************************
-void gcd(ulong * gcd, ulong * a, ulong * b)
+void gcd(unsigned long * gcd, unsigned long * a, unsigned long * b)
 **************************************************
-{ ulong r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
+{ unsigned long r[NMAX_ULONGS], bb[NMAX_ULONGS], aa[NMAX_ULONGS];
   long i;
 
   for (i = 0; i < montgomery_ulongs; i++)
@@ -159,9 +159,9 @@ void gcd(ulong * gcd, ulong * a, ulong * b)
 }*/
 
 /**************************************************/
-void asm_half_old(ulong * a)
+void asm_half_old(unsigned long * a)
 /**************************************************/
-{ ulong c, n_half[NMAX_ULONGS];
+{ unsigned long c, n_half[NMAX_ULONGS];
   long i;
 
   for (i = 0; i < montgomery_ulongs - 1; i++)
@@ -180,12 +180,12 @@ void asm_half_old(ulong * a)
 }
 
 /**************************************************/
-int asm_invert(ulong * res, ulong * b)
+int asm_invert(unsigned long * res, unsigned long * b)
 /**************************************************/ 
 { long i, f1, len;
-  ulong t1[NMAX_ULONGS], t2[NMAX_ULONGS];
-  ulong v1[NMAX_ULONGS], v2[NMAX_ULONGS];
-  ulong n_half[NMAX_ULONGS];
+  unsigned long t1[NMAX_ULONGS], t2[NMAX_ULONGS];
+  unsigned long v1[NMAX_ULONGS], v2[NMAX_ULONGS];
+  unsigned long n_half[NMAX_ULONGS];
 
   for (i = 0; i < montgomery_ulongs; i++)
     if (b[i])

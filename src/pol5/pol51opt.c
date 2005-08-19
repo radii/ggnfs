@@ -52,7 +52,7 @@
 #define  MAX_Y           100  /* !!! */
 #define  SIEVELEN           8192
 
-uint primes[46]={
+unsigned int primes[46]={
  2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
  31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
  73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
@@ -863,26 +863,26 @@ typedef struct {
   int step;           /* stepwidth p^(k-l) */
   int start;          /* sievearray[start] has zero =i mod p^k */
   int lineinc;        /* increment for change y->y+1 */
-  ushort v;            /* scaled value */
+  unsigned short v;            /* scaled value */
   double value;        /* log(p)/(p^(k-1)*(p+1)) */
 } primelist;
 
 primelist pl[MAX_PRIME_AFF*MAX_PRIME_AFF];
 int primelistlen;
 double limit, tval, st_alpha;
-ushort sievearray[SIEVELEN], cut;
+unsigned short sievearray[SIEVELEN], cut;
 int sievelen, nsubsieves;
 
 int prep_len, prep_p_len[NAFF_PRIMES];
-uint prep_p_begin[NAFF_PRIMES][MAX_PRIME_AFF*2];
-uint *prep_p[NAFF_PRIMES];
+unsigned int prep_p_begin[NAFF_PRIMES][MAX_PRIME_AFF*2];
+unsigned int *prep_p[NAFF_PRIMES];
 
 
 void compute_proj_alpha()
 {
   int i, j, k;
-  uint p, p2, p3;
-  uint w, b3, b4, b5;
+  unsigned int p, p2, p3;
+  unsigned int w, b3, b4, b5;
   double value, dp, dl;
   double table[MAX_PRIME_PROJ];
 
@@ -1224,10 +1224,10 @@ mpz_out_str(stdout,10,gmp_d); printf("\n\n");
 */
 /* provisorisch */
   for (i=0; i<len; i++) {
-    pl[i].v=(ushort)(pl[i].value*1000.+0.5);
+    pl[i].v=(unsigned short)(pl[i].value*1000.+0.5);
     if (pl[i].v==0) pl[i].v=1;
   }
-  cut=(ushort)(limit*1000.+0.5);
+  cut=(unsigned short)(limit*1000.+0.5);
   if (cut==0) cut=1;
 
   primelistlen=len;
@@ -1237,7 +1237,7 @@ mpz_out_str(stdout,10,gmp_d); printf("\n\n");
 void prepare_sieve()
 {
   int l, i0, i1, i, k, p, pk, ii, st;
-  ushort *us_ptr;
+  unsigned short *us_ptr;
 
   l=0; i0=0;
   for (k=0; k<NAFF_PRIMES; k++) {
@@ -1253,7 +1253,7 @@ void prepare_sieve()
         pk=pl[i].primepower;         /* maximal primepower */
 
     for (i=0; i<pk; i++) prep_p_begin[l][i]=0;
-    us_ptr=(ushort *)(prep_p_begin[l]);
+    us_ptr=(unsigned short *)(prep_p_begin[l]);
     for (i=i0; i<i1; i++) {
       st=pl[i].step; ii=pl[i].start;
       while (ii<2*pk) {
@@ -1310,19 +1310,19 @@ void finish_sieve(int nsubsieves, int sievelen) /* provisorisch */
 }
 
 /* CJM, 2/28/05, prototype added: */
-void asm_root_sieve8(uint **p1, uint *p2, int l1, uint *p4, int l2);
+void asm_root_sieve8(unsigned int **p1, unsigned int *p2, int l1, unsigned int *p4, int l2);
 
 
 void sieve_new(int len)
 {
   int   i, len2;
-  uint *ul_sv;
+  unsigned int *ul_sv;
 #ifndef HAVE_ASM_INTEL
   int ind, end;
-  uint *ptr, *ptrbegin, *ptrend;
+  unsigned int *ptr, *ptrbegin, *ptrend;
 #endif
 
-  len2=len/2; ul_sv=(uint *)sievearray;
+  len2=len/2; ul_sv=(unsigned int *)sievearray;
   memset(sievearray,0,len*sizeof(*sievearray));
   for (i=0; i<prep_len; i++) {
 #ifdef HAVE_ASM_INTEL
@@ -1406,7 +1406,7 @@ zeitb(5);
     v=ifs(dbl_sv,sk);
     dbl_sv[2]+=dbl_p; dbl_sv[1]-=dbl_d;
     v=log(v)/2.;
-    cut=(ushort)((limit+v-lim0)*1000+0.5);
+    cut=(unsigned short)((limit+v-lim0)*1000+0.5);
     if (cut==0) cut=1;
     if (verbose>2) printf("y: %d, lim: %f cut: %d,  sk: %.2f\n",y,v,(int)cut,sk);
 

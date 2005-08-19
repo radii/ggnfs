@@ -29,7 +29,7 @@
 #define HAVE_CMOV
 #define HAVE_SSIMD
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
  typedef unsigned long ssize_t;
 #endif
 
@@ -44,21 +44,21 @@
 #define N_PRIMEBOUNDS 1
 #endif
 /*
-extern const ulong *schedule_primebounds;
-extern const ulong *schedule_sizebits;
+extern const unsigned long *schedule_primebounds;
+extern const unsigned long *schedule_sizebits;
 */
 
-extern const ulong schedule_primebounds[N_PRIMEBOUNDS];
-extern const ulong schedule_sizebits[N_PRIMEBOUNDS];
+extern const unsigned long schedule_primebounds[N_PRIMEBOUNDS];
+extern const unsigned long schedule_sizebits[N_PRIMEBOUNDS];
 void siever_init(void);
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
 #define NAME(_a) asm(_a)
 #else
 #define NAME(_a) 
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__MINGW32__)
 
 #define inline __inline
 #define modinv32(x) asm_modinv32(x)
@@ -238,8 +238,8 @@ int schedsieve(unsigned char x, unsigned char *sieve_interval,
                u16_t *schedule_ptr, u16_t *sptr_ub) NAME("schedsieve");
 
 /* basemath.c */
-int asm_cmp(ulong * a, ulong * b);
-int asm_cmp64(ulong * a, ulong * b);
+int asm_cmp(unsigned long * a, unsigned long * b);
+int asm_cmp64(unsigned long * a, unsigned long * b);
 
 /* gcd32.c */
 u32_t gcd32(u32_t x, u32_t y);
@@ -252,104 +252,104 @@ long mpqs_factor(mpz_t N, long max_bits, mpz_t ** factors);
 void complain(char *fmt, ...);
 
 /* ri-aux.s */
-ulong asm_getbc(u32_t r, u32_t p, u32_t A, u32_t *b, u32_t *s, u32_t *c, u32_t *t) NAME("asm_getbc");
+unsigned long asm_getbc(u32_t r, u32_t p, u32_t A, u32_t *b, u32_t *s, u32_t *c, u32_t *t) NAME("asm_getbc");
 
 /* mpqs_sieve.s */
 int asm_sieve() NAME("asm_sieve");
 
 /* mpqs_eval.s */
-ushort asm_evaluate(ulong *, ulong *, ushort *, long) NAME("asm_evaluate");
+unsigned short asm_evaluate(unsigned long *, unsigned long *, unsigned short *, long) NAME("asm_evaluate");
 
 /* mpqs_td.s */
-int asm_td(ushort *, ushort, uint64_t*, ulong*) NAME("asm_td");
+int asm_td(unsigned short *, unsigned short, uint64_t*, unsigned long*) NAME("asm_td");
 
 /* misc arithmetic files: */
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW32__)
 
-extern void asm_mulm64(ulong *, ulong *, ulong *) NAME("asm_mulm64");
-extern void asm_mulm96(ulong *, ulong *, ulong *) NAME("asm_mulm96");
-extern void asm_mulm128(ulong *, ulong *, ulong *) NAME("asm_mulm128");
+extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *) NAME("asm_mulm64");
+extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *) NAME("asm_mulm96");
+extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *) NAME("asm_mulm128");
 
-extern void asm_sqm64(ulong *, ulong *) NAME("asm_sqm64");
-extern void asm_sqm96(ulong *, ulong *) NAME("asm_sqm96");
-extern void asm_sqm128(ulong *, ulong *) NAME("asm_sqm128");
+extern void asm_sqm64(unsigned long *, unsigned long *) NAME("asm_sqm64");
+extern void asm_sqm96(unsigned long *, unsigned long *) NAME("asm_sqm96");
+extern void asm_sqm128(unsigned long *, unsigned long *) NAME("asm_sqm128");
 
-extern void asm_add64(ulong *, ulong *) NAME("asm_add64");
-extern void asm_add96(ulong *, ulong *) NAME("asm_add96");
-extern void asm_add128(ulong *, ulong *) NAME("asm_add128");
+extern void asm_add64(unsigned long *, unsigned long *) NAME("asm_add64");
+extern void asm_add96(unsigned long *, unsigned long *) NAME("asm_add96");
+extern void asm_add128(unsigned long *, unsigned long *) NAME("asm_add128");
 
-extern void asm_diff64(ulong *, ulong *, ulong *) NAME("asm_diff64");
-extern void asm_diff96(ulong *, ulong *, ulong *) NAME("asm_diff96");
-extern void asm_diff128(ulong *, ulong *, ulong *) NAME("asm_diff128");
+extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *) NAME("asm_diff64");
+extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *) NAME("asm_diff96");
+extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *) NAME("asm_diff128");
 
-extern void asm_sub64(ulong *, ulong *, ulong *) NAME("asm_sub64");
-extern void asm_sub96(ulong *, ulong *, ulong *) NAME("asm_sub96");
-extern void asm_sub128(ulong *, ulong *, ulong *) NAME("asm_sub128");
+extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *) NAME("asm_sub64");
+extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *) NAME("asm_sub96");
+extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *) NAME("asm_sub128");
 
-extern void asm_add64_ui(ulong *, ulong) NAME("asm_add64_ui");
-extern void asm_add96_ui(ulong *, ulong) NAME("asm_add96_ui");
-extern void asm_add128_ui(ulong *, ulong) NAME("asm_add128_ui");
+extern void asm_add64_ui(unsigned long *, unsigned long) NAME("asm_add64_ui");
+extern void asm_add96_ui(unsigned long *, unsigned long) NAME("asm_add96_ui");
+extern void asm_add128_ui(unsigned long *, unsigned long) NAME("asm_add128_ui");
 
-extern void asm_zero64(ulong *, ulong *) NAME("asm_zero64");
-extern void asm_zero96(ulong *, ulong *) NAME("asm_zero96");
-extern void asm_zero128(ulong *, ulong *) NAME("asm_zero128");
+extern void asm_zero64(unsigned long *, unsigned long *) NAME("asm_zero64");
+extern void asm_zero96(unsigned long *, unsigned long *) NAME("asm_zero96");
+extern void asm_zero128(unsigned long *, unsigned long *) NAME("asm_zero128");
 
-extern void asm_copy64(ulong *, ulong *) NAME("asm_copy64");
-extern void asm_copy96(ulong *, ulong *) NAME("asm_copy96");
-extern void asm_copy128(ulong *, ulong *) NAME("asm_copy128");
+extern void asm_copy64(unsigned long *, unsigned long *) NAME("asm_copy64");
+extern void asm_copy96(unsigned long *, unsigned long *) NAME("asm_copy96");
+extern void asm_copy128(unsigned long *, unsigned long *) NAME("asm_copy128");
 
-extern void asm_sub_n64(ulong *, ulong *) NAME("asm_sub_n64");
-extern void asm_sub_n96(ulong *, ulong *) NAME("asm_sub_n96");
-extern void asm_sub_n128(ulong *, ulong *) NAME("asm_sub_n128");
+extern void asm_sub_n64(unsigned long *, unsigned long *) NAME("asm_sub_n64");
+extern void asm_sub_n96(unsigned long *, unsigned long *) NAME("asm_sub_n96");
+extern void asm_sub_n128(unsigned long *, unsigned long *) NAME("asm_sub_n128");
 
-extern void asm_half64(ulong *) NAME("asm_half64");
-extern void asm_half96(ulong *) NAME("asm_half96");
-extern void asm_half128(ulong *) NAME("asm_half128");
+extern void asm_half64(unsigned long *) NAME("asm_half64");
+extern void asm_half96(unsigned long *) NAME("asm_half96");
+extern void asm_half128(unsigned long *) NAME("asm_half128");
 
 #else
 
 #define ASM_SUBS_DECLARED
 
-extern void asm_mulm64(ulong *, ulong *, ulong *);
-extern void asm_mulm96(ulong *, ulong *, ulong *);
-extern void asm_mulm128(ulong *, ulong *, ulong *);
+extern void asm_mulm64(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_mulm96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_mulm128(unsigned long *, unsigned long *, unsigned long *);
 
-extern void asm_sqm64(ulong *, ulong *);
-extern void asm_sqm96(ulong *, ulong *);
-extern void asm_sqm128(ulong *, ulong *);
+extern void asm_sqm64(unsigned long *, unsigned long *);
+extern void asm_sqm96(unsigned long *, unsigned long *);
+extern void asm_sqm128(unsigned long *, unsigned long *);
 
-extern void asm_add64(ulong *, ulong *);
-extern void asm_add96(ulong *, ulong *);
-extern void asm_add128(ulong *, ulong *);
+extern void asm_add64(unsigned long *, unsigned long *);
+extern void asm_add96(unsigned long *, unsigned long *);
+extern void asm_add128(unsigned long *, unsigned long *);
 
-extern void asm_diff64(ulong *, ulong *, ulong *);
-extern void asm_diff96(ulong *, ulong *, ulong *);
-extern void asm_diff128(ulong *, ulong *, ulong *);
+extern void asm_diff64(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_diff96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_diff128(unsigned long *, unsigned long *, unsigned long *);
 
-extern void asm_sub64(ulong *, ulong *, ulong *);
-extern void asm_sub96(ulong *, ulong *, ulong *);
-extern void asm_sub128(ulong *, ulong *, ulong *);
+extern void asm_sub64(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_sub96(unsigned long *, unsigned long *, unsigned long *);
+extern void asm_sub128(unsigned long *, unsigned long *, unsigned long *);
 
-extern void asm_add64_ui(ulong *, ulong);
-extern void asm_add96_ui(ulong *, ulong);
-extern void asm_add128_ui(ulong *, ulong);
+extern void asm_add64_ui(unsigned long *, unsigned long);
+extern void asm_add96_ui(unsigned long *, unsigned long);
+extern void asm_add128_ui(unsigned long *, unsigned long);
 
-extern void asm_zero64(ulong *, ulong *);
-extern void asm_zero96(ulong *, ulong *);
-extern void asm_zero128(ulong *, ulong *);
+extern void asm_zero64(unsigned long *, unsigned long *);
+extern void asm_zero96(unsigned long *, unsigned long *);
+extern void asm_zero128(unsigned long *, unsigned long *);
 
-extern void asm_copy64(ulong *, ulong *);
-extern void asm_copy96(ulong *, ulong *);
-extern void asm_copy128(ulong *, ulong *);
+extern void asm_copy64(unsigned long *, unsigned long *);
+extern void asm_copy96(unsigned long *, unsigned long *);
+extern void asm_copy128(unsigned long *, unsigned long *);
 
-extern void asm_sub_n64(ulong *, ulong *);
-extern void asm_sub_n96(ulong *, ulong *);
-extern void asm_sub_n128(ulong *, ulong *);
+extern void asm_sub_n64(unsigned long *, unsigned long *);
+extern void asm_sub_n96(unsigned long *, unsigned long *);
+extern void asm_sub_n128(unsigned long *, unsigned long *);
 
-extern void asm_half64(ulong *);
-extern void asm_half96(ulong *);
-extern void asm_half128(ulong *);
+extern void asm_half64(unsigned long *);
+extern void asm_half96(unsigned long *);
+extern void asm_half128(unsigned long *);
 
 #endif
 

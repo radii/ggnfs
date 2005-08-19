@@ -22,18 +22,18 @@
 #include <gmp.h>
 #include "lasieve-asm.h"
 
-extern ulong montgomery_inv_n;
-extern ulong *montgomery_modulo_n;
-extern ulong montgomery_modulo_R2[NMAX_ULONGS];
-extern ulong montgomery_ulongs;
+extern unsigned long montgomery_inv_n;
+extern unsigned long *montgomery_modulo_n;
+extern unsigned long montgomery_modulo_R2[NMAX_ULONGS];
+extern unsigned long montgomery_ulongs;
 
-extern void (*asm_mulmod) (ulong *, ulong *, ulong *);
-extern void (*asm_squmod) (ulong *, ulong *);
-extern void (*asm_add2) (ulong *, ulong *);
-extern void (*asm_diff) (ulong *, ulong *, ulong *);
+extern void (*asm_mulmod) (unsigned long *, unsigned long *, unsigned long *);
+extern void (*asm_squmod) (unsigned long *, unsigned long *);
+extern void (*asm_add2) (unsigned long *, unsigned long *);
+extern void (*asm_diff) (unsigned long *, unsigned long *, unsigned long *);
 
 #if 0
-int asm_cmp64(ulong * a, ulong * b)
+int asm_cmp64(unsigned long * a, unsigned long * b)
 {
   if (a[0] != b[0])
     return 1;
@@ -46,7 +46,7 @@ int asm_cmp64(ulong * a, ulong * b)
 /*******************************************************/
 int psp64()
 /*******************************************************/
-{ ulong x[2], ex[2], one[2], s;
+{ unsigned long x[2], ex[2], one[2], s;
   long e, i, b=0, v;
 
   if (!(montgomery_modulo_n[0] & 1))
@@ -116,7 +116,7 @@ int psp64()
 }
 
 #if 0
-int asm_cmp(ulong * a, ulong * b)
+int asm_cmp(unsigned long * a, unsigned long * b)
 {
   long i;
 
@@ -130,7 +130,7 @@ int asm_cmp(ulong * a, ulong * b)
 /*******************************************************/
 int psp(mpz_t n)
 /*******************************************************/
-{ ulong x[NMAX_ULONGS], ex[NMAX_ULONGS], one[NMAX_ULONGS], s;
+{ unsigned long x[NMAX_ULONGS], ex[NMAX_ULONGS], one[NMAX_ULONGS], s;
   long e, i, b, v;
 
   if (!set_montgomery_multiplication(n))

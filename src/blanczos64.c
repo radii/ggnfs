@@ -58,6 +58,9 @@
 
 #if defined( USE_MMX_GCC )
 #if defined(__MINGW32__) || defined(MINGW32)
+void * __cdecl __mingw_aligned_malloc (size_t, size_t);
+void * __cdecl __mingw_aligned_realloc (void*, size_t, size_t);
+void __cdecl __mingw_aligned_free (void*);
 #define malloc_aligned64(p,a,n) (!((p) = (u64*)__mingw_aligned_malloc((n)*sizeof(u64),(a))) || ((uintptr_t)(p)%(a)))
 #define free_aligned64(x) __mingw_aligned_free(x)
 #else

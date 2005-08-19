@@ -25,7 +25,7 @@
 #include "lasieve.h"
 
 #ifdef ULL_NO_UL
-static ulong have_init = 0;
+static unsigned long have_init = 0;
 static mpz_t auxz, auxz2;
 
 #define ULLONG_MAX 0xffffffffffffffffULL
@@ -42,18 +42,18 @@ void mpz_ull_init()
 }
 #endif
 
-#define BITS_PER_ULONG (sizeof(ulong)*CHAR_BIT)
+#define BITS_PER_ULONG (sizeof(unsigned long)*CHAR_BIT)
 #ifdef ULL_NO_UL
 /****************************************************/
 void mpz_set_ull(mpz_t targ, uint64_t src)
 /****************************************************/
 {
   mpz_set_ui(targ,
-             (ulong) ((src &
+             (unsigned long) ((src &
                        ((uint64_t) ULONG_MAX << BITS_PER_ULONG)) >>
                       BITS_PER_ULONG));
   mpz_mul_2exp(targ, targ, BITS_PER_ULONG);
-  mpz_add_ui(targ, targ, (ulong) (src & ULONG_MAX));
+  mpz_add_ui(targ, targ, (unsigned long) (src & ULONG_MAX));
 }
 #endif
 
@@ -64,24 +64,24 @@ uint64_t mpz_get_ull(mpz_t src)
 {
   uint64_t res;
 
-  if (sizeof(uint64_t) == 2 * sizeof(ulong)) {
-    mpz_fdiv_q_2exp(auxz, src, sizeof(ulong) * CHAR_BIT);
+  if (sizeof(uint64_t) == 2 * sizeof(unsigned long)) {
+    mpz_fdiv_q_2exp(auxz, src, sizeof(unsigned long) * CHAR_BIT);
     res = mpz_get_ui(auxz);
-    res <<= sizeof(ulong) * CHAR_BIT;
+    res <<= sizeof(unsigned long) * CHAR_BIT;
     res |= mpz_get_ui(src);
   } else {
 
-    if (sizeof(ulong) == sizeof(uint64_t))
+    if (sizeof(unsigned long) == sizeof(uint64_t))
       return mpz_get_ui(src);
     else {
-      ulong i;
+      unsigned long i;
 
       res = mpz_get_ui(src);
-      mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(ulong));
-      res |= ((uint64_t) mpz_get_ui(auxz)) << (sizeof(ulong) * CHAR_BIT);
-      for (i = 2; i * sizeof(ulong) < sizeof(uint64_t); i++) {
-        mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(ulong));
-        res |= ((uint64_t) mpz_get_ui(auxz)) << (i * sizeof(ulong) * CHAR_BIT);
+      mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(unsigned long));
+      res |= ((uint64_t) mpz_get_ui(auxz)) << (sizeof(unsigned long) * CHAR_BIT);
+      for (i = 2; i * sizeof(unsigned long) < sizeof(uint64_t); i++) {
+        mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(unsigned long));
+        res |= ((uint64_t) mpz_get_ui(auxz)) << (i * sizeof(unsigned long) * CHAR_BIT);
       }
     }
   }
