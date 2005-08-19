@@ -739,20 +739,20 @@ double dickmanStrong(double x, int numTerms);
 
 /* assess.c */
 void init_assess(double b0, double b1, double area, int pb);
-uint invert(uint a, uint p);  /* 0<b<p */
+unsigned int invert(unsigned int a, unsigned int p);  /* 0<b<p */
 void murphy_en(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
                double alpha0, double alpha1, double skewness, int nsm);
 void murphy_e(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
               double alpha0, double alpha1, double skewness);
-int compute_alpha(double *alpha, int deg, uint **coeffmod, mpz_t *gmp_coeff, double alpha_targ);
-void compute_alpha_exact(double *alpha, int deg, uint **coeffmod, mpz_t *gmp_coeff, uint pb);
+int compute_alpha(double *alpha, int deg, unsigned int **coeffmod, mpz_t *gmp_coeff, double alpha_targ);
+void compute_alpha_exact(double *alpha, int deg, unsigned int **coeffmod, mpz_t *gmp_coeff, unsigned int pb);
   	       
 /* roots.c */
 int find_optima(int *deg, double **coeff, double skewness, double **optima);
 
 /* primes.c */
 void prime_table_init();
-uint get_next_prime();
+unsigned int get_next_prime();
 
 
 /*******************************************************/
