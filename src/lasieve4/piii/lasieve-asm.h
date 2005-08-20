@@ -29,7 +29,10 @@
 #define PREINVERT
 #define HAVE_ASM_GETBC
 #define ASM_SCHEDSIEVE
+#define asm_modinv32 modinv32
 
+#undef GGNFS_BIGENDIAN
+#define BITS_PER_ULONG 32
 
 #if 1
 #define N_PRIMEBOUNDS 7

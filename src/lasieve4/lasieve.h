@@ -69,4 +69,7 @@ extern int32_t n_iter;
 /* primgen32.c */
 uint32_t pr32_seek(pr32_struct * ps, uint32_t lb);
 
+/* psp.c */
+int psp(mpz_t);
+
 #endif

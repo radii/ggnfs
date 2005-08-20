@@ -23,8 +23,10 @@ all : $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e $(BINDIR)/gnfs-las
 
 .SECONDARY: *.c *.o
 
-SRCFILES=fbgen.c gnfs-lasieve4e.c input-poly.c mpz-ull.c real-poly-aux.c redu2.c \
+SRCFILES=fbgen.c gnfs-lasieve4e.c input-poly.c mpqs.c mpz-ull.c real-poly-aux.c redu2.c \
          gmp-aux.c if.c lasieve-prepn.c primgen32.c recurrence6.c lasieve.h ppc32/siever-config.h 
+
+OBJS=../if.o input-poly.o redu2.o recurrence6.o ../fbgen.o real-poly-aux.o primgen32.o libgmp-aux.a lasieve-prepn.o mpqs.o
 
 %.o: %.c lasieve.h 
 	$(CC) -c -o $@ $<
@@ -46,26 +48,17 @@ libgmp-aux.a: gmp-aux.o mpz-ull.o
 
 lasieve-prepn.o: lasieve.h
 
-$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o ../if.o input-poly.o redu2.o \
-	recurrence6.o ../fbgen.o real-poly-aux.o \
-	primgen32.o libgmp-aux.a lasieve-prepn.o \
-	ppc32/liblasieve.a ppc32/liblasieveI12.a $(FACT)
+$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) ppc32/liblasieve.a ppc32/liblasieveI12.a $(FACT)
 	$(CC)  -o $@ $^ -lgmp -lm
 
-$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o ../if.o input-poly.o redu2.o \
-	recurrence6.o ../fbgen.o real-poly-aux.o \
-	primgen32.o libgmp-aux.a lasieve-prepn.o \
-	ppc32/liblasieve.a ppc32/liblasieveI13.a $(FACT)
+$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) ppc32/liblasieve.a ppc32/liblasieveI13.a $(FACT)
 	$(CC)  -o $@ $^ -lgmp -lm
 
-$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o ../if.o input-poly.o redu2.o \
-	recurrence6.o ../fbgen.o real-poly-aux.o \
-	primgen32.o libgmp-aux.a lasieve-prepn.o \
-	ppc32/liblasieve.a ppc32/liblasieveI14.a $(FACT)
+$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) ppc32/liblasieve.a ppc32/liblasieveI14.a $(FACT)
 	$(CC)  -o $@ $^ -lgmp -lm
 
 ppc32/lib%.a: ;
-	cd ppc32; make
+	cd ppc32; CFLAGS=-D__ppc__ make
 
 clean : ;
 	rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e 

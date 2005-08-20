@@ -14,8 +14,7 @@
 #CFLAGS= -O3 -march=athlon
 #CFLAGS= -g
 CC=gcc -I.. -I../.. -I../../../include
-SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c mpqs-hack.c montgomery_mul.c \
-	basemath.c asm_mul64.S \
+SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c montgomery_mul.c basemath.c asm_mul64.S \
 	asm_mul96.s asm_mul128.s sieve-from-sched.S lasched.c medsched.c \
 	Makefile siever-config.c lasieve-asm.h
 
@@ -27,9 +26,9 @@ SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c mpqs-hack.c montgomery_mul.c \
 
 .PHONY:	bup
 
-montgomery_mul.o mpqs.o: lasieve-asm.h ../lasieve.h
+montgomery_mul.o: lasieve-asm.h ../lasieve.h
 
-liblasieve.a: modinv1002.o gcd32.o ri-aux.o psp.o mpqs-hack.o montgomery_mul.o \
+liblasieve.a: modinv1002.o gcd32.o ri-aux.o psp.o montgomery_mul.o \
 	basemath.o sieve-from-sched.o siever-config.o \
 	asm_mul64.o asm_mul96.o asm_mul128.o
 	ar rcs $@ $^

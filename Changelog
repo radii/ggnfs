@@ -1,3 +1,7 @@
+8/20/05 (relf)
+  * lasieve4/piii/mpsq-hack.c moved to lasieve4/mpqs.c and shared
+  * x86_64 siever now works
+
 8/19/05 (asl)
   * Renamed BIGENDIAN define to GGNFS_BIGENDIAN due to collision with
     winsock2.h

@@ -9,12 +9,11 @@
 
 CC=gcc -O3 -I.. -I../.. -I../../../include
 
-SRCFILES=gcd32.c 32bit.h modinv32.c mpqs.c psp.c Makefile \
-	siever-config32.h lasched.c medsched.c \
+SRCFILES=gcd32.c 32bit.h modinv32.c psp.c siever-config32.h lasched.c medsched.c
 
 all: liblasieve.a liblasieveI12.a liblasieveI13.a liblasieveI14.a
 
-liblasieve.a: gcd32.o psp.o mpqs.o modinv32.o
+liblasieve.a: gcd32.o psp.o modinv32.o
 	ar rcs $@ $^
 
 laschedI%.o: lasched.c siever-config.h
