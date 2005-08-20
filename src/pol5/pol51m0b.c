@@ -22,6 +22,12 @@
 #define HAVE_ASM
 #endif
 
+#if defined(_MSC_VER) && !defined(__MINGW32__)
+#include "ggnfs.h"
+typedef unsigned char uchar;
+typedef unsigned long long uint64_t;
+#endif
+
 #ifdef HAVE_ASM_ALPHA
 #define HAVE_ASM
 #endif

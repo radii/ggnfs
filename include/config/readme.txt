@@ -1,0 +1,1 @@
+This is just dummy directory. I hope, sometimes it will be used ;)
