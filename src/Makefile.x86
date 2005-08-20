@@ -46,7 +46,7 @@ endif
 BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
 
 ifeq ($(MATBUILD_TPIE),1)
-BINS+= matbuild-tpie
+BINS+= $(BINDIR)/matbuild-tpie
 INC+= -I$(TPIE_DIR)/include
 LIBFLAGS+= -L$(TPIE_DIR)/lib
 endif
