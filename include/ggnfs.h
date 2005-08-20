@@ -580,7 +580,7 @@ static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
 {
    return ((uint64_t)x*(uint64_t)y%m);
 }
-#elif defined( _MSC_VER )
+#elif defined( _MSC_VER ) && !defined(__MINGW32__)
 #else
 extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
 #endif

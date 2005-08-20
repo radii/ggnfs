@@ -39,11 +39,13 @@ EXCLUDE_FILES=*.tar *.fb spairs.out* core msdebug.txt maplesyntax rels.bin* \
 EXCLUDE=$(foreach opt,$(EXCLUDE_FILES),--exclude=$(opt))
 
 x86common : src ;
+	rm -f include/version.h
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
 	@cd src/lasieve4 && rm -f -r asm && ln -s piii asm
 	@ARCH=$(ARCH) $(MAKE) -C src -f Makefile.x86
 
 common : src ;
+	rm -f include/version.h
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
 	@ARCH=$(ARCH) $(MAKE) -C src -f Makefile.$(TARGET)
 
@@ -55,6 +57,7 @@ clean : ;
 	cd ./tests; sh cleanup.sh
 
 snapshot : clean ;
+	rm -f include/version.h
 	echo "#define GGNFS_VERSION \"$(VERSION)\"" > include/version.h
 	echo $(VERSION) > Version; date -u >> Version
 	tar cvf ggnfs-$(VERSION).tar -C ../ $(EXCLUDE) ./$(THISDIR)/ 
