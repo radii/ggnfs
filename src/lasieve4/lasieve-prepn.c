@@ -15,12 +15,7 @@
 
 #include <sys/types.h>
 #include <math.h>
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#define asm_modinv32(x) modinv32(x)
-#else
-#include "asm/lasieve-asm.h"
-#endif
+
 #include "lasieve.h"
 
 /*********************************************************/

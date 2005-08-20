@@ -26,11 +26,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <math.h>
 #include <gmp.h>
 
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
 #include "lasieve.h"
 
 #ifdef MPQS_STAT

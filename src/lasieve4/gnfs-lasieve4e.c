@@ -21,9 +21,9 @@
 #include <limits.h>
 #include <string.h>
 #include <time.h>
+
 #if defined (_MSC_VER) || defined (__MINGW32__)
 #include "getopt.h"
-#include "if.h"
 #define popen  _popen
 #define pclose _pclose
 #define bzero(x,n)	memset(x,0,n)
@@ -40,15 +40,13 @@
 #include <gmp.h>
 #include <signal.h>
 #include <setjmp.h>
+
+#include "lasieve.h"
+
 #ifdef __ppc__
-#include "ppc32/siever-config.h"
-#define asm_modinv32(x) modinv32(x)
 const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,UINT_MAX};
 const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
-#else
-#include "asm/lasieve-asm.h"
 #endif
-#include "lasieve.h"
 
 #define GCD_SIEVE_BOUND 10
 #define MAX_TINY_2POW 4

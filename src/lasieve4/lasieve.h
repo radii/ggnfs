@@ -19,6 +19,12 @@
 #include <stdarg.h> 
 #include <stdio.h> 
 
+#ifdef __ppc__
+#include "ppc32/siever-config.h"
+#define asm_modinv32(x) modinv32(x)
+#else
+#include "asm/lasieve-asm.h"
+#endif
 #include "if.h"
 
 #ifdef _MSC_VER

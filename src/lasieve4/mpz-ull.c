@@ -17,11 +17,6 @@
 #include <limits.h>
 #include <gmp.h>
 
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
 #include "lasieve.h"
 
 #ifdef ULL_NO_UL

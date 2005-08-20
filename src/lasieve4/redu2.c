@@ -14,11 +14,7 @@
 */
 
 #include <math.h>
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
+
 #include "lasieve.h"
 
 i32_t n_iter = 0;

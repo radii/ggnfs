@@ -15,11 +15,7 @@
 
 #include <sys/types.h>
 #include <limits.h>
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
+
 #include "lasieve.h"
 
 static u32_t A, A_bits, ub;

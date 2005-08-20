@@ -17,11 +17,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <gmp.h>
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
-#include "asm/lasieve-asm.h"
-#endif
+
 #include "lasieve.h"
 
 /********************************************************/

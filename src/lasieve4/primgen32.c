@@ -20,14 +20,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <gmp.h>
-#ifdef __ppc__
-#include "ppc32/siever-config.h"
-#else
+
 #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
 #include <malloc.h>
 #endif
-#include "asm/lasieve-asm.h"
-#endif
+
 #include "lasieve.h"
 
 #ifdef DEBUG
