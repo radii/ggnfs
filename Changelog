@@ -1,6 +1,8 @@
 8/20/05 (relf)
+  * example pol5/rsa512* moved to tests/rsa512_pol5/
   * lasieve4/piii/mpsq-hack.c moved to lasieve4/mpqs.c and shared
-  * x86_64 siever now works
+  * x86_64 siever now works 
+  * x86_64 assembler code is added to gnfs-lasieve4e.c (but it seems pointless)
 
 8/19/05 (asl)
   * Renamed BIGENDIAN define to GGNFS_BIGENDIAN due to collision with

@@ -24,6 +24,8 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 typedef uint32_t ulong;
 #define GGNFS_BIGENDIAN
 #define GNFS_CS32
+#else
+#define HAVE_SSIMD
 #endif
 
 #define PREINVERT
