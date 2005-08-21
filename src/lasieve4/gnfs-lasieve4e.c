@@ -468,6 +468,156 @@ double sTime()
 }
 #endif
 
+
+#ifdef GNFS_CS32
+#define bc_t uint32_t
+#define BC_MASK 0x80808080U
+#else
+#define bc_t uint64_t
+#define BC_MASK 0x8080808080808080ULL
+#endif
+
+inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
+  // align i_o & i_max to 32-byte boundary
+  for(;i_o<i_max && ((size_t)i_o & 0x1F);++i_o) {
+    if (*i_o >= st1) {
+      cand[ncand] = i_o - sieve_interval;
+      fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
+    }
+  }
+  while(i_o<i_max && ((size_t)i_max & 0x1F)) {
+    if (*--i_max >= st1) {
+      cand[ncand] = i_max - sieve_interval;
+      fss_sv[ncand++] = *i_max + horizontal_sievesums[j];
+    }
+  }
+#ifndef HAVE_SSIMD
+  if (st1 < 0x80) {
+    bc_t bc, *i_oo;
+
+    bc = st1;
+    bc = (bc << 8) | bc;
+    bc = (bc << 16) | bc;
+#ifndef GNFS_CS32
+    bc = (bc << 32) | bc;
+#endif
+    bc = BC_MASK - bc;
+    for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max;
+	 i_oo++) {
+      bc_t v = *i_oo;
+
+      if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0) continue;
+      for (i_o=(uchar *)i_oo; i_o<(uchar *)(i_oo+1); i_o++) {
+	if (*i_o >= st1) {
+	  cand[ncand] = i_o - sieve_interval;
+	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
+	}
+      }
+    }
+  } else {
+    bc_t *i_oo;
+
+    for (i_oo=(bc_t *)i_o; i_oo<(bc_t*)i_max; i_oo++) {
+      if ((*i_oo & BC_MASK) == 0) continue;
+      for (i_o=(uchar *)i_oo; i_o<(uchar *)(i_oo+1); i_o++) {
+	if (*i_o >= st1) {
+	  cand[ncand] = i_o - sieve_interval;
+	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
+	}
+      }
+    }
+  }
+
+#else
+
+  uint64_t x;
+
+  x = st1 - 1;
+  x |= x << 8;
+  x |= x << 16;
+  x |= x << 32;
+  while (i_o < i_max) {
+#if defined(_MSC_VER) && !defined(__MINGW32__)
+  __asm {
+	  mov    	esi,[i_o]
+	  mov    	edi,[i_max]
+	  lea    	eax,[x]
+	  movq	        mm7,[eax]
+  l1:     movq	        mm1,[esi]
+	  movq	        mm0,[esi+8]
+	  pmaxub	mm1,[esi+16]
+	  pmaxub	mm0,[esi+24]
+	  pmaxub	mm1,mm7
+	  pmaxub	mm0,mm1
+	  pcmpeqb       mm0,mm7
+	  pmovmskb      eax,mm0
+	  cmp		eax,255
+	  jnz		l2
+	  lea		esi,[esi+32]
+	  cmp		edi,esi
+	  ja		l1
+  l2:     mov		[i_o],esi
+	  emms
+  }
+#elif defined(__x86_64__)
+  asm volatile (
+    "movq     (%%rax),%%mm7\n"
+    ".align 32\n"
+    "1:\n"
+    "movq     (%%rsi),%%mm1\n"
+    "movq     8(%%rsi),%%mm0\n"
+    "pmaxub   16(%%rsi),%%mm1\n"
+    "pmaxub   24(%%rsi),%%mm0\n"
+    "pmaxub   %%mm7,%%mm1\n"
+    "pmaxub   %%mm1,%%mm0\n"
+    "pcmpeqb  %%mm7,%%mm0\n"
+    "pmovmskb %%mm0,%%rax\n"
+    "cmpq     $255,%%rax\n"
+    "jnz      2f\n"
+    "leaq     32(%%rsi),%%rsi\n"
+    "cmpq     %%rsi,%%rdi\n"
+    "ja       1b\n"
+    "2:\n"
+    "emms":"=S" (i_o):"a"(&x),
+    "S"(i_o), "D"(i_max)
+  );
+#else
+  asm volatile (
+    "movq     (%%eax),%%mm7\n"
+    "1:\n"
+    "movq     (%%esi),%%mm1\n"
+    "movq     8(%%esi),%%mm0\n"
+    "pmaxub   16(%%esi),%%mm1\n"
+    "pmaxub   24(%%esi),%%mm0\n"
+    "pmaxub   %%mm7,%%mm1\n"
+    "pmaxub   %%mm1,%%mm0\n"
+    "pcmpeqb  %%mm7,%%mm0\n"
+    "pmovmskb %%mm0,%%eax\n"
+    "cmpl     $255,%%eax\n"
+    "jnz      2f\n"
+    "leal     32(%%esi),%%esi\n"
+    "cmpl     %%esi,%%edi\n"
+    "ja       1b\n"
+    "2:\n"
+    "emms":"=S" (i_o):"a"(&x),
+    "S"(i_o), "D"(i_max)
+   );
+#endif
+    if (i_o < i_max) {
+      uchar *i_max2 = i_o + 32;
+
+      while (i_o < i_max2) {
+	if (*i_o >= st1) {
+	  cand[ncand] = i_o - sieve_interval;
+	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
+	}
+	i_o++;
+      }
+    }
+  }
+#endif
+}
+
 /******************************************************************/
 int lasieve()
 /******************************************************************/
@@ -1582,7 +1732,7 @@ int lasieve()
                   for (true_i_lb=0; true_i_lb<true_i_ub; true_i_lb+=CANDIDATE_SEARCH_STEPS) {
                     i32_t sieve_threshold;
                     u32_t lulb, luub;
-                    u32_t j;
+                    size_t j;
 
                     lulb = (true_i_lb<<(J_bits-1))/(j_offset+j_per_strip);
                     lulb = (n_J+lulb)/(2*CANDIDATE_SEARCH_STEPS);
@@ -1600,129 +1750,13 @@ int lasieve()
 
                       i_o = sieve_interval + (j << i_bits) + i_shift / 2;
                       i_maxx = i_o + j + j_offset;
-#define BOUNDCHECK(x) (x<i_maxx)
                       i_o += true_i_lb;
                       i_max = i_o + CANDIDATE_SEARCH_STEPS;
                       if (sieve_threshold <= (i32_t) horizontal_sievesums[j])
                         st1 = 1;
                       else
                         st1 = sieve_threshold - horizontal_sievesums[j];
-
-#ifndef HAVE_SSIMD
-#ifdef GNFS_CS32
-#define bc_t uint32_t
-#define BC_MASK 0x80808080U
-#else
-#define bc_t uint64_t
-#define BC_MASK 0x8080808080808080ULL
-#endif
-                      {
-                        if (st1 < 0x80) {
-                          bc_t bc, *i_oo;
-
-                          bc = st1;
-                          bc = (bc << 8) | bc;
-                          bc = (bc << 16) | bc;
-#ifndef GNFS_CS32
-                          bc = (bc << 32) | bc;
-#endif
-                          bc = BC_MASK - bc;
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max;
-                               i_oo++) {
-                            bc_t v = *i_oo;
-
-                            if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        } else {
-                          bc_t *i_oo;
-
-                          for (i_oo=(bc_t *)i_o; i_oo<(bc_t*)i_max; i_oo++) {
-                            if ((*i_oo & BC_MASK) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        }
-                      }
-#else
-                      {
-                        uint64_t x;
-
-                        x = st1 - 1;
-                        x |= x << 8;
-                        x |= x << 16;
-                        x |= x << 32;
-                        while (i_o < i_max) {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
-							__asm
-							{	
-								mov		esi,[i_o]
-								mov		edi,[i_max]
-								lea		eax,[x]
-								movq	mm7,[eax]
-							l1:	movq	mm1,[esi]
-                                movq	mm0,[esi+8]
-                                pmaxub	mm1,[esi+16]
-                                pmaxub	mm0,[esi+24]
-                                pmaxub	mm1,mm7
-                                pmaxub	mm0,mm1
-                                pcmpeqb mm0,mm7
-                                pmovmskb eax,mm0
-                                cmp		eax,255
-                                jnz		l2
-                                lea		esi,[esi+32]
-                                cmp		edi,esi
-                                ja		l1
-                            l2:	mov		[i_o],esi
-                                emms
-							}
-#else
-                          asm volatile ("movq (%%eax),%%mm7\n"
-                                        "1:\n"
-                                        "movq (%%esi),%%mm1\n"
-                                        "movq 8(%%esi),%%mm0\n"
-                                        "pmaxub 16(%%esi),%%mm1\n"
-                                        "pmaxub 24(%%esi),%%mm0\n"
-                                        "pmaxub %%mm7,%%mm1\n"
-                                        "pmaxub %%mm1,%%mm0\n"
-                                        "pcmpeqb %%mm7,%%mm0\n"
-                                        "pmovmskb %%mm0,%%eax\n"
-                                        "cmpl $255,%%eax\n"
-                                        "jnz 2f\n"
-                                        "leal 32(%%esi),%%esi\n"
-                                        "cmpl %%esi,%%edi\n"
-                                        "ja 1b\n"
-                                        "2:\n"
-                                        "emms":"=S" (i_o):"a"(&x),
-                                        "S"(i_o), "D"(i_max));
-#endif
-                          if (i_o < i_max) {
-                            unsigned char *i_max2 = i_o + 32;
-
-                            while (i_o < i_max2) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                              i_o++;
-                            }
-                          }
-                        }
-                      }
-#endif
-
-#undef BOUNDCHECK
+                      optsieve(st1,i_o,MIN(i_max,i_maxx),j);
                     }
 
                     i = luub;
@@ -1739,127 +1773,11 @@ int lasieve()
                       i_min = i_o - (j + j_offset);
                       i_max = i_o - true_i_lb;
                       i_o = i_max - CANDIDATE_SEARCH_STEPS;
-#define BOUNDCHECK(x) (x>=i_min)
                       if (sieve_threshold <= (i32_t) horizontal_sievesums[j])
                         st1 = 1;
                       else
                         st1 = sieve_threshold - horizontal_sievesums[j];
-
-#ifndef HAVE_SSIMD
-#ifdef GNFS_CS32
-#define bc_t uint32_t
-#define BC_MASK 0x80808080U
-#else
-#define bc_t uint64_t
-#define BC_MASK 0x8080808080808080ULL
-#endif
-                      {
-                        if (st1 < 0x80) {
-                          bc_t bc, *i_oo;
-
-                          bc = st1;
-                          bc = (bc << 8) | bc;
-                          bc = (bc << 16) | bc;
-#ifndef GNFS_CS32
-                          bc = (bc << 32) | bc;
-#endif
-                          bc = BC_MASK - bc;
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            bc_t v = *i_oo;
-
-                            if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        } else {
-                          bc_t *i_oo;
-
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            if ((*i_oo & BC_MASK) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-
-                              }
-                            }
-                          }
-                        }
-                      }
-#else
-                      {
-                        uint64_t x;
-
-                        x = st1 - 1;
-                        x |= x << 8;
-                        x |= x << 16;
-                        x |= x << 32;
-                        while (i_o < i_max) {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
-							__asm
-							{		mov		esi,[i_o]
-									mov		edi,[i_max]
-									lea		eax,[x]
-									movq	mm7,[eax]
-							l3:
-									movq	mm1,[esi]
-                                    movq	mm0,[esi+8]
-                                    pmaxub	mm1,[esi+16]
-                                    pmaxub	mm0,[esi+24]
-                                    pmaxub	mm1,mm7
-                                    pmaxub	mm0,mm1
-                                    pcmpeqb mm0,mm7
-                                    pmovmskb eax,mm0
-                                    cmp		eax,255
-                                    jnz		l4
-                                    lea		esi,[esi+32]
-                                    cmp		edi,esi
-                                    ja		l3
-							l4:		mov		[i_o],esi
-									emms
-							}
-#else
-                          asm volatile ("movq (%%eax),%%mm7\n"
-                                        "1:\n"
-                                        "movq (%%esi),%%mm1\n"
-                                        "movq 8(%%esi),%%mm0\n"
-                                        "pmaxub 16(%%esi),%%mm1\n"
-                                        "pmaxub 24(%%esi),%%mm0\n"
-                                        "pmaxub %%mm7,%%mm1\n"
-                                        "pmaxub %%mm1,%%mm0\n"
-                                        "pcmpeqb %%mm7,%%mm0\n"
-                                        "pmovmskb %%mm0,%%eax\n"
-                                        "cmpl $255,%%eax\n"
-                                        "jnz 2f\n"
-                                        "leal 32(%%esi),%%esi\n"
-                                        "cmpl %%esi,%%edi\n"
-                                        "ja 1b\n"
-                                        "2:\n"
-                                        "emms":"=S" (i_o):"a"(&x),
-                                        "S"(i_o), "D"(i_max));
-#endif
-                          if (i_o < i_max) {
-                            unsigned char *i_max2 = i_o + 32;
-
-                            while (i_o < i_max2) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                              i_o++;
-                            }
-                          }
-                        }
-                      }
-#endif
-
-#undef BOUNDCHECK
+                      optsieve(st1,MAX(i_o,i_min),i_max,j);
                     }
                   }
                 }
@@ -1902,127 +1820,13 @@ int lasieve()
                       i_o = sieve_interval + (j << i_bits) + i_shift / 2;
 
                       i_min = i_o + j + j_offset;
-#define BOUNDCHECK(x) (x>=i_min)
                       i_o += true_i_lb;
                       i_max = i_o + CANDIDATE_SEARCH_STEPS;
                       if (sieve_threshold <= (i32_t) horizontal_sievesums[j])
                         st1 = 1;
                       else
                         st1 = sieve_threshold - horizontal_sievesums[j];
-
-#ifndef HAVE_SSIMD
-#ifdef GNFS_CS32
-#define bc_t uint32_t
-#define BC_MASK 0x80808080U
-#else
-#define bc_t uint64_t
-#define BC_MASK 0x8080808080808080ULL
-#endif
-                      {
-                        if (st1 < 0x80) {
-                          bc_t bc, *i_oo;
-
-                          bc = st1;
-                          bc = (bc << 8) | bc;
-                          bc = (bc << 16) | bc;
-#ifndef GNFS_CS32
-                          bc = (bc << 32) | bc;
-#endif
-                          bc = BC_MASK - bc;
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            bc_t v = *i_oo;
-
-                            if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        } else {
-                          bc_t *i_oo;
-
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            if ((*i_oo & BC_MASK) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        }
-                      }
-#else
-                      {
-                        uint64_t x;
-
-                        x = st1 - 1;
-                        x |= x << 8;
-                        x |= x << 16;
-                        x |= x << 32;
-                        while (i_o < i_max) {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
-							__asm
-							{	mov		esi,[i_o]
-								mov		edi,[i_max]
-								lea		eax,[x]
-								movq	mm7,[eax]
-							l5:	movq	mm1,[esi]
-                                movq	mm0,[esi+8]
-                                pmaxub	mm1,[esi+16]
-                                pmaxub	mm0,[esi+24]
-                                pmaxub	mm1,mm7
-								pmaxub	mm0,mm1
-                                pcmpeqb mm0,mm7
-                                pmovmskb eax,mm0
-                                cmp		eax,255
-								jnz		l6
-                                lea		esi,[esi+32]
-                                cmp		edi,esi
-                                ja		l5
-                            l6:	mov		[i_o],esi
-								emms
-							}
-#else
-                          asm volatile ("movq (%%eax),%%mm7\n"
-                                        "1:\n"
-                                        "movq (%%esi),%%mm1\n"
-                                        "movq 8(%%esi),%%mm0\n"
-                                        "pmaxub 16(%%esi),%%mm1\n"
-                                        "pmaxub 24(%%esi),%%mm0\n"
-                                        "pmaxub %%mm7,%%mm1\n"
-                                        "pmaxub %%mm1,%%mm0\n"
-                                        "pcmpeqb %%mm7,%%mm0\n"
-                                        "pmovmskb %%mm0,%%eax\n"
-                                        "cmpl $255,%%eax\n"
-                                        "jnz 2f\n"
-                                        "leal 32(%%esi),%%esi\n"
-                                        "cmpl %%esi,%%edi\n"
-                                        "ja 1b\n"
-                                        "2:\n"
-                                        "emms":"=S" (i_o):"a"(&x),
-                                        "S"(i_o), "D"(i_max));
-#endif
-                          if (i_o < i_max) {
-                            unsigned char *i_max2 = i_o + 32;
-
-                            while (i_o < i_max2) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                              i_o++;
-                            }
-                          }
-                        }
-                      }
-#endif
-
-#undef BOUNDCHECK
+                      optsieve(st1,MAX(i_o,i_min),i_max,j);
                     }
 
                     i = luub;
@@ -2039,127 +1843,13 @@ int lasieve()
 
                       i_o = sieve_interval + (j << i_bits) + i_shift / 2;
                       i_maxx = i_o - (j + j_offset);
-#define BOUNDCHECK(x) (x<i_maxx)
                       i_max = i_o - true_i_lb;
                       i_o = i_max - CANDIDATE_SEARCH_STEPS;
                       if (sieve_threshold <= (i32_t) horizontal_sievesums[j])
                         st1 = 1;
                       else
                         st1 = sieve_threshold - horizontal_sievesums[j];
-
-#ifndef HAVE_SSIMD
-#ifdef GNFS_CS32
-#define bc_t uint32_t
-#define BC_MASK 0x80808080U
-#else
-#define bc_t uint64_t
-#define BC_MASK 0x8080808080808080ULL
-#endif
-                      {
-                        if (st1 < 0x80) {
-                          bc_t bc, *i_oo;
-
-                          bc = st1;
-                          bc = (bc << 8) | bc;
-                          bc = (bc << 16) | bc;
-#ifndef GNFS_CS32
-                          bc = (bc << 32) | bc;
-#endif
-                          bc = BC_MASK - bc;
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            bc_t v = *i_oo;
-
-                            if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        } else {
-                          bc_t *i_oo;
-
-                          for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max; i_oo++) {
-                            if ((*i_oo & BC_MASK) == 0)
-                              continue;
-                            for (i_o=(unsigned char *)i_oo; i_o<(unsigned char *)(i_oo+1); i_o++) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                            }
-                          }
-                        }
-                      }
-#else
-                      {
-                        uint64_t x;
-
-                        x = st1 - 1;
-                        x |= x << 8;
-                        x |= x << 16;
-                        x |= x << 32;
-                        while (i_o < i_max) {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
-							__asm
-							{		mov		esi,[i_o]
-									mov		edi,[i_max]
-									lea		eax,[x]
-									movq	mm7,[eax]
-							l7:		movq	mm1,[esi]
-                                    movq	mm0,[esi+8]
-                                    pmaxub	mm1,[esi+16]
-                                    pmaxub	mm0,[esi+24]
-                                    pmaxub	mm1,mm7
-                                    pmaxub	mm0,mm1
-                                    pcmpeqb mm0,mm7
-                                    pmovmskb eax,mm0
-                                    cmp		eax,255
-                                    jnz		l8
-                                    lea		esi,[esi+32]
-                                    cmp		edi,esi
-                                    ja		l7
-							l8:		mov		[i_o],esi
-									emms
-							}
-#else
-							asm volatile ("movq (%%eax),%%mm7\n"
-                                        "1:\n"
-                                        "movq (%%esi),%%mm1\n"
-                                        "movq 8(%%esi),%%mm0\n"
-                                        "pmaxub 16(%%esi),%%mm1\n"
-                                        "pmaxub 24(%%esi),%%mm0\n"
-                                        "pmaxub %%mm7,%%mm1\n"
-                                        "pmaxub %%mm1,%%mm0\n"
-                                        "pcmpeqb %%mm7,%%mm0\n"
-                                        "pmovmskb %%mm0,%%eax\n"
-                                        "cmpl $255,%%eax\n"
-                                        "jnz 2f\n"
-                                        "leal 32(%%esi),%%esi\n"
-                                        "cmpl %%esi,%%edi\n"
-                                        "ja 1b\n"
-                                        "2:\n"
-                                        "emms":"=S" (i_o):"a"(&x),
-                                        "S"(i_o), "D"(i_max));
-#endif
-                          if (i_o < i_max) {
-                            unsigned char *i_max2 = i_o + 32;
-
-                            while (i_o < i_max2) {
-                              if (*i_o >= st1 && BOUNDCHECK(i_o)) {
-                                cand[ncand] = i_o - sieve_interval;
-                                fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
-                              }
-                              i_o++;
-                            }
-                          }
-                        }
-                      }
-#endif
-
-#undef BOUNDCHECK
+                      optsieve(st1,i_o,MIN(i_max,i_maxx),j);
                     }
                   }
                 }
