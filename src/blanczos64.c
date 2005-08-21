@@ -584,7 +584,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
-#if !defined(_MSC_VER_ || defined(__MINGW32__)
+#if !defined(_MSC_VER) || defined(__MINGW32__)
       asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#x		\n\
