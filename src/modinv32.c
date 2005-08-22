@@ -16,12 +16,7 @@
 #include <stdio.h>
 #include <gmp.h>
 
-#ifdef __ppc__
-#include "lasieve4/ppc32/siever-config.h"
-#else
-#include "lasieve4/asm/lasieve-asm.h"
-#endif
-
+#include "lasieve4/lasieve.h"
 #include "if.h"
 
 uint32_t modpow32(uint32_t x,uint32_t a)

@@ -27,15 +27,12 @@
 #include <math.h>
 #include <gmp.h>
 
-#ifdef __ppc__
-#include "lasieve4/ppc32/siever-config.h"
-#else
-#include "lasieve4/asm/lasieve-asm.h"
+#include "lasieve4/lasieve.h"
+#include "if.h"
+
+#ifndef __ppc__
 volatile u32_t modulo32;
 #endif
-#include "lasieve4/lasieve.h"
-
-#include "if.h"
 
 u32_t modulo32hbit;
 i32_t modulo32bit[32], modulo32ebits;
