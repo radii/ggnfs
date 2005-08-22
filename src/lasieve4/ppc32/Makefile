@@ -1,5 +1,5 @@
 # Copyright (C) 2001,2002 Jens Franke
-# This file is part of gnfs4linux, distributed under the terms of the 
+# This file is part of gnfs4linux, distributed under the terms of the
 # GNU General Public Licence and WITHOUT ANY WARRANTY.
 
 # You should have received a copy of the GNU General Public License along
@@ -7,20 +7,25 @@
 # Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-CC=gcc -O3 -I.. -I../.. -I../../../include
+INC=-I.. -I../.. -I../../../include
 
 SRCFILES=gcd32.c 32bit.h modinv32.c psp.c siever-config32.h lasched.c medsched.c
 
+.PHONY: all bup clean
+
 all: liblasieve.a liblasieveI12.a liblasieveI13.a liblasieveI14.a
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) $(INC) $< -o $@
 
 liblasieve.a: gcd32.o psp.o modinv32.o
 	ar rcs $@ $^
 
 laschedI%.o: lasched.c siever-config.h
-	$(CC) $(CFLAGS) -DI_bits=$* -c -o $@ $<
+	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
 
 medschedI%.o: medsched.c siever-config.h
-	$(CC) $(CFLAGS) -DI_bits=$* -c -o $@ $<
+	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
 
 liblasieveI%.a:	laschedI%.o medschedI%.o
 	ar rcs $@ $^
@@ -29,4 +34,5 @@ bup:
 	echo $(SRCFILES)
 
 clean:
-	rm -f core *a *o
+	-rm -f core *a *o
+
