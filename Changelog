@@ -1,3 +1,6 @@
+8/22/05 (asl)
+  * Some code and defines cleanup in blanczos64.c
+
 8/22/05 (relf)
   * Minor header fixes and cleanups
   * Applied Dmitri Gribenko's patches to Makefiles (w/ minor postfixes)
