@@ -78,4 +78,7 @@ uint32_t pr32_seek(pr32_struct * ps, uint32_t lb);
 /* psp.c */
 int psp(mpz_t);
 
+/* mpqs.c */
+long mpqs_factor(mpz_t N, long max_bits, mpz_t **factors);
+
 #endif

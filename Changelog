@@ -1,3 +1,6 @@
+8/22/05 (relf)
+  * Minor header fixes and cleanups
+
 8/20/05 (relf)
   * example pol5/rsa512* moved to tests/rsa512_pol5/
   * lasieve4/piii/mpsq-hack.c moved to lasieve4/mpqs.c and shared

@@ -240,13 +240,6 @@ int asm_cmp64(uint32_t * a, uint32_t * b);
 /* gcd32.c */
 u32_t gcd32(u32_t x, u32_t y);
 
-/* psp.c */
-int psp(mpz_t n);
-
-/* mpqs.c */
-long mpqs_factor(mpz_t N, long max_bits, mpz_t ** factors);
-void complain(char *fmt, ...);
-
 /* ri-aux.s */
 uint32_t asm_getbc(u32_t r, u32_t p, u32_t A, u32_t *b, u32_t *s, u32_t *c, u32_t *t) NAME("asm_getbc");
 

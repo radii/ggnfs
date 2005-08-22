@@ -17,8 +17,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <stdarg.h>
 #include <gmp.h>
 
-#include "if.h"
-
 #define L1_BITS 14
 #define ULONG_RI
 
@@ -31,6 +29,9 @@ typedef uint32_t ulong;
 #define HAVE_SSIMD
 #endif
 
+/* if.h should follow ULL_NO_UL when it's defined */
+#include "if.h"
+
 #define PREINVERT
 #define NEED_GETLINE
 #define N_PRIMEBOUNDS 7
@@ -41,7 +42,5 @@ static inline void siever_init() { };
 
 u32_t *medsched(u32_t*,u32_t*,u32_t*,u32_t**,u32_t,u32_t);
 u32_t *lasched(u32_t*,u32_t*,u32_t*,u32_t,u32_t**,u32_t,u32_t);
-long mpqs_factor(mpz_t N, long max_bits, mpz_t **factors);
-int psp(mpz_t n);
 
 #endif
