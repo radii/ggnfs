@@ -9,6 +9,9 @@ with this program; see the file COPYING.  If not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA. */
 
+#ifndef __PPC32__SIEVER_CONFIG_H__
+#define __PPC32__SIEVER_CONFIG_H__
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -40,3 +43,5 @@ u32_t *medsched(u32_t*,u32_t*,u32_t*,u32_t**,u32_t,u32_t);
 u32_t *lasched(u32_t*,u32_t*,u32_t*,u32_t,u32_t**,u32_t,u32_t);
 long mpqs_factor(mpz_t N, long max_bits, mpz_t **factors);
 int psp(mpz_t n);
+
+#endif
