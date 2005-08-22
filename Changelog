@@ -1,5 +1,9 @@
 8/22/05 (relf)
   * Minor header fixes and cleanups
+  * Applied Dmitri Gribenko's patches to Makefiles (w/ minor postfixes)
+  * Makefile.ppc and Makefile.x86_64 now joined into Makefile since 
+    they do generic things while Makefile.x86 does x86-specific things
+  * TODO: make single Makefiles for all targets
 
 8/20/05 (relf)
   * example pol5/rsa512* moved to tests/rsa512_pol5/
