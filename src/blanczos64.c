@@ -36,9 +36,9 @@
 /*************************************************************/ 
 
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__MINGW32__)
 #define ALIGNED16(x)	x __attribute__ ((aligned (16)))
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && !defined(__MINGW32__)
 #define ALIGNED16(x)	__declspec(align(16)) x 
 #else
 #define ALIGNED16(x)	x
@@ -230,7 +230,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
 // L2_CACHE_SIZE has to be a power of 2.
 // MULTB64_PAGESIZE is a half of L2 cache size.
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW32__)
 
 #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
 #if L2_CACHE_SIZE == 256
@@ -264,7 +264,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB64_PAGESIZE) {
-#ifndef _MSC_VER 
+#if !defined(_MSC_VER)  || defined (__MINGW32__)
       asm volatile("\
 	movl	%0, %%esi			#cEntry		\n\
 	movl	%1, %%edi			#Product	\n\
@@ -550,7 +550,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
 // L2_CACHE_SIZE has to be a power of 2.
 // MULTB_T64_PAGESIZE is a half of L2 cache size.
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined (__MINGW32__)
 
 #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
 #if L2_CACHE_SIZE == 256
