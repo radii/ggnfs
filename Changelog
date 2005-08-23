@@ -1,3 +1,14 @@
+8/23/05 (Brian Gladman)
+  * some minor changes to allow VC++ to use the inline version of 
+  	MULMOD32 instead of a subroutine (VC++ inline assembler can't 
+	deal directly with structures) 
+  * removal of special VC++ versions of if.c and if.h as the 
+    standard versions now work
+  * changed a define in /piii/lasieve-asm.h	to be right way round
+    (is now '#define modinv32 asm_modinv32', was reversed)
+  * added {} brackets in gnfs-lasieve4e.c to avoid need for C99
+    with an 'in-code' declaration
+
 8/22/05 (asl)
   * Some code and defines cleanup in blanczos64.c
 
