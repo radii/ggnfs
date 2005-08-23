@@ -779,7 +779,9 @@ unsigned int get_next_prime();
 
 #define NFS_HASH_Q(_a, _b, _k) (((u32)(3*(_a/2)+(_b)))%(_k))
 
-#if defined(_MSC_VER) || defined(__ppc__)
+#if defined ( _MSC_VER )
+#define MULMOD32(_res, _op1, _op2, _mod) __asm mov	eax,_op1 __asm imul	_op2 __asm idiv	_mod __asm mov	_res,edx
+#elif defined(__ppc__)
 #define MULMOD32(_res, _op1, _op2, _mod) _res = mulmod32(_op1, _op2, _mod)
 #else
 #define MULMOD32(_res, _op1, _op2, _mod) \

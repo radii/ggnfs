@@ -243,7 +243,8 @@ int clSieve(nfs_sieve_job_t *J)
       continue;
     }
 
-    MULMOD32(root, J->b0, r, p);
+	root = J->b0;
+    MULMOD32(root, root, r, p);
     conf.rfb[k].p = p;
     conf.rfb[k].r = r;
     conf.rfb[k].root = root;
@@ -315,7 +316,8 @@ int clSieve(nfs_sieve_job_t *J)
       continue;
     }
 
-    MULMOD32(root, J->b0, r, p);
+	root = J->b0;
+	MULMOD32(root, root, r, p);
     conf.afb[k].p = p;
     conf.afb[k].r = r;
     conf.afb[k].root = root;

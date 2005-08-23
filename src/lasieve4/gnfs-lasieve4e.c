@@ -530,6 +530,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
 
 #else
 
+  {
   uint64_t x;
 
   x = st1 - 1;
@@ -616,6 +617,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
     }
   }
 #endif
+  }
 }
 
 /******************************************************************/
