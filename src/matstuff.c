@@ -27,12 +27,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
 #ifndef _MSC_VER 
 #include <sys/time.h>
 #endif
 #include "ggnfs.h"
-
 
 /* The matrix is assumed to be setup so that each column corresponds
    to a prime from a factor base (or the QCB). Thus, the columns

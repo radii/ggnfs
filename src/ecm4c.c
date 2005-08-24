@@ -143,12 +143,6 @@ Input number is 6078205681818343287459270474014067853989757008219115597639286750
 
 #include "if.h"
 
-#if defined (__MINGW32__) || defined (MINGW32)
-#ifndef _MSC_VER
-#define _MSC_VER
-#endif
-#endif
-
 #define PTR(x) ((x)->_mp_d)
 /* #endif
 */
@@ -973,7 +967,8 @@ void polymulmod(G,F,T,K) mpz_t *G,*F,*T; int K;
 }
 
 /* Return user CPU time measured in milliseconds. Thanks to Torbjorn. */
-#if defined (ANSIONLY) || defined (USG) || defined (__SVR4) || defined (_UNICOS) || defined(__hpux) || defined(_MSC_VER) || defined(__ppc__)
+#if defined (ANSIONLY) || defined (USG) || defined (__SVR4) || defined (_UNICOS) || defined(__hpux) \
+		|| defined(_MSC_VER) || defined(__MINGW32__) || defined(MINGW32) || defined(__ppc__)
 #include <time.h>
 
 int cputime()

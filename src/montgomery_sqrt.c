@@ -28,10 +28,6 @@
 
 #include "ggnfs.h"
 
-#ifdef _MSC_VER
-#define M_SQRT2 1.41421356237309504880
-#endif
-
 #define MAX_IPBSIZE  100
 
 #define DEFAULT_LLLMAX_LOG 201.0*log(10.0)

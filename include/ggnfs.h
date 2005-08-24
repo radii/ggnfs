@@ -22,7 +22,6 @@
 #ifndef _GGNFS_H
 #define _GGNFS_H
 
-
 #if defined (__MINGW32__) || defined (MINGW32)
 #define _MSC_VER 1300
 #endif

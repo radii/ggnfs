@@ -14,8 +14,12 @@
 */
 
 #include <time.h>
-#if defined (_MSC_VER) || defined (__MINGW32__)
+
+#if defined (__MINGW32__)
 #include <io.h>
+#elif defined(_MSC_VER)
+#include <io.h>
+#include <unistd.h>
 #else
 #include <unistd.h>
 #include <sys/times.h>

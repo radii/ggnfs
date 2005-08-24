@@ -2,6 +2,12 @@
   * lasieve-asm.h renamed to siever-config.h
 
 8/23/05 (Brian Gladman)
+  * minor change to define strcasecmp as _strcmpi for VC++ and
+    to include the 'fake' VC++ unistd.h file in if.c  Replace
+	the define of _MSC_VER in ecm4c.c in order to simplify 
+	the use of a VC++ config file.
+   
+8/23/05 (Brian Gladman)
   * some minor changes to allow VC++ to use the inline version of 
   	MULMOD32 instead of a subroutine (VC++ inline assembler can't 
 	deal directly with structures) 
