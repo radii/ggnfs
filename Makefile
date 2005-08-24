@@ -64,6 +64,7 @@ clean :
 	-rm -f include/version.h
 	$(MAKE) -C src -f Makefile.x86 clean
 	$(MAKE) -C src clean
+	-rm -f -r asm
 	-rm -rf core ggnfs-*.tar.gz
 	cd ./tests; sh cleanup.sh
 
