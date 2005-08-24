@@ -83,5 +83,6 @@ ifeq ($(OS),Windows_NT)
 else
 	-rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e
 endif
-	$(MAKE) -C asm clean
+	(test -d asm && $(MAKE) -C asm clean) || exit 0
+		
 

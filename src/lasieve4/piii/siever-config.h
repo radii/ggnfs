@@ -56,7 +56,7 @@ void siever_init(void);
 #if defined(_MSC_VER) && !defined(__MINGW32__)
 
 #define inline __inline
-#define modinv32(x) asm_modinv32(x)
+
 volatile extern u32_t modulo32;
 u32_t asm_modinv32(u32_t x);
 
@@ -154,10 +154,8 @@ l1f:	mov		[res],ecx
 #else
 
 /* 32bit.h */
-volatile extern u32_t modulo32 NAME("modulo32");
+extern volatile u32_t modulo32 NAME("modulo32");
 u32_t asm_modinv32(u32_t x) NAME("asm_modinv32");
-
-#define modinv32(x) asm_modinv32(x)
 
 static inline u32_t modsq32(u32_t x)
 { u32_t res,clobber;

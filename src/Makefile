@@ -1,91 +1,142 @@
 CC=gcc
+CXX=g++
 
-ALLOPT=-march=$(ARCH) -mtune=$(ARCH)
+ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -DMALLOC_REPORTING -ftracer -pipe
+
+DLMALLOC=0
+MATBUILD_TPIE=0
+TPIE_DIR=f:/tmp/nfs/tpie
+
+#Hope, we're running Mingw32 ;)
+ifeq ($(OSTYPE),msys)
+    DLMALLOC=1
+endif
 
 ifeq ($(ARCH),k8)
+    # -D__ppc__ should be removed later
     ALLOPT+= -D__ppc__
-# -D__ppc__ should be removed later
-# TODO: carefully inspect all ``#if defined(__ppc__)'' and
-# add ``#if defined(__x86_64__)'' where required
+endif
+
+# -DL2_CACHE_SIZE=512 works well on some Pentium 4 processors.
+# It brings the opposite effect on AMD chips and some Pentium 4 processors.
+ifeq ($(ARCH),pentium4)
+    ALLOPT+= -DL2_CACHE_SIZE=512
 endif
 
 DEBUGOPT=-W -Wall -g -pg
 
-CFLAGS=-O3 -fomit-frame-pointer -W -Wall $(ALLOPT)
+CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions -ftracer \
+       -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
-export CC ALLOPT CFLAGS DEBUGOPT
-
-INC=-I. -I.. -I../include
+LOCALINC=-I/usr/local/include
+INC=-I. -I.. -I../include $(LOCALINC)
 LIBS=-lgmp -lm
+LIBFLAGS=-L/usr/local/lib
 BINDIR=../bin
-LANCZOS=blanczos64-no-mmx
 
-OBJS=getprimes.o modinv32.o \
-     fbmisc.o squfof.o rels.o \
-     $(LANCZOS).o poly.o mpz_poly.o \
-     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o \
-     montgomery_sqrt.o matstuff.o dickman.o makefb.o fbgen.o\
-     llist.o combparts.o if.o
+
+export ARCH HOST CC ALLOPT CFLAGS DEBUGOPT LIBFLAGS LOCALINC
+
+OBJS=getprimes.o fbmisc.o mulmod32.o squfof.o rels.o \
+     $(LANCZOS).o poly.o mpz_poly.o mpz_mat.o smintfact.o \
+     misc.o ecm4c.o nfmisc.o montgomery_sqrt.o matstuff.o \
+     dickman.o fbgen.o llist.o if.o
+
 BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
      $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
+
 LSBINS=latsiever polsel
-TESTBIN=./tsrc
-TESTCODE=./tsrc
 
-.PHONY: all tests bins latsiever polsel clean lasieve-clean polsel-clean \
-        squeaky
+ifeq ($(HOST),x86)
+  LANCZOS=blanczos64
+  OBJS+=modinv1002.S
+else
+  LANCZOS=blanczos64-no-mmx
+  OBJS+=modinv32.o
+endif
 
-all : $(OBJS) $(BINS) $(LSBINS)
+ifeq ($(DLMALLOC),1)
+  OBJS+= dlmalloc.o
+endif
+
+ifeq ($(MATBUILD_TPIE),1)
+  BINS+= $(BINDIR)/matbuild-tpie
+  INC+= -I$(TPIE_DIR)/include
+  LIBFLAGS+= -L$(TPIE_DIR)/lib
+  LIBS+=-ltpie
+endif
+
+.PHONY: all tests bins latsiever polsel strip clean lasieve-clean \
+        polsel-clean squeaky
+
+all : $(OBJS) $(BINS) $(LSBINS) strip
+# all : $(OBJS) $(BINS) $(LSBINS)
 tests : $(TESTS)
 bins : $(BINS)
 
 .c.o :
-	$(CC) $(CFLAGS) $(INC) -c $*.c
+	$(CC) $(INC) $(CFLAGS) -c $*.c
 
 smintfact.o : smintfact.c
-	$(CC) $(CFLAGS) $(INC) -c smintfact.c -o $@
+	$(CC) $(INC) $(CFLAGS) -c smintfact.c -o $@
 
 fbmisc.o : fbmisc.c
-	$(CC) $(CFLAGS) $(INC) -c fbmisc.c -o $@
+	$(CC) $(INC) $(CFLAGS) -c fbmisc.c -o $@
 
 rels.o : rels.c
-	$(CC) $(CFLAGS) $(INC) -c rels.c -o $@
+	$(CC) $(INC) $(CFLAGS) -c rels.c -o $@
 
 latsieve.o : latsieve.c
-	$(CC) $(CFLAGS) $(INC) -c latsieve.c -o $@
+	$(CC) $(INC) $(CFLAGS) -c latsieve.c -o $@
 
-$(BINDIR)/sieve : sieve.c clsieve.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ sieve.c clsieve.c $(OBJS) $(LIBS)
+$(BINDIR)/sieve : sieve.c clsieve.c $(OBJS) makefb.o
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ $^ $(LIBS)
 
 $(BINDIR)/makefb : makefb.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -D_MAKEFB_STANDALONE -o $@ makefb.c getprimes.o \
-             fbmisc.o poly.o mpz_poly.o smintfact.o modinv32.c if.o \
-             misc.o nfmisc.o mpz_mat.o ecm4c.o fbgen.o rels.o $(LIBS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -D_MAKEFB_STANDALONE -o $@ \
+	makefb.c $(OBJS) $(LIBS)
 
 $(BINDIR)/procrels : procrels.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ procrels.c $(OBJS) $(LIBS)
-
-$(BINDIR)/matsolve : matsolve.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ matsolve.c $(OBJS) $(LIBS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ procrels.c $(OBJS) $(LIBS)
 
 $(BINDIR)/matbuild : matbuild.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ matbuild.c $(OBJS) $(LIBS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild.c combparts.c \
+	  $(OBJS) $(LIBS)
+
+$(BINDIR)/matbuild-tpie : matbuild-tpie.c $(OBJS)
+	$(CXX) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild-tpie.c \
+	  experimental/combparts_tpie.cpp experimental/llist_tpie.cpp \
+	  $(OBJS) $(LIBS)
+
+$(BINDIR)/matsolve : matsolve.c $(OBJS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matsolve.c $(OBJS) $(LIBS)
 
 $(BINDIR)/sqrt : sqrt.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ sqrt.c $(OBJS) $(LIBS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ sqrt.c $(OBJS) $(LIBS)
 
 $(BINDIR)/polyselect : polyselect.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ polyselect.c $(OBJS) $(LIBS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ polyselect.c $(OBJS) $(LIBS)
 
 latsiever :
 	$(MAKE) -C lasieve4
 
 polsel :
-	$(MAKE) -C pol5
+ifeq ($(HOST),x86)
+	    $(MAKE) -C pol5 intel
+else
+	    $(MAKE) -C pol5
+endif
+
+strip :
+ifeq ($(OS),Windows_NT)
+	strip $(BINDIR)/*.exe
+else
+	strip $(BINS)
+endif
 
 clean : lasieve-clean polsel-clean
-	-rm -f *.o core $(BINS)
+	-rm -f *.o $(BINDIR)/*.exe core $(BINS)
 
 lasieve-clean :
 	$(MAKE) -C lasieve4 clean
