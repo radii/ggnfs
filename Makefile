@@ -9,9 +9,11 @@ choosetarget :
 	@echo "Possible targets are:"
 	@echo "	pentium3              	 Intel Pentium 3"
 	@echo "	pentium4              	 Intel Pentium 4"
+	@echo "	pentium-m              	 Intel Pentium M"
 	@echo "	athlon			 AMD Athlon (k7)"
 	@echo "	x86_64                   AMD Opteron/Athlon64 (k8)"
-	@echo "	ppc                	 PowerPC"
+	@echo "	ppc_970             	 PowerPC 970 CPU"
+	@echo "	ppc_7450             	 PowerPC 7450 CPU"
 	@echo "	doc			 Documentation"
 	@echo "	snapshot       		 Sources snapshot"
 	@echo "	install			 Installation"
@@ -22,6 +24,9 @@ pentium3 :
 
 pentium4 :
 	@ARCH="pentium4" $(MAKE) x86common
+
+pentium-m :
+	@ARCH="pentium-m" $(MAKE) x86common
 	
 athlon :
 	@ARCH="athlon" $(MAKE) x86common
@@ -31,8 +36,12 @@ x86_64 :
 
 x86_32 :
 	ARCH="athlon" $(MAKE) common
-ppc :
+
+ppc_970 :
 	ARCH="970" $(MAKE) common
+ 
+ppc_7450 :
+	ARCH="7450" $(MAKE) common
 
 doc :
 	$(MAKE) -C doc/ggnfs-doc
