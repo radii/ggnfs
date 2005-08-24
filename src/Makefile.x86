@@ -120,7 +120,7 @@ $(BINDIR)/polyselect : polyselect.c $(OBJS)
 	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ polyselect.c $(OBJS) -lgmp -lm
 
 latsiever :
-	$(MAKE) -C lasieve4 -f Makefile.x86
+	$(MAKE) -C lasieve4
 
 polsel :
 	CFLAGS="$(CFLAGS) -I. $(LOCALINC)" LIBFLAGS="$(LIBFLAGS)" $(MAKE) -C pol5 intel
@@ -137,7 +137,7 @@ clean : lasieve-clean polsel-clean
 	-rm -f *.o *.exe core $(BINS) gnfs-lasieve4I1?e
 
 lasieve-clean :
-	$(MAKE) -C lasieve4 -f Makefile.x86 clean
+	$(MAKE) -C lasieve4 clean
 
 polsel-clean :
 	$(MAKE) -C pol5 clean

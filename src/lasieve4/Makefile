@@ -9,11 +9,10 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
-INC=-I.. -I../../include
+INC=-I.. -I../../include $(LOCALINC)
 
 BINDIR=../../bin
 FACT=prho.o
-
 .SUFFIXES:
 
 .SECONDARY: *.c *.o
@@ -22,27 +21,40 @@ FACT=prho.o
 
 SRCFILES=fbgen.c gnfs-lasieve4e.c input-poly.c mpqs.c mpz-ull.c \
          real-poly-aux.c redu2.c gmp-aux.c if.c lasieve-prepn.c \
-         primgen32.c recurrence6.c lasieve.h asm/siever-config.h
+	 primgen32.c recurrence6.c lasieve.h asm/siever-config.h
 
 OBJS=../if.o input-poly.o redu2.o recurrence6.o ../fbgen.o \
      real-poly-aux.o primgen32.o lasieve-prepn.o mpqs.o
 
-all: $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e \
-     $(BINDIR)/gnfs-lasieve4I14e
+ASMDIRS=piii ppc32 itanium generic mips
 
-%.o: %.c lasieve.h
+list_asm_files = \
+     $(foreach file, $(shell make -s -C $(asm_dir) bup),$(asm_dir)/$(file))
+
+ASMFILES=$(foreach asm_dir,$(ASMDIRS),$(list_asm_files))
+
+all : $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e \
+      $(BINDIR)/gnfs-lasieve4I14e
+
+asm/%:
+	$(MAKE) -C asm $*
+
+%.o: %.c lasieve.h asm/siever-config.h
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
+%.o: %.s
+	$(CC) $(INC) -c $^
 
 input-poly.o: lasieve.h
 
-recurrence6.o: recurrence6.c lasieve.h
+recurrence6.o: recurrence6.c lasieve.h asm/siever-config.h
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 redu2.o: lasieve.h
 
 primgen32.o ../fbgen.o: lasieve.h
 
-gnfs-lasieve4eI%.o: gnfs-lasieve4e.c lasieve.h
+gnfs-lasieve4eI%.o: gnfs-lasieve4e.c lasieve.h asm/siever-config.h
 	$(CC) $(CFLAGS) $(INC) -c -DI_bits=$* -o $@ $<
 
 libgmp-aux.a: gmp-aux.o mpz-ull.o
@@ -50,22 +62,26 @@ libgmp-aux.a: gmp-aux.o mpz-ull.o
 
 lasieve-prepn.o: lasieve.h
 
-$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o libgmp-aux.a $(OBJS) \
+$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI12.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
-$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o libgmp-aux.a $(OBJS) \
+$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI13.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
-$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o libgmp-aux.a $(OBJS) \
+$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI14.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
 asm/lib%.a:
 	$(MAKE) -C asm
 
 clean:
+ifeq ($(OS),Windows_NT)
+	-rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e.exe
+else
 	-rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e
-	make -C asm clean
+endif
+	$(MAKE) -C asm clean
 
