@@ -32,16 +32,16 @@ athlon :
 	@ARCH="athlon" $(MAKE) x86common
 
 x86_64 :
-	ARCH="k8" $(MAKE) common
+	@ARCH="k8" $(MAKE) common
 
 x86_32 :
-	ARCH="athlon" $(MAKE) common
+	@ARCH="athlon" $(MAKE) common
 
 ppc_970 :
-	ARCH="970" $(MAKE) common
+	@ARCH="970" $(MAKE) common
  
 ppc_7450 :
-	ARCH="7450" $(MAKE) common
+	@ARCH="7450" $(MAKE) common
 
 doc :
 	$(MAKE) -C doc/ggnfs-doc
@@ -53,18 +53,17 @@ EXCLUDE=$(foreach opt,$(EXCLUDE_FILES),--exclude=$(opt))
 x86common :
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
 	@cd src/lasieve4 && rm -f -r asm && ln -s piii asm
-	@ARCH=$(ARCH) $(MAKE) -C src -f Makefile.x86
+	@HOST=x86 ARCH=$(ARCH) $(MAKE) -C src
 
 common :
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
 	@cd src/lasieve4 && rm -f -r asm && ln -s ppc32 asm
-	@ARCH=$(ARCH) $(MAKE) -C src
+	@HOST=generic ARCH=$(ARCH) $(MAKE) -C src
 
 clean :
 	-rm -f include/version.h
-	$(MAKE) -C src -f Makefile.x86 clean
 	$(MAKE) -C src clean
-	-rm -f -r asm
+	-rm -f -r src/lasieve4/asm
 	-rm -rf core ggnfs-*.tar.gz
 	cd ./tests; sh cleanup.sh
 

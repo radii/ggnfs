@@ -1,5 +1,7 @@
 8/24/05 (relf)
   * lasieve-asm.h renamed to siever-config.h
+  * 'ppc32' now linked to 'asm' (very much like 'piii')
+  * Makefile's unified: no Makefile[.x86|.ppc|whatever] anymore
 
 8/23/05 (Brian Gladman)
   * minor change to define strcasecmp as _strcmpi for VC++ and
