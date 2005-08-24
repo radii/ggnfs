@@ -1466,7 +1466,7 @@ zeitB(12);
     }
     if (ulqx<1048576) { /*printf("%d ",x);*/  /* !!! */
       if (ulqx<=mpqs_pmax) {
-        printf("%d %" PRIu64 " %" PRIu64 " ",x,qx,ulqx);
+        printf("%d %" PRIu64 " %u ",x,qx,ulqx);
 return -1; /* CJM, 11/30/04. */
         complain("dec.2\n");
       }

@@ -1,4 +1,4 @@
-VERSION=0.77.1-20050822
+VERSION=0.77.1-20050824
 THISDIR=branch_0
 HOME=.
 
@@ -12,8 +12,8 @@ choosetarget :
 	@echo "	pentium-m              	 Intel Pentium M"
 	@echo "	athlon			 AMD Athlon (k7)"
 	@echo "	x86_64                   AMD Opteron/Athlon64 (k8)"
-	@echo "	ppc_970             	 PowerPC 970 CPU"
-	@echo "	ppc_7450             	 PowerPC 7450 CPU"
+	@echo "	ppc_970             	 PowerPC 970"
+	@echo "	ppc_7450             	 PowerPC 7450"
 	@echo "	doc			 Documentation"
 	@echo "	snapshot       		 Sources snapshot"
 	@echo "	install			 Installation"
@@ -57,6 +57,7 @@ x86common :
 
 common :
 	echo "#define GGNFS_VERSION \"$(VERSION)-$(ARCH)\"" > include/version.h
+	@cd src/lasieve4 && rm -f -r asm && ln -s ppc32 asm
 	@ARCH=$(ARCH) $(MAKE) -C src
 
 clean :

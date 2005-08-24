@@ -20,7 +20,7 @@
 #include <limits.h>
 #include <math.h>
 #include <gmp.h>
-#include "lasieve-asm.h"
+#include "siever-config.h"
 
 extern uint32_t montgomery_inv_n;
 extern uint32_t *montgomery_modulo_n;

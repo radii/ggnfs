@@ -1,3 +1,6 @@
+8/24/05 (relf)
+  * lasieve-asm.h renamed to siever-config.h
+
 8/23/05 (Brian Gladman)
   * some minor changes to allow VC++ to use the inline version of 
   	MULMOD32 instead of a subroutine (VC++ inline assembler can't 

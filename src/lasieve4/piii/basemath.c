@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include "lasieve-asm.h"
+#include "siever-config.h"
 
 extern uint32_t montgomery_inv_n;
 extern uint32_t *montgomery_modulo_n;

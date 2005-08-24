@@ -22,7 +22,7 @@ FACT=prho.o
 
 SRCFILES=fbgen.c gnfs-lasieve4e.c input-poly.c mpqs.c mpz-ull.c \
          real-poly-aux.c redu2.c gmp-aux.c if.c lasieve-prepn.c \
-         primgen32.c recurrence6.c lasieve.h ppc32/siever-config.h
+         primgen32.c recurrence6.c lasieve.h asm/siever-config.h
 
 OBJS=../if.o input-poly.o redu2.o recurrence6.o ../fbgen.o \
      real-poly-aux.o primgen32.o lasieve-prepn.o mpqs.o
@@ -51,21 +51,21 @@ libgmp-aux.a: gmp-aux.o mpz-ull.o
 lasieve-prepn.o: lasieve.h
 
 $(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o libgmp-aux.a $(OBJS) \
-                             ppc32/liblasieve.a ppc32/liblasieveI12.a $(FACT)
+                             asm/liblasieve.a asm/liblasieveI12.a $(FACT)
 	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
 $(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o libgmp-aux.a $(OBJS) \
-                             ppc32/liblasieve.a ppc32/liblasieveI13.a $(FACT)
+                             asm/liblasieve.a asm/liblasieveI13.a $(FACT)
 	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
 $(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o libgmp-aux.a $(OBJS) \
-                             ppc32/liblasieve.a ppc32/liblasieveI14.a $(FACT)
+                             asm/liblasieve.a asm/liblasieveI14.a $(FACT)
 	$(CC) $(CFLAGS) $(INC) -o $@ $^ -L. -lgmp-aux -lgmp -lm
 
-ppc32/lib%.a:
-	$(MAKE) -C ppc32
+asm/lib%.a:
+	$(MAKE) -C asm
 
 clean:
 	-rm -f *.o *.a $(BINDIR)/gnfs-lasieve4I1?e
-	make -C ppc32 clean
+	make -C asm clean
 

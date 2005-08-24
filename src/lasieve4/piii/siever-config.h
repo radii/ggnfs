@@ -1,4 +1,4 @@
-/* lasieve-asm.h
+/* siever-config.h
   Hacked up for inclusion in GGNFS by Chris Monico.
 
   Copyright (C) 2000 Jens Franke
@@ -20,7 +20,6 @@
 #define ULL_NO_UL
 #include "if.h"
 
-/* siever-config.h */
 #define L1_BITS 14
 #define ULONG_RI
 #define HAVE_CMOV

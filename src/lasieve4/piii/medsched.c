@@ -15,7 +15,7 @@
 
 #include <sys/types.h>
 #include <limits.h>
-#include "lasieve-asm.h"
+#include "siever-config.h"
 #include "../lasieve.h"
 
 #define L1_SIZE (1<<L1_BITS)

@@ -21,7 +21,7 @@
 #include <limits.h>
 #include <math.h>
 #include <gmp.h>
-#include "lasieve-asm.h"
+#include "siever-config.h"
 #include "../lasieve.h"
 
 

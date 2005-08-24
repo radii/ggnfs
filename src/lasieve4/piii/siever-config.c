@@ -10,7 +10,7 @@
   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
   02111-1307, USA.
   */
-#include "lasieve-asm.h"
+#include "siever-config.h"
                                                                                                        
 void siever_init(void)
 {
