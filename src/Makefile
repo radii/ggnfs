@@ -121,11 +121,7 @@ latsiever :
 	$(MAKE) -C lasieve4
 
 polsel :
-ifeq ($(HOST),x86)
-	    $(MAKE) -C pol5 intel
-else
-	    $(MAKE) -C pol5
-endif
+	$(MAKE) -C pol5
 
 strip :
 ifeq ($(OS),Windows_NT)

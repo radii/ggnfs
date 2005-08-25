@@ -18,16 +18,10 @@
 #define ZEIT
 */
 
-#ifdef HAVE_ASM_INTEL
-#define HAVE_ASM
-#endif
-
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(MINGW32)
+#include <stdio.h>
 #include "ggnfs.h"
-typedef unsigned long long uint64_t;
-#endif
 
-#ifdef HAVE_ASM_ALPHA
+#if defined(HAVE_ASM_INTEL) || defined(HAVE_ASM_ALPHA)
 #define HAVE_ASM
 #endif
 
@@ -35,7 +29,6 @@ typedef unsigned long long uint64_t;
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(MINGW32)
 #undef HAVE_FLOAT64
 #endif
-
 
 #include <math.h>
 #include <fcntl.h>
@@ -909,9 +902,9 @@ void raw_hash_4()
 
 /* ---------------------------------------------------- */
 
-#ifdef HAVE_ASM_INTEL
-static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
+inline static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 {
+#ifdef HAVE_ASM_INTEL
 #if defined(_MSC_VER)
 		__asm
 		{	mov		esi,ullfptr
@@ -935,33 +928,20 @@ static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
           "addl %%eax,4(%%edi)" : : "S" (ullfptr), "D" (resptr), "c" (ulf) : 
           "%edx", "%eax", "cc");
 #endif
-}
-#elif defined HAVE_ASM_ALPHA
-static void inline ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
-{
-  uint64_t res, ullf, h;
-
-  res=*resptr;
-  h=(*ullfptr)*((uint64_t)ulf);
-  res+=h;
-  *resptr=res;
-}
 #else
-static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
-{
   uint64_t res, h;
 
   res=*resptr;
   h=(*ullfptr)*((uint64_t)ulf);
   res+=h;
   *resptr=res;
-}
 #endif
+}
 
-#ifdef HAVE_ASM_INTEL
 /* for intel this is not necessary since we have 64bit long double */
 static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
+#ifdef HAVE_ASM_INTEL
 #if defined(_MSC_VER)
 	__asm
 	{
@@ -1000,33 +980,14 @@ static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
           "addl $0,4(%%edi)" : : "S" (ullf1), "D" (resptr), "c" (ullf2) :
           "%edx", "%eax", "%ebx", "cc");
 #endif
-}
 #elif defined HAVE_ASM_ALPHA
-static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
-{
-#if 0
-  uint64_t res, f1, f2;
-  uint64_t f10, f11, f20, f21, h;
-
-  f1=*ullf1; f2=*ullf2;
-  f10=f1&0xffffffffULL; f11=f1>>32;
-  f20=f2&0xffffffffULL; f21=f2>>32;
-  res=f11*f21;
-  h=((f10*f21)>>32)+((f11*f20)>>32);
-  res+=h;
-  *resptr=res;
-#else
   uint64_t res;
   __asm__ __volatile__("umulh %1,%2,%0" :
            "=r" (res) :
            "r" (*ullf1), "r" (*ullf2) :
            "0" );
   *resptr=res;
-#endif
-}
 #else
-static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
-{
   uint64_t res, f1, f2;
   uint64_t f10, f11, f20, f21, h;
 
@@ -1037,8 +998,8 @@ static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
   h=((f10*f21)>>32)+((f11*f20)>>32);
   res+=h;
   *resptr=res;
-}
 #endif
+}
 
 #define PREMUL
 
@@ -1683,9 +1644,7 @@ zeitB(10);
 #ifdef ZEIT
 zeitA(11);
 #endif
-#ifdef HAVE_ASM_INTEL
-  res=asm_hash1();
-#elif defined HAVE_ASM_ALPHA
+#ifdef HAVE_ASM
   res=asm_hash1();
 #else
   res=raw_hash_1();
@@ -1699,9 +1658,7 @@ zeitB(11);
 #ifdef ZEIT
 zeitA(12);
 #endif
-#ifdef HAVE_ASM_INTEL
-  asm_hash2();
-#elif defined HAVE_ASM_ALPHA
+#ifdef HAVE_ASM
   asm_hash2();
 #else
   raw_hash_2();
