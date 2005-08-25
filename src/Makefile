@@ -33,10 +33,9 @@ CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions -ftracer \
 
 export ARCH HOST ALLOPT CFLAGS DEBUGOPT
 
-OBJS=getprimes.o fbmisc.o mulmod32.o squfof.o rels.o \
-     $(LANCZOS).o poly.o mpz_poly.o mpz_mat.o smintfact.o \
-     misc.o ecm4c.o nfmisc.o montgomery_sqrt.o matstuff.o \
-     dickman.o fbgen.o llist.o if.o
+OBJS=getprimes.o fbmisc.o squfof.o rels.o $(LANCZOS).o poly.o mpz_poly.o \
+     mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o montgomery_sqrt.o \
+     matstuff.o dickman.o fbgen.o llist.o if.o
 
 BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
      $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
@@ -45,7 +44,7 @@ LSBINS=latsiever polsel
 
 ifeq ($(HOST),x86)
   LANCZOS=blanczos64
-  OBJS+=modinv1002.S
+  OBJS+=modinv1002.o mulmod32.o
 else
   LANCZOS=blanczos64-no-mmx
   OBJS+=modinv32.o
