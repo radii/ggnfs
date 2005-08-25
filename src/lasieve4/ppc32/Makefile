@@ -19,7 +19,7 @@ all: liblasieve.a liblasieveI12.a liblasieveI13.a liblasieveI14.a
 	$(CC) -c $(CFLAGS) $(INC) $< -o $@
 
 liblasieve.a: gcd32.o psp.o modinv32.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 laschedI%.o: lasched.c siever-config.h
 	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
@@ -28,7 +28,7 @@ medschedI%.o: medsched.c siever-config.h
 	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
 
 liblasieveI%.a:	laschedI%.o medschedI%.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 bup:
 	echo $(SRCFILES)
