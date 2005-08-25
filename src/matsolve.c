@@ -27,7 +27,7 @@
 
 #include "if.h"
 
-#ifndef _MSC_VER 
+#if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
 #include "ggnfs.h"

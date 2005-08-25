@@ -49,6 +49,7 @@ pol51m0b-alpha.o: pol51m0b.c ../if.h
 
 $(BINDIR)/pol51m0b-intel: pol51m0b-intel.o ../if.o zeit-intel.o asm_hash5.o fnmatch.o primes.o assess.o roots.o
 	$(CC) $(INC) $(CFLAGS) -o $@ $^ $(LIBFLAGS) $(LIBS)
+	cp -f $(BINDIR)/pol51m0b-intel $(BINDIR)/pol51m0b
 
 $(BINDIR)/pol51m0b-alpha: pol51m0b-alpha.o ../if.o zeit-alpha.o asm_hash5_alpha.o primes.o assess.o roots.o
 	$(CC) $(INC) $(CFLAGS) -o $@ $^ $(LIBFLAGS) $(LIBS)
@@ -64,6 +65,7 @@ pol51m0n-alpha.o: pol51m0n.c ../if.h
 
 $(BINDIR)/pol51m0n-intel: pol51m0n-intel.o ../if.o zeit-intel.o fnmatch.o asm_hash5n.o primes.o assess.o roots.o
 	$(CC) $(INC) $(CFLAGS) -o $@ $^ $(LIBFLAGS) $(LIBS)
+	cp -f $(BINDIR)/pol51m0n-intel $(BINDIR)/pol51m0n
 
 $(BINDIR)/pol51m0n-alpha: pol51m0n-alpha.o ../if.o zeit-alpha.o asm_hash5n_alpha.o primes.o assess.o roots.o
 	$(CC) $(INC) $(CFLAGS) -o $@ $^ $(LIBFLAGS) $(LIBS)
@@ -78,6 +80,7 @@ pol51opt-intel.o: pol51opt.c ../if.h
 
 $(BINDIR)/pol51opt-intel: pol51opt-intel.o ../if.o primes.o assess.o roots.o zeit-intel.o fnmatch.o asm_rs.o
 	$(CC) $(INC) $(CFLAGS) -o $@ $^ $(LIBFLAGS) $(LIBS)
+	cp -f $(BINDIR)/pol51opt-intel $(BINDIR)/pol51opt
 
 clean : ;
 	rm -f $(BINS) $(BINS_INTEL) *.o core

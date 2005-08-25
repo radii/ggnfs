@@ -45,7 +45,7 @@ extern void *xmalloc(size_t size);
 #ifdef HAVE_ASM_INTEL
 static inline void asmgetclock(uint64_t *clptr)
 {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
 	__asm
 	{
 		rdtsc

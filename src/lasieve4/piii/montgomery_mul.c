@@ -35,7 +35,7 @@ mpz_t montgomery_gmp_help;
    evaluates to asm(x) on gcc, empty on others. This way we would
    have just the one collection of prototypes here. I'll get to it.
 */
-#if !defined(_MSC_VER) || defined(__MINGW32__)
+#if !defined(_MSC_VER)
 /* function pointers */
 void (*asm_mulmod) (uint32_t *, uint32_t *, uint32_t *) = NULL;
 extern void asm_mulm64(uint32_t *, uint32_t *, uint32_t *) asm("asm_mulm64");

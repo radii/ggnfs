@@ -3,6 +3,12 @@
     src/lasieve4/ppc32, and src/pol5.  Anyone able to try if the itanium
     or mips lattice siever code works? :)
   * Added Makefile to tests/snfs_small
+  * Eliminated _MSC_VER define when compiling under MinGW
+  * Added copy of pol51-intel executables to a name without the suffix, so
+    the factLat.pl script can still find them.  It really should be a
+    symlink, but under MinGW, "ln -s" is a synonym for cp, and cp does not
+    treat relative pathnames in the same way that ln does.
+  * Fixed makesymlinks.sh
 
 8/24/05 (relf)
   * lasieve-asm.h renamed to siever-config.h

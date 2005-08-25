@@ -22,9 +22,8 @@
 #define HAVE_ASM
 #endif
 
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(MINGW32)
 #include "ggnfs.h"
-typedef unsigned char uchar;
 typedef unsigned long long uint64_t;
 #endif
 
@@ -196,7 +195,7 @@ volatile unsigned int modulo32 asm ("modulo32");
 static inline unsigned int modmul32(unsigned int x,unsigned int y)
 {
   unsigned int res,clobber;
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
   __asm
   {
 		mov		eax,x
@@ -913,7 +912,7 @@ void raw_hash_4()
 #ifdef HAVE_ASM_INTEL
 static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
 		__asm
 		{	mov		esi,ullfptr
 			mov		edi,resptr
@@ -963,7 +962,7 @@ static void ulladdmul(uint64_t *resptr, unsigned int ulf, uint64_t *ullfptr)
 /* for intel this is not necessary since we have 64bit long double */
 static void ull_mulh(uint64_t *resptr, uint64_t *ullf1, uint64_t *ullf2)
 {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
 	__asm
 	{
 		mov		esi,ullf1

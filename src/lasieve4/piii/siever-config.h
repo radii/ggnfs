@@ -47,13 +47,13 @@ extern const uint32_t schedule_primebounds[N_PRIMEBOUNDS];
 extern const uint32_t schedule_sizebits[N_PRIMEBOUNDS];
 void siever_init(void);
 
-#if !defined(_MSC_VER) || defined (__MINGW32__)
+#if !defined(_MSC_VER)
 #define NAME(_a) asm(_a)
 #else
 #define NAME(_a) 
 #endif
 
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
 
 #define inline __inline
 
@@ -251,7 +251,7 @@ int asm_td(uint16_t *, uint16_t, uint64_t*, uint32_t*) NAME("asm_td");
 
 /* misc arithmetic files: */
 
-#if !defined(_MSC_VER) || defined(__MINGW32__)
+#if !defined(_MSC_VER)
 
 extern void asm_mulm64(uint32_t *, uint32_t *, uint32_t *) NAME("asm_mulm64");
 extern void asm_mulm96(uint32_t *, uint32_t *, uint32_t *) NAME("asm_mulm96");

@@ -243,7 +243,7 @@ int main(int argC, char *args[])
 #ifdef _CATCH_SIGNALS
   signal(SIGTERM, catch_term);
   signal(SIGINT, catch_term);
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(MINGW32)
   signal(SIGQUIT, catch_term);
 #endif
 #endif

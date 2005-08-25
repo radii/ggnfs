@@ -49,7 +49,7 @@
 #define MAX_AB_EXTRA_ENTRIES 80000
 
 
-#ifndef _MSC_VER 
+#if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
 #include "ggnfs.h"

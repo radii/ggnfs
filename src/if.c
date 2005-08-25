@@ -15,7 +15,7 @@
 
 #include <time.h>
 
-#if defined (__MINGW32__)
+#if defined (__MINGW32__) || defined (MINGW32)
 #include <io.h>
 #elif defined(_MSC_VER)
 #include <io.h>
@@ -36,7 +36,7 @@
 
 int verbose = 0;
 static size_t used_cols, ncol = 80;
-#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define NEED_GETLINE
 #define NEED_ASPRINTF
 #endif

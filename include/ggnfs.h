@@ -22,10 +22,6 @@
 #ifndef _GGNFS_H
 #define _GGNFS_H
 
-#if defined (__MINGW32__) || defined (MINGW32)
-#define _MSC_VER 1300
-#endif
-
 #include <gmp.h>
 
 #if defined (__cplusplus)
@@ -37,7 +33,7 @@ typedef unsigned char uchar;
 #include <stdio.h>
 #include <stdarg.h>
 #define __STDC_FORMAT_MACROS
-#if defined (_MSC_VER) && !defined(__MINGW32__)
+#if defined (_MSC_VER)
 #include <basetsd.h>
 
 #define int8_t  INT8
@@ -579,7 +575,7 @@ static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
 {
    return ((uint64_t)x*(uint64_t)y%m);
 }
-#elif defined( _MSC_VER ) && !defined(__MINGW32__)
+#elif defined( _MSC_VER )
 #else
 extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
 #endif
@@ -778,7 +774,7 @@ unsigned int get_next_prime();
 
 #define NFS_HASH_Q(_a, _b, _k) (((u32)(3*(_a/2)+(_b)))%(_k))
 
-#if defined ( _MSC_VER ) && !defined( __MINGW32__ )
+#if defined ( _MSC_VER )
 #define MULMOD32(_res, _op1, _op2, _mod) __asm mov	eax,_op1 __asm imul	_op2 __asm idiv	_mod __asm mov	_res,edx
 #elif defined(__ppc__)
 #define MULMOD32(_res, _op1, _op2, _mod) _res = mulmod32(_op1, _op2, _mod)

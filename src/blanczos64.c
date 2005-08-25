@@ -38,9 +38,9 @@
 
 /* I really hope, these defines sometimes will be in the config file... */
 
-#if defined(__GNUC__) || defined(__MINGW32__)
+#if defined(__GNUC__) || defined(__MINGW32__) || defined(MINGW32)
     #define ALIGNED16(x)	x __attribute__ ((aligned (16)))
-#elif defined(_MSC_VER) && !defined(__MINGW32__)
+#elif defined(_MSC_VER)
     #define ALIGNED16(x)	__declspec(align(16)) x 
 #else
     #define ALIGNED16(x)	x
@@ -49,7 +49,7 @@
 #if defined( __GNUC__ )
     #define	USE_MMX_GCC
     #define GGNFS_ATT_ASSEMBLER
-#elif defined( _MSC_VER )
+#elif defined( _MSC_VER ) || defined( __MINGW32__ ) || defined ( MINGW32 )
     #define GGNFS_MSC_ASSEMBLER
     #define	USE_MMX_MSC
 #endif

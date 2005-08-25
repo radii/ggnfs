@@ -24,14 +24,14 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#ifndef _MSC_VER        
+#if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
 
 #include "ggnfs.h"
 
 #ifdef MALLOC_REPORTING
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(MINGW32)
 #include "malloc.h"
 #else
 #include <malloc.h>
@@ -44,7 +44,7 @@
 /*******************************************************/
 INLINE double sTime()
 /*******************************************************/
-#ifndef _MSC_VER        
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(MINGW32)
 { static struct  timeval  this_tv;
   static struct  timezone dumbTZ;
   double t;

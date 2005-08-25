@@ -22,7 +22,7 @@
 #include <string.h>
 #include <time.h>
 
-#if defined (_MSC_VER) || defined (__MINGW32__)
+#if defined (_MSC_VER) || defined (__MINGW32__) || defined (MINGW32)
 #include "getopt.h"
 #define popen  _popen
 #define pclose _pclose
@@ -33,7 +33,7 @@
 #ifdef LINUX
 #include <endian.h>
 #endif
-#ifndef _MSC_VER
+#if !defined (_MSC_VER)
 #include <sys/time.h>
 #endif
 
@@ -453,7 +453,7 @@ void getFB(int force_aFBcalc)
 /*******************************************************/
 double sTime()
 /*******************************************************/
-#if !defined (_MSC_VER) && !defined (__MINGW32__)
+#if !defined (_MSC_VER) && !defined (__MINGW32__) && !defined (MINGW32)
 { static struct  timeval  this_tv;
   static struct  timezone dumbTZ;
   double t;
@@ -538,7 +538,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   x |= x << 16;
   x |= x << 32;
   while (i_o < i_max) {
-#if defined(_MSC_VER) && !defined(__MINGW32__)
+#if defined(_MSC_VER)
   __asm {
 	  mov    	esi,[i_o]
 	  mov    	edi,[i_max]
