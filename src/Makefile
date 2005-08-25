@@ -1,7 +1,4 @@
-CC=gcc
-CXX=g++
-
-ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -DMALLOC_REPORTING -ftracer -pipe
+ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -ftracer -pipe
 
 DLMALLOC=0
 MATBUILD_TPIE=0
@@ -29,14 +26,11 @@ CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions -ftracer \
        -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
-LOCALINC=-I/usr/local/include
 INC=-I. -I.. -I../include $(LOCALINC)
 LIBS=-lgmp -lm
-LIBFLAGS=-L/usr/local/lib
 BINDIR=../bin
 
-
-export ARCH HOST CC ALLOPT CFLAGS DEBUGOPT LIBFLAGS LOCALINC
+export ARCH HOST ALLOPT CFLAGS DEBUGOPT
 
 OBJS=getprimes.o fbmisc.o mulmod32.o squfof.o rels.o \
      $(LANCZOS).o poly.o mpz_poly.o mpz_mat.o smintfact.o \
@@ -57,6 +51,7 @@ else
 endif
 
 ifeq ($(DLMALLOC),1)
+  ALLOPT+= -DMALLOC_REPORTING
   OBJS+= dlmalloc.o
 endif
 
@@ -77,6 +72,9 @@ bins : $(BINS)
 
 .c.o :
 	$(CC) $(INC) $(CFLAGS) -c $*.c
+
+.s.o :
+	$(AS) $*.s
 
 smintfact.o : smintfact.c
 	$(CC) $(INC) $(CFLAGS) -c smintfact.c -o $@
@@ -105,7 +103,7 @@ $(BINDIR)/matbuild : matbuild.c $(OBJS)
 	  $(OBJS) $(LIBS)
 
 $(BINDIR)/matbuild-tpie : matbuild-tpie.c $(OBJS)
-	$(CXX) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild-tpie.c \
+	$(CPP) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild-tpie.c \
 	  experimental/combparts_tpie.cpp experimental/llist_tpie.cpp \
 	  $(OBJS) $(LIBS)
 

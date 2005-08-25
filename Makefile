@@ -1,6 +1,18 @@
 VERSION=0.77.1-20050824
 THISDIR=branch_0
-HOME=.
+
+TOOLSPREFIX=
+#TOOLSPREFIX=i586-mingw32msvc-
+
+LOCALINC=-I/usr/local/include
+LIBFLAGS=-L/usr/local/lib
+
+CC=$(TOOLSPREFIX)gcc
+CPP=$(TOOLSPREFIX)g++
+AR=$(TOOLSPREFIX)ar
+AS=$(CC) -c
+
+export CC CPP AR AS LOCALINC LIBFLAGS
 
 .PHONY: choosetarget pentium3 pentium4 athlon x86_64 x86_32 ppc doc \
         x86common common clean snapshot test

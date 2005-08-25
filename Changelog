@@ -8,6 +8,7 @@
   * lasieve-asm.h renamed to siever-config.h
   * 'ppc32' now linked to 'asm' (very much like 'piii')
   * Makefile's unified: no Makefile[.x86|.ppc|whatever] anymore
+  * undescore problem fixed, ASM_UL removed
 
 8/23/05 (Brian Gladman)
   * minor change to define strcasecmp as _strcmpi for VC++ and

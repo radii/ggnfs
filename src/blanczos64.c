@@ -46,12 +46,6 @@
     #define ALIGNED16(x)	x
 #endif
 
-#if defined(__MINGW32__) || defined(__CYGWIN__)
-    #define ASM_UL "_"
-#else
-    #define ASM_UL ""
-#endif
-
 #if defined( __GNUC__ )
     #define	USE_MMX_GCC
     #define GGNFS_ATT_ASSEMBLER
@@ -1183,8 +1177,11 @@ SHORT_CIRC_STOP:
   return numDeps;
 }
 
-
+#if defined( __GNUC__ )
+ALIGNED16(u64 mult_w[2048] asm("mult_w"));
+#else
 ALIGNED16(u64 mult_w[2048]);
+#endif
 
 void multT(u64 *c, u64 *a, u64 *b, s32 n) {
     memset(mult_w, 0, sizeof(u64) * 256 * 8);
@@ -1202,38 +1199,38 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
         	movzbl	%%bl, %%eax					\n\
         	movzbl	%%bh, %%edx					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w(,%%eax,8), %%mm0			\n\
-        	movq	%%mm0, "ASM_UL"mult_w(,%%eax,8)			\n\
+        	pxor	mult_w(,%%eax,8), %%mm0			\n\
+        	movq	%%mm0, mult_w(,%%eax,8)			\n\
         	shrl	$16, %%ebx					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*1(,%%edx,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*1(,%%edx,8)		\n\
+        	pxor	mult_w+8*256*1(,%%edx,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*1(,%%edx,8)		\n\
         	movzbl	%%bl, %%eax					\n\
         	movl	4(%%esi,%%ecx,8), %%edx				\n\
         	shrl	$8, %%ebx					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*2(,%%eax,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*2(,%%eax,8)		\n\
+        	pxor	mult_w+8*256*2(,%%eax,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*2(,%%eax,8)		\n\
         	movzbl	%%dl, %%eax					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*3(,%%ebx,8)		\n\
+        	pxor	mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*3(,%%ebx,8)		\n\
         	movzbl	%%dh, %%ebx					\n\
         	shrl	$16, %%edx					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*4(,%%eax,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*4(,%%eax,8)		\n\
+        	pxor	mult_w+8*256*4(,%%eax,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*4(,%%eax,8)		\n\
         	movzbl	%%dl, %%eax					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*5(,%%ebx,8)		\n\
+        	pxor	mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*5(,%%ebx,8)		\n\
         	shrl	$8, %%edx					\n\
         	movq	%%mm1, %%mm0					\n\
-        	pxor	"ASM_UL"mult_w+8*256*6(,%%eax,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*6(,%%eax,8)		\n\
+        	pxor	mult_w+8*256*6(,%%eax,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*6(,%%eax,8)		\n\
 	        movq	%%mm1, %%mm0					\n\
-	        pxor	"ASM_UL"mult_w+8*256*7(,%%edx,8), %%mm0		\n\
-        	movq	%%mm0, "ASM_UL"mult_w+8*256*7(,%%edx,8)		\n\
+	        pxor	mult_w+8*256*7(,%%edx,8), %%mm0		\n\
+        	movq	%%mm0, mult_w+8*256*7(,%%edx,8)		\n\
         	addl	$1, %%ecx					\n\
         	jnz	1b						\n\
         	emms" : : "m"(a), "m"(b), "m"(n) :
@@ -3607,23 +3604,23 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
                 movl	(%%esi,%%ecx,8), %%ebx				\n\
                 movzbl	%%bl, %%eax					\n\
                 movzbl	%%bh, %%edx					\n\
-                movq	"ASM_UL"mult_w(,%%eax,8), %%mm0			\n\
+                movq	mult_w(,%%eax,8), %%mm0			\n\
                 shrl	$16, %%ebx					\n\
-                pxor	"ASM_UL"mult_w+8*256*1(,%%edx,8), %%mm0		\n\
+                pxor	mult_w+8*256*1(,%%edx,8), %%mm0		\n\
                 movzbl	%%bl, %%eax					\n\
                 movl	4(%%esi,%%ecx,8), %%edx				\n\
                 shrl	$8, %%ebx					\n\
-                pxor	"ASM_UL"mult_w+8*256*2(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*2(,%%eax,8), %%mm0		\n\
                 movzbl	%%dl, %%eax					\n\
-                pxor	"ASM_UL"mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
+                pxor	mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
                 movzbl	%%dh, %%ebx					\n\
                 shrl	$16, %%edx					\n\
-                pxor	"ASM_UL"mult_w+8*256*4(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*4(,%%eax,8), %%mm0		\n\
                 movzbl	%%dl, %%eax					\n\
-                pxor	"ASM_UL"mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
+                pxor	mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
                 shrl	$8, %%edx					\n\
-                pxor	"ASM_UL"mult_w+8*256*6(,%%eax,8), %%mm0		\n\
-                pxor	"ASM_UL"mult_w+8*256*7(,%%edx,8), %%mm0		\n\
+                pxor	mult_w+8*256*6(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*7(,%%edx,8), %%mm0		\n\
                 movq	%%mm0, (%%edi,%%ecx,8)				\n\
                 addl	$1, %%ecx					\n\
                 jnz	1b						\n\
@@ -3681,23 +3678,23 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
                 movl	(%%esi,%%ecx,8), %%ebx				\n\
                 movzbl	%%bl, %%eax					\n\
                 movzbl	%%bh, %%edx					\n\
-                movq	"ASM_UL"mult_w(,%%eax,8), %%mm0			\n\
+                movq	mult_w(,%%eax,8), %%mm0			\n\
                 shrl	$16, %%ebx					\n\
-                pxor	"ASM_UL"mult_w+8*256*1(,%%edx,8), %%mm0		\n\
+                pxor	mult_w+8*256*1(,%%edx,8), %%mm0		\n\
                 movzbl	%%bl, %%eax					\n\
                 movl	4(%%esi,%%ecx,8), %%edx				\n\
                 shrl	$8, %%ebx					\n\
-                pxor	"ASM_UL"mult_w+8*256*2(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*2(,%%eax,8), %%mm0		\n\
                 movzbl	%%dl, %%eax					\n\
-                pxor	"ASM_UL"mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
+                pxor	mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
                 movzbl	%%dh, %%ebx					\n\
                 shrl	$16, %%edx					\n\
-                pxor	"ASM_UL"mult_w+8*256*4(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*4(,%%eax,8), %%mm0		\n\
                 movzbl	%%dl, %%eax					\n\
-                pxor	"ASM_UL"mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
+                pxor	mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
                 shrl	$8, %%edx					\n\
-                pxor	"ASM_UL"mult_w+8*256*6(,%%eax,8), %%mm0		\n\
-                pxor	"ASM_UL"mult_w+8*256*7(,%%edx,8), %%mm0		\n\
+                pxor	mult_w+8*256*6(,%%eax,8), %%mm0		\n\
+                pxor	mult_w+8*256*7(,%%edx,8), %%mm0		\n\
                 movntq	%%mm0, (%%edi,%%ecx,8)				\n\
                 addl	$1, %%ecx					\n\
                 jnz	1b						\n\
@@ -3789,23 +3786,23 @@ void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
             movl	(%%esi,%%ecx,8), %%ebx				\n\
             movzbl	%%bl, %%eax					\n\
             movzbl	%%bh, %%edx					\n\
-            movq	"ASM_UL"mult_w(,%%eax,8), %%mm0			\n\
+            movq	mult_w(,%%eax,8), %%mm0			\n\
             shrl	$16, %%ebx					\n\
-            pxor	"ASM_UL"mult_w+8*256*1(,%%edx,8), %%mm0		\n\
+            pxor	mult_w+8*256*1(,%%edx,8), %%mm0		\n\
             movzbl	%%bl, %%eax					\n\
             movl	4(%%esi,%%ecx,8), %%edx				\n\
             shrl	$8, %%ebx					\n\
-            pxor	"ASM_UL"mult_w+8*256*2(,%%eax,8), %%mm0		\n\
+            pxor	mult_w+8*256*2(,%%eax,8), %%mm0		\n\
             movzbl	%%dl, %%eax					\n\
-            pxor	"ASM_UL"mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
+            pxor	mult_w+8*256*3(,%%ebx,8), %%mm0		\n\
             movzbl	%%dh, %%ebx					\n\
             shrl	$16, %%edx					\n\
-            pxor	"ASM_UL"mult_w+8*256*4(,%%eax,8), %%mm0		\n\
+            pxor	mult_w+8*256*4(,%%eax,8), %%mm0		\n\
             movzbl	%%dl, %%eax					\n\
-            pxor	"ASM_UL"mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
+            pxor	mult_w+8*256*5(,%%ebx,8), %%mm0		\n\
             shrl	$8, %%edx					\n\
-            pxor	"ASM_UL"mult_w+8*256*6(,%%eax,8), %%mm0		\n\
-            pxor	"ASM_UL"mult_w+8*256*7(,%%edx,8), %%mm0		\n\
+            pxor	mult_w+8*256*6(,%%eax,8), %%mm0		\n\
+            pxor	mult_w+8*256*7(,%%edx,8), %%mm0		\n\
             pxor	(%%edi,%%ecx,8), %%mm0				\n\
             movq	%%mm0, (%%edi,%%ecx,8)				\n\
             addl	$1, %%ecx					\n\
