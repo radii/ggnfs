@@ -7,7 +7,7 @@
 # Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-INC=-I.. -I../.. -I../../../include
+INC=-I.. -I../.. -I../../../include $(LOCALINC)
 
 SRCFILES=gcd32.c 32bit.h modinv32.c psp.c siever-config32.h lasched.c medsched.c
 

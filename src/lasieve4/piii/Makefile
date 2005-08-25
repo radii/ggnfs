@@ -9,7 +9,7 @@
 #
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
-INC=-I.. -I../.. -I../../../include
+INC=-I.. -I../.. -I../../../include $(LOCALINC)
 
 SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c montgomery_mul.c basemath.c \
          asm_mul64.S asm_mul96.s asm_mul128.s sieve-from-sched.S lasched.c \

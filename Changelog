@@ -1,3 +1,8 @@
+8/24/05 (trilliwig)
+  * Added LOCALINC to include paths in Makefiles for src/lasieve4/piii,
+    src/lasieve4/ppc32, and src/pol5.  Anyone able to try if the itanium
+    or mips lattice siever code works? :)
+
 8/24/05 (relf)
   * lasieve-asm.h renamed to siever-config.h
   * 'ppc32' now linked to 'asm' (very much like 'piii')
