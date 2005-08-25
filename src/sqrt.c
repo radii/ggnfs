@@ -114,7 +114,11 @@ int cmpRels(const void *a, const void *b)
   else if (A->a > B->a) return 1;
   return 0;
 }
-  
+
+/****************************************************/
+static nf_t  g_N;
+/****************************************************/
+
 /****************************************************/
 int main(int argC, char *args[])
 /****************************************************/
@@ -123,7 +127,6 @@ int main(int argC, char *args[])
   mpz_t      p, q, rSqrt, aSqrt, kDiv;
   double     startTime, now;
   FILE       *fp;
-  nf_t       N;
   mpz_fact_t D;
   int        depNum=-1, res=0, cont;
   s32      *colsInDep=NULL, maxCols, numCols, t, i, j, k;
@@ -168,34 +171,34 @@ int main(int argC, char *args[])
 
 
   mpz_fact_init(&D);
-  initNF(&N);
-  if (!(N.FB = (nfs_fb_t *)malloc(sizeof(nfs_fb_t)))) {
+  initNF(&g_N);
+  if (!(g_N.FB = (nfs_fb_t *)malloc(sizeof(nfs_fb_t)))) {
     fprintf(stderr, "Error: Could not allocate %u bytes for N.FB!\n",
             (unsigned int)sizeof(nfs_fb_t));
-    clearNF(&N); mpz_fact_clear(&D); exit(-4);
+    clearNF(&g_N); mpz_fact_clear(&D); exit(-4);
   }
-  initFB(N.FB);
-  if (loadFB(fbName, N.FB)) {
+  initFB(g_N.FB);
+  if (loadFB(fbName, g_N.FB)) {
     printf("Could not load FB from %s!\n", fbName);
-    clearNF(&N); mpz_fact_clear(&D); exit(-4);
+    clearNF(&g_N); mpz_fact_clear(&D); exit(-4);
   }
-  mpz_set(N.FB->knownDiv, kDiv);
+  mpz_set(g_N.FB->knownDiv, kDiv);
 
   startTime = sTime();
   printf("Setting up nf_t object...\n");
-  mpz_poly_print(stdout, "F_1 = ", N.FB->f);
+  mpz_poly_print(stdout, "F_1 = ", g_N.FB->f);
   printf("F_2 = ");
-  mpz_out_str(stdout, 10, N.FB->y0);
-  if (mpz_sgn(N.FB->y1)>0) printf(" + ");
-  mpz_out_str(stdout, 10, N.FB->y1);
+  mpz_out_str(stdout, 10, g_N.FB->y0);
+  if (mpz_sgn(g_N.FB->y1)>0) printf(" + ");
+  mpz_out_str(stdout, 10, g_N.FB->y1);
   printf("X\n");
 
 
-  mpz_poly_cp(N.f, N.FB->f);
-  get_g(N.T, N.FB);
-  mpz_poly_discrim(D.N, N.T);
+  mpz_poly_cp(g_N.f, g_N.FB->f);
+  get_g(g_N.T, g_N.FB);
+  mpz_poly_discrim(D.N, g_N.T);
   mpz_fact_factorEasy(&D, D.N, discFact);
-  getIntegralBasis(&N, &D, discFact);
+  getIntegralBasis(&g_N, &D, discFact);
 
   printf("Reading dependency %d from file %s...\n", depNum, depName);
   if (!(fp = fopen(depName, "rb"))) {
@@ -305,11 +308,11 @@ int main(int argC, char *args[])
 
   mpz_init(rSqrt); mpz_init(aSqrt);
   /* The montgomerySqrt() call goes here. */
-  montgomerySqrt(rSqrt, aSqrt, relsInDep, &prelF, &lpF, N.FB, &N);
+  montgomerySqrt(rSqrt, aSqrt, relsInDep, &prelF, &lpF, g_N.FB, &g_N);
   mpz_init(p); mpz_init(q);
   mpz_sub(p, rSqrt, aSqrt);
-  mpz_gcd(p, p, N.FB->n);
-  mpz_div(q, N.FB->n, p);
+  mpz_gcd(p, p, g_N.FB->n);
+  mpz_div(q, g_N.FB->n, p);
   printf("Square root computations result in N=(r1)(r2) where:\n");
   printf("r1 = "); mpz_out_str(stdout, 10, p); printf("\n");
   printf("r2 = "); mpz_out_str(stdout, 10, q); printf("\n");
@@ -322,7 +325,7 @@ int main(int argC, char *args[])
 */
   res = -2;
   mpz_get_str(str, 10, p);
-  if ((mpz_cmp_ui(p, 1)>0) && (mpz_cmp(p, N.FB->n)<0)) {
+  if ((mpz_cmp_ui(p, 1)>0) && (mpz_cmp(p, g_N.FB->n)<0)) {
     res = 0;
     if (mpz_probab_prime_p(p, 10))
       sprintf(str, "%s (pp%u)", str, (unsigned int)strlen(str));
@@ -333,7 +336,7 @@ int main(int argC, char *args[])
   }
   msgLog("", "  r1=%s", str);
   mpz_get_str(str, 10, q);
-  if ((mpz_cmp_ui(q, 1)>0) && (mpz_cmp(q, N.FB->n)<0)) {
+  if ((mpz_cmp_ui(q, 1)>0) && (mpz_cmp(q, g_N.FB->n)<0)) {
     if (mpz_probab_prime_p(q, 10)) 
       sprintf(str, "%s (pp%u)", str, (unsigned int)strlen(str));
     else {

@@ -93,7 +93,7 @@ typedef struct {
 
 /* Prototypes for locally used stuff. */
 s32    locateP(s32 p, msqrt_t *M);
-void   updateEps_ab(msqrt_t *M, s64 a, s32 b, int exponent);
+void   updateEps_ab(msqrt_t *M, s64 a, s64 b, int exponent);
 void   updateEps(msqrt_t *M, mpz_poly delta, int exponent);
 void   updateCRT(msqrt_t *M, mpz_poly delta, mpz_t denom, int exponent);
 void   updateFactorization_ab(msqrt_t *M, relation_t *R, int sl);
@@ -329,10 +329,10 @@ int computeBeta(msqrt_t *M)
 }
   
 /*********************************************************************/
-s32 findLP(s32 p, s32 r, msqrt_t *M)
+s64 findLP(s32 p, s32 r, msqrt_t *M)
 /*********************************************************************/
 { afb_elt_t thisP, *res;
-  s32 index;
+  s64 index;
 
   thisP.p = p; thisP.r = r;
   res = (afb_elt_t *)bsearch(&thisP, M->AFB, M->aSize, sizeof(afb_elt_t), afb_elt_cmp);
@@ -573,7 +573,13 @@ int getIPB_mpz(msqrt_t *M, double logTotal)
   return baseSize;
 }
 
-#define NR_MULTIPLIER 1.3
+/*
+STEN: ((NR_MULTIPLIER * x )/ 10) is actually calculated. This approach
+	  allows us to avoid 'double' to 'INT32' conversion warning message
+	  (NR_MULTIPLIER was defined as 1.3 previously)
+*/
+#define NR_MULTIPLIER 13  
+						   
 /*******************************************************/
 int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
 /*******************************************************/
@@ -613,7 +619,7 @@ int ratSqrt(relation_t *R, int e, s32 depSize, msqrt_t *M)
     /*     all be even if it's a good dependence).                            */
     /* (7) Free the tables - we won't need them no mo'.                       */
     /**************************************************************************/
-    nr = NR_MULTIPLIER*depSize*M->N->FB->maxLP;
+    nr = (NR_MULTIPLIER*depSize*M->N->FB->maxLP) / 10;
     if (!(ratHashList = (rat_p_t *)malloc(2*nr*sizeof(rat_p_t)))) {
       fprintf(stderr, "ratSqrt() Error allocating %" PRIu32 " bytes for ratHashList!\n",
               (u32)(2*nr*sizeof(rat_p_t)) );
@@ -1127,7 +1133,7 @@ mpz_abs(tmp, tmp);
 }
 
 /***************************************************************************/
-void updateEps_ab(msqrt_t *M, s64 a, s32 b, int exponent)
+void updateEps_ab(msqrt_t *M, s64 a, s64 b, int exponent)
 /***************************************************************************/
 /* Update the embedding sizes with gamma <-- gamma*(a-b\alpha)^{exponent}. */
 /***************************************************************************/
@@ -1279,19 +1285,22 @@ void idealDivExact(mpz_mat_t *Res, mpz_mat_t *X, mpz_mat_t *Y, nf_t *N)
 
   mpz_mat_setID(&T, n);
   mpz_div(tmp, normX, g);
+
   for (i=0; i<n; i++)
     mpz_set(&T.entry[i][i], tmp);
+
   mpz_set_ui(tmp, 1);
   mpz_mat_moduleAdd(&I, tmp, X, tmp, &T, tmp);
   mpz_mat_setID(&T, n);
   mpz_div(tmp, normY, g);
+
   for (i=0; i<n; i++)
     mpz_set(&T.entry[i][i], tmp);
+
   mpz_set_ui(tmp, 1);
   mpz_mat_moduleAdd(&J, tmp, Y, tmp, &T, tmp);
     
-  return idealDiv(Res, &I, &J, N);
-
+  idealDiv(Res, &I, &J, N);
 }
 
 
@@ -1438,7 +1447,8 @@ int choose_ab_exponent(msqrt_t *M, relation_t *R)
 /* Choose an exponent for this (a,b) pair greedily.                    */
 /***********************************************************************/
 { int  i;
-  s32 pLoc, e, p, r;
+  s64 pLoc;
+  s32 e, p, r;
   double netNum=0.0, netDen=0.0, l;
 
   /* First, handle the `regular' factors. */
@@ -1487,7 +1497,8 @@ void updateFactorization_ab(msqrt_t *M, relation_t *R, int exponent)
 /* put through factRel()!                                              */
 /***********************************************************************/
 { int  i;
-  s32 pLoc, e, p, r;
+  s64 pLoc;
+  s32 e, p, r;
 
   /* First, handle the `regular' factors. */
   for (i=0; i<R->aFSize; i++) {
@@ -2044,6 +2055,15 @@ void evalOmegaPoly(mpz_t eval, mpz_poly h, mpz_t x, mpz_t modulus, msqrt_t *M)
   
 
 /*********************************************************************/
+/*
+   STEN: g_M was previously defined inside montgomerySqrt() function as
+         local variable. However, msqrt_t type is too huge to be placed
+		 on stack. I decided to make it a global variable, thus making
+		 montgomerySqrt() function non-reentrant (it cann't be called from
+		 separate threads simultaneously).
+*/
+static msqrt_t g_M; 
+
 int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF, 
                    multi_file_t *lpF, nfs_fb_t *FB, nf_t *N)
 /*********************************************************************/
@@ -2058,9 +2078,12 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
 /* to already have an integral basis, the field discriminant, the    */
 /* index (these are all done by getIntegralBasis()) and the zeros.   */
 /*********************************************************************/
+/* STEN: Note that function is not reentrant as it uses some global  */
+/*       variables (see static definitons above).                    */
+/*********************************************************************/
+
 { s32          l;
   int           i, d = N->degree, retVal, sl, cont, finalTries;
-  msqrt_t       M; 
   mpz_poly      delta, beta, gamma;
   mpz_mat_t     I;
   mpz_t         tmp1, tmp2, gamma_denom, cdm, res, tmp3;
@@ -2085,22 +2108,22 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
 
   lastReportTime = sTime() - 10.0;
   /****** Initialize M. ******/
-  M.N = N; M.FB = FB;
+  g_M.N = N; g_M.FB = FB;
 
-  mpz_mod(tmp1, M.FB->n, M.FB->knownDiv);
+  mpz_mod(tmp1, g_M.FB->n, g_M.FB->knownDiv);
   if (mpz_sgn(tmp1)==0)
-    mpz_div(M.FB->n, M.FB->n, M.FB->knownDiv);
+    mpz_div(g_M.FB->n, g_M.FB->n, g_M.FB->knownDiv);
   mpz_set_ui(tmp1, 1);
 
-  if ((retVal = initMsqrt(&M, relsInDep, prelF, lpF)))
+  if ((retVal = initMsqrt(&g_M, relsInDep, prelF, lpF)))
     return retVal;
-  mpz_mul(cdm, &M.N->f->coef[M.N->degree], M.FB->m);
+  mpz_mul(cdm, &g_M.N->f->coef[g_M.N->degree], g_M.FB->m);
 
   mpz_init_set_ui(res, 1);
   mpz_set_ui(rSqrt, 0);
   mpz_set_ui(aSqrt, 0);
 
-  printf("Using monic polynomial T="); mpz_poly_print(stdout, "", M.N->T);
+  printf("Using monic polynomial T="); mpz_poly_print(stdout, "", g_M.N->T);
   printf("Integral basis is given by:\n");
   mpz_mat_print(stdout, N->W);
   printf("with denominator: "); mpz_out_str(stdout, 10, N->W_d);
@@ -2110,49 +2133,49 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   l=0;
   finalTries=0;
   lastDiff=0.0;
-  normA = M.logNormGNum - M.logNormGDen;
+  normA = g_M.logNormGNum - g_M.logNormGDen;
   normN = 0.0;
   for (i=0; i<N->degree; i++) 
-    normN += M.log_eps[i];
+    normN += g_M.log_eps[i];
   lastNormA = normA; lastNormN = normN;
-  lastNormNum = M.logNormGNum; lastNormDen = M.logNormGDen;
+  lastNormNum = g_M.logNormGNum; lastNormDen = g_M.logNormGDen;
 
   while (cont) {
 
     /* Simplify numerator or denominator? */
-    if (fabs(M.logNormGNum) > fabs(M.logNormGDen))
+    if (fabs(g_M.logNormGNum) > fabs(g_M.logNormGDen))
       sl = 1;
     else
       sl = -1;
     /* On the other hand, we cannot let the HNum, HDen matrices */
     /* grow out of control:                                     */
-    lastHNormNum = logNorm(&M.Hnum, &M);
-    lastHNormDen = logNorm(&M.Hden, &M);
-    if ((lastHNormNum > 0.9*M.LLL_max_log) && (M.logNormGNum > 1.0))
+    lastHNormNum = logNorm(&g_M.Hnum, &g_M);
+    lastHNormDen = logNorm(&g_M.Hden, &g_M);
+    if ((lastHNormNum > 0.9*g_M.LLL_max_log) && (g_M.logNormGNum > 1.0))
       sl = 1;
-    if ((lastHNormDen > 0.9*M.LLL_max_log) && (M.logNormGDen > 1.0))
+    if ((lastHNormDen > 0.9*g_M.LLL_max_log) && (g_M.logNormGDen > 1.0))
       sl = -1;
     l++;
     now = sTime();
 
     if ((now > (lastReportTime + 5.0)) || 
-         ((M.logNormGDen < 1000.0) && (M.logNormGNum < 1000.0))) {
+         ((g_M.logNormGDen < 1000.0) && (g_M.logNormGNum < 1000.0))) {
       printf("step %" PRId32 ", sl=%2d, logGam=%1.2lf/%1.2lf, ", 
-              l, sl, M.logNormGNum, M.logNormGDen);
+              l, sl, g_M.logNormGNum, g_M.logNormGDen);
       printf("emb: ");
       for (i=0; i<N->degree; i++) 
-        printf("%1.2lf ", M.log_eps[i]);
-      normA = M.logNormGNum - M.logNormGDen;
+        printf("%1.2lf ", g_M.log_eps[i]);
+      normA = g_M.logNormGNum - g_M.logNormGDen;
       normN = 0.0;
       for (i=0; i<N->degree; i++) 
-        normN += M.log_eps[i];
+        normN += g_M.log_eps[i];
       diff = normA - normN;
       printf(", diff=%1.4lf\n", diff);
       lastReportTime = now;
     }
 
-    chooseIdeal(&I, &M, sl);
-    chooseDelta(delta, &I, sl, &M);
+    chooseIdeal(&I, &g_M, sl);
+    chooseDelta(delta, &I, sl, &g_M);
 #ifdef _LOUD_DEBUG
     ofp = fopen("maple.txt", "a");
     fprintf(ofp, "*(");
@@ -2160,65 +2183,65 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
     fprintf(ofp, ")^(%d)\n", sl);
     fclose(ofp);
 #endif
-    updateFactorization(&M, delta, &I, sl);
+    updateFactorization(&g_M, delta, &I, sl);
     mpz_set_ui(tmp1, 1);
-    updateCRT(&M, delta, tmp1, -2*sl);
+    updateCRT(&g_M, delta, tmp1, -2*sl);
 
-    evalOmegaPoly(tmp2, delta, cdm, M.FB->n, &M);
+    evalOmegaPoly(tmp2, delta, cdm, g_M.FB->n, &g_M);
     if (sl == -1) {
-      if (mpz_invert(tmp2, tmp2, M.FB->n)==0) {
-        evalOmegaPoly(tmp2, delta, cdm, M.FB->n, &M);
+      if (mpz_invert(tmp2, tmp2, g_M.FB->n)==0) {
+        evalOmegaPoly(tmp2, delta, cdm, g_M.FB->n, &g_M);
         printf("Error: "); mpz_out_str(stdout, 10, tmp2);
         printf(" is not invertible!\n");
         printf("gcd with n is : ");
-        mpz_gcd(tmp2, tmp2, M.FB->n);
+        mpz_gcd(tmp2, tmp2, g_M.FB->n);
         mpz_out_str(stdout, 10, tmp2); printf("\n");
         exit(-1);
       }
     }
     mpz_mul(res, res, tmp2);
-    mpz_mod(res, res, M.FB->n);
-    newTotal = fabs(M.logNormGDen) + fabs(M.logNormGNum) + fabs(logNorm(&M.Hnum, &M))
-               + fabs(logNorm(&M.Hden, &M));
+    mpz_mod(res, res, g_M.FB->n);
+    newTotal = fabs(g_M.logNormGDen) + fabs(g_M.logNormGNum) + fabs(logNorm(&g_M.Hnum, &g_M))
+               + fabs(logNorm(&g_M.Hden, &g_M));
     totalSize[l%20]=newTotal;
     if (l>20) {
       improve = totalSize[(l+1)%20]-totalSize[l%20];
-      if (improve < M.LLL_max_log) {
+      if (improve < g_M.LLL_max_log) {
         printf("Warning: Small improvement (%1.4lf) over 20 iterations!\n", improve);
-        M.LLL_max_log *= 0.9;
+        g_M.LLL_max_log *= 0.9;
       } else {
-        M.LLL_max_log = DEFAULT_LLLMAX_LOG;
+        g_M.LLL_max_log = DEFAULT_LLLMAX_LOG;
       }
     }
 
-    cont= ((M.logNormGDen>=0.5) || (M.logNormGNum > 0.5) ||
-          !(mpz_mat_isID(&M.Hnum)) || !(mpz_mat_isID(&M.Hden)));
+    cont= ((g_M.logNormGDen>=0.5) || (g_M.logNormGNum > 0.5) ||
+          !(mpz_mat_isID(&g_M.Hnum)) || !(mpz_mat_isID(&g_M.Hden)));
     /* If we're close, or there was too little improvement last time,
        increment the counter which will trigger an update of LLL_MAX.
     */
-    if (fabs(M.logNormGDen) + fabs(M.logNormGNum) < 20.0*M.LLL_max_log) {
+    if (fabs(g_M.logNormGDen) + fabs(g_M.logNormGNum) < 20.0*g_M.LLL_max_log) {
       finalTries++;
     } 
     /* If we get caught in a loop of the same leftover ideals,
        try to sneak out by mixing it up a bit.
     */
     if (finalTries > 50) {
-      M.LLL_max_log = DEFAULT_LLLMAX_LOG/2;
+      g_M.LLL_max_log = DEFAULT_LLLMAX_LOG/2;
     }
     if (finalTries > 100) {
-      M.LLL_max_log = DEFAULT_LLLMAX_LOG/4;
+      g_M.LLL_max_log = DEFAULT_LLLMAX_LOG/4;
     }
     if (finalTries > 150) {
-      M.LLL_max_log = DEFAULT_LLLMAX_LOG/10;
+      g_M.LLL_max_log = DEFAULT_LLLMAX_LOG/10;
     }
-    if (((finalTries>250)&&(M.logNormGDen < 0.01)) || (finalTries > 270)) 
+    if (((finalTries>250)&&(g_M.logNormGDen < 0.01)) || (finalTries > 270)) 
       /* Excessive - it shouldn't need nearly this many. */
       cont=0;
 #ifdef _DEBUG
-    normA = M.logNormGNum - M.logNormGDen;
+    normA = g_M.logNormGNum - g_M.logNormGDen;
     normN = 0.0;
     for (i=0; i<N->degree; i++) 
-      normN += M.log_eps[i];
+      normN += g_M.log_eps[i];
     diff = normA - normN;
     if (fabs(diff - lastDiff) > 2.0) {
       printf("**** Possible error: diff=%1.8lf vs. lastDiff=%1.8lf!\n", diff,lastDiff);
@@ -2226,14 +2249,14 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
       printf("  last normA = %1.5lf,   last normN = %1.5lf\n", lastNormA, lastNormN);
       printf("   new normA = %1.5lf,    new normN = %1.5lf\n\n", normA, normN);
       printf("last normNum = %1.5lf, last normDen = %1.5lf\n", lastNormNum, lastNormDen);
-      printf(" new normNum = %1.5lf,  new normDen = %1.5lf\n\n", M.logNormGNum, M.logNormGDen);
+      printf(" new normNum = %1.5lf,  new normDen = %1.5lf\n\n", g_M.logNormGNum, g_M.logNormGDen);
       printf("last normHNum= %1.5lf, last normHDen= %1.5lf\n", lastHNormNum, lastHNormDen);
-      printf(" new normHNum= %1.5lf,  new normHDen= %1.5lf\n\n", logNorm(&M.Hnum, &M),
-              logNorm(&M.Hden, &M));
+      printf(" new normHNum= %1.5lf,  new normHDen= %1.5lf\n\n", logNorm(&g_M.Hnum, &g_M),
+              logNorm(&g_M.Hden, &g_M));
       if (sl==1) printf("The numerator was being simplified.\n");
       else printf("The denominator was being simplified.\n");
       printf("delta = "); mpz_poly_print(stdout, "", delta); printf("\n");
-      norm_ib(tmp1, delta, M.N);
+      norm_ib(tmp1, delta, g_M.N);
       printf("norm(delta)="); mpz_out_str(stdout, 10, tmp1); 
       printf(", log=%1.5lf\n", _mpz_log(tmp1));
       printf("Ideal selection was as follows:\n%s\n", idealSelStr);
@@ -2242,43 +2265,43 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
     lastDiff=diff;
     lastNormA = normA; 
     lastNormN = normN;
-    lastHNormNum = logNorm(&M.Hnum, &M); 
-    lastHNormDen = logNorm(&M.Hden, &M);
-    lastNormNum = M.logNormGNum; 
-    lastNormDen = M.logNormGDen;
+    lastHNormNum = logNorm(&g_M.Hnum, &g_M); 
+    lastHNormDen = logNorm(&g_M.Hden, &g_M);
+    lastNormNum = g_M.logNormGNum; 
+    lastNormDen = g_M.logNormGDen;
 #endif
   }
   printf("-------------------------------------------------\n");
   printf("Iterative portion of square root computation done.\n");
   printf("step %" PRId32 ", sl=%2d, logGam=%1.2lf/%1.2lf, ", 
-          l, sl, M.logNormGNum, M.logNormGDen);
+          l, sl, g_M.logNormGNum, g_M.logNormGDen);
   printf("emb: ");
   for (i=0; i<N->degree; i++) 
-    printf("%1.2lf ", M.log_eps[i]);
-  normA = M.logNormGNum - M.logNormGDen;
+    printf("%1.2lf ", g_M.log_eps[i]);
+  normA = g_M.logNormGNum - g_M.logNormGDen;
   normN = 0.0;
   for (i=0; i<N->degree; i++) 
-    normN += M.log_eps[i];
+    normN += g_M.log_eps[i];
   printf(", diff=%1.4lf\n", normA - normN);
 
   printf("Final CRT residues:\n");
-  for (i=0; i<M.ipbSize; i++) {
-    mpz_out_str(stdout, 10, &M.q[i]);
+  for (i=0; i<g_M.ipbSize; i++) {
+    mpz_out_str(stdout, 10, &g_M.q[i]);
     printf(" : ");
-    mpz_poly_print(stdout, "", M.crtRes[i]);
+    mpz_poly_print(stdout, "", g_M.crtRes[i]);
   }
 #ifdef _DEBUG
   printf("Remaining ideals:\n");
   empty=1;
-  for (i=M.aSize-1; i>=0; i--) {
-    if (M.aExp[i] != 0) {
-      printf("(%" PRId32 ", %" PRId32 ")^%" PRId32 "\n", M.AFB[i].p, M.AFB[i].r, M.aExp[i]);
+  for (i=g_M.aSize-1; i>=0; i--) {
+    if (g_M.aExp[i] != 0) {
+      printf("(%" PRId32 ", %" PRId32 ")^%" PRId32 "\n", g_M.AFB[i].p, g_M.AFB[i].r, g_M.aExp[i]);
       empty=0;
     }
   }
-  for (i=M.spSize-1; i>=0; i--) {
-    if (M.spExp[i] != 0) {
-      printf("(EIdeal %d)^%" PRId32 "\n", i, M.spExp[i]);
+  for (i=g_M.spSize-1; i>=0; i--) {
+    if (g_M.spExp[i] != 0) {
+      printf("(EIdeal %d)^%" PRId32 "\n", i, g_M.spExp[i]);
       empty=0;
     }
   }
@@ -2290,23 +2313,23 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   /* Now everything has been simplified enough that we should
      be able to lift what's left to Z_K and compute the square root.
   */
-  crtLift(gamma, gamma_denom, &M);
+  crtLift(gamma, gamma_denom, &g_M);
 
   printf("Residues lifted to a remaining gamma = ");
   printf("(1/"); mpz_out_str(stdout, 10, gamma_denom); printf(") * (");
   mpz_poly_print(stdout, "", gamma); printf("\n");
 
-  mpz_cdiv_qr(tmp2, tmp1, M.N->W_d, gamma_denom);
+  mpz_cdiv_qr(tmp2, tmp1, g_M.N->W_d, gamma_denom);
   if (mpz_sgn(tmp1)) {
     msgLog("", "Warning: W_d not divisible by gamma_denom!");
     printf("Warning: W_d not divisible by gamma_denom!\n");
     printf("This computation will most likely fail.\n");
   }
-  mpz_mul(tmp2, tmp2, M.N->W_d);
+  mpz_mul(tmp2, tmp2, g_M.N->W_d);
   for (i=0; i<=gamma->degree; i++) {
     mpz_mul(&gamma->coef[i], &gamma->coef[i], tmp2);
   }
-  if (finalSquareRoot(beta, gamma, &M)) {
+  if (finalSquareRoot(beta, gamma, &g_M)) {
     printf("*** Some serious error occurred computing remaining square root.\n");
     printf("*** This run will most likely fail!\n");
   }
@@ -2317,14 +2340,14 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   /* it needs to be evaluated at c_d*m.            */
   /*************************************************/
   /* First correct for the factor of W_d^2 we multiplied in. */
-  mpz_invert(tmp2, M.N->W_d, M.FB->n);  
+  mpz_invert(tmp2, g_M.N->W_d, g_M.FB->n);  
   for (i=0; i<=beta->degree; i++) {
     mpz_mul(&beta->coef[i], &beta->coef[i], tmp2);
-    mpz_mod(&beta->coef[i], &beta->coef[i], M.FB->n);
+    mpz_mod(&beta->coef[i], &beta->coef[i], g_M.FB->n);
   }
-  mpz_poly_eval2(tmp2, beta, cdm, M.FB->y1);
+  mpz_poly_eval2(tmp2, beta, cdm, g_M.FB->y1);
   mpz_mul(res, res, tmp2);
-  mpz_mod(res, res, M.FB->n);
+  mpz_mod(res, res, g_M.FB->n);
 
   printf("Beta evaluated at m = "); mpz_out_str(stdout, 10, res); printf("\n");
   /* Now, we must correct for the extra factors of Y1 in the denominator
@@ -2332,23 +2355,23 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   */
   printf("ABexponentSum = %ld\n", ABexponentSum);
   if (ABexponentSum < 0) {
-    mpz_invert(tmp2, M.FB->y1, M.FB->n);
-    mpz_powm_ui(tmp2, tmp2, -ABexponentSum/2, M.FB->n);
+    mpz_invert(tmp2, g_M.FB->y1, g_M.FB->n);
+    mpz_powm_ui(tmp2, tmp2, -ABexponentSum/2, g_M.FB->n);
   } else {
-    mpz_mod(tmp2, M.FB->y1, M.FB->n);
-    mpz_powm_ui(tmp2, tmp2, ABexponentSum/2, M.FB->n);
+    mpz_mod(tmp2, g_M.FB->y1, g_M.FB->n);
+    mpz_powm_ui(tmp2, tmp2, ABexponentSum/2, g_M.FB->n);
   }
   mpz_mul(res, res, tmp2);
   printf("Y1 corrected Beta   = "); mpz_out_str(stdout, 10, res); printf("\n");
 
 
   mpz_set(aSqrt, res);
-  mpz_mul(tmp2, res, res); mpz_mod(tmp2, tmp2, M.FB->n);
+  mpz_mul(tmp2, res, res); mpz_mod(tmp2, tmp2, g_M.FB->n);
   printf("Beta^2 == "); mpz_out_str(stdout, 10, tmp2); printf("\n");
-  printf("Rational square root: "); mpz_out_str(stdout, 10, M.ratSqrt); printf("\n");
-  mpz_mul(tmp2, M.ratSqrt, M.ratSqrt); mpz_mod(tmp2, tmp2, M.FB->n);
+  printf("Rational square root: "); mpz_out_str(stdout, 10, g_M.ratSqrt); printf("\n");
+  mpz_mul(tmp2, g_M.ratSqrt, g_M.ratSqrt); mpz_mod(tmp2, tmp2, g_M.FB->n);
   printf("    ^2 == "); mpz_out_str(stdout, 10, tmp2); printf("\n");
-  mpz_set(rSqrt, M.ratSqrt);
+  mpz_set(rSqrt, g_M.ratSqrt);
 
 
   mpz_poly_clear(delta); mpz_poly_clear(beta); mpz_poly_clear(gamma);
@@ -2356,23 +2379,23 @@ int montgomerySqrt(mpz_t rSqrt, mpz_t aSqrt, s32 *relsInDep, multi_file_t *prelF
   mpz_clear(tmp1); mpz_clear(tmp2); mpz_clear(gamma_denom); mpz_clear(cdm);
   mpz_clear(tmp3);
 
-  free(M.AFB);
-  for (i=0; i<M.spSize; i++)
-    clearIdeal(&M.sPrimes[i]);
-  free(M.sPrimes);
-  free(M.v_cd_sPrimes);
+  free(g_M.AFB);
+  for (i=0; i<g_M.spSize; i++)
+    clearIdeal(&g_M.sPrimes[i]);
+  free(g_M.sPrimes);
+  free(g_M.v_cd_sPrimes);
   for (i=0; i<MAX_DIST_FACTS; i++)
-    mpz_clear(&M.Cd.p[i]);
-  free(M.aExp); free(M.spExp);
-  mpz_mat_clear(&M.Hnum); mpz_mat_clear(&M.Hden);
-  for (i=0; i<M.ipbSize; i++) {
-    mpz_clear(&M.q[i]);
-    mpz_poly_clear(M.crtRes[i]);
+    mpz_clear(&g_M.Cd.p[i]);
+  free(g_M.aExp); free(g_M.spExp);
+  mpz_mat_clear(&g_M.Hnum); mpz_mat_clear(&g_M.Hden);
+  for (i=0; i<g_M.ipbSize; i++) {
+    mpz_clear(&g_M.q[i]);
+    mpz_poly_clear(g_M.crtRes[i]);
   }
-  mpz_mat_clear(&M.Beta);
-  mpz_clear(M.kappa);
+  mpz_mat_clear(&g_M.Beta);
+  mpz_clear(g_M.kappa);
   for (i=0; i<d; i++)
-    mpz_clear(&M.omegaEvalM[i]);
+    mpz_clear(&g_M.omegaEvalM[i]);
   return 0;  
 }  
 
