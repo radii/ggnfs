@@ -19,6 +19,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 #define L1_BITS 14
 #define ULONG_RI
+#define asm_modinv32 modinv32
 
 #ifndef __x86_64__
 #define ULL_NO_UL

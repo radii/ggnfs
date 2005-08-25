@@ -22,10 +22,6 @@
 #include "asm/siever-config.h"
 #include "if.h"
 
-#ifdef __ppc__
-#define asm_modinv32(x) modinv32(x)
-#endif
-
 #ifdef _MSC_VER
 double rint(double);
 #endif

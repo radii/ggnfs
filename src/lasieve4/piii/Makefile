@@ -32,7 +32,7 @@ montgomery_mul.o: siever-config.h ../lasieve.h
 liblasieve.a: modinv1002.o gcd32.o ri-aux.o psp.o montgomery_mul.o \
               basemath.o sieve-from-sched.o siever-config.o \
               asm_mul64.o asm_mul96.o asm_mul128.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 laschedI12.o: lasched.c siever-config.h ../lasieve.h
 	$(CC) $(CFLAGS) $(INC) -DI_bits=12 -c -o $@ $<
@@ -53,13 +53,13 @@ medschedI14.o: medsched.c siever-config.h ../lasieve.h
 	$(CC) $(CFLAGS) $(INC) -DI_bits=14 -c -o $@ $<
 
 liblasieveI12.a: laschedI12.o medschedI12.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 liblasieveI13.a: laschedI13.o medschedI13.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 liblasieveI14.a: laschedI14.o medschedI14.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 bup:
 	echo $(SRCFILES)

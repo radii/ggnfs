@@ -26,6 +26,8 @@ SRCFILES=fbgen.c gnfs-lasieve4e.c input-poly.c mpqs.c mpz-ull.c \
 OBJS=../if.o input-poly.o redu2.o recurrence6.o ../fbgen.o \
      real-poly-aux.o primgen32.o lasieve-prepn.o mpqs.o
 
+LIBS=-lgmp-aux -lgmp -lm
+
 ASMDIRS=piii ppc32 itanium generic mips
 
 list_asm_files = \
@@ -64,15 +66,15 @@ lasieve-prepn.o: lasieve.h
 
 $(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI12.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
 
 $(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI13.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
 
 $(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI14.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. -lgmp-aux -lgmp -lm
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
 
 asm/lib%.a:
 	$(MAKE) -C asm
