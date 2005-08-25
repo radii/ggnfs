@@ -14,7 +14,8 @@
   * lasieve-asm.h renamed to siever-config.h
   * 'ppc32' now linked to 'asm' (very much like 'piii')
   * Makefile's unified: no Makefile[.x86|.ppc|whatever] anymore
-  * undescore problem fixed, ASM_UL removed
+  * underscore problem fixed, ASM_UL removed
+  * pol5/Makefile became $HOST-driven; "-intel" suffix removed from binaries
 
 8/23/05 (Brian Gladman)
   * minor change to define strcasecmp as _strcmpi for VC++ and
