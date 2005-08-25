@@ -10,6 +10,7 @@
 # 6/13/04: Hacked up for use in GGNFS by Chris Monico.
 
 INC=-I.. -I../../include $(LOCALINC)
+LIBFLAGS=-L. $(LOCALLIB)
 
 BINDIR=../../bin
 FACT=prho.o
@@ -66,15 +67,15 @@ lasieve-prepn.o: lasieve.h
 
 $(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI12.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
 
 $(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI13.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
 
 $(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) libgmp-aux.a \
                              asm/liblasieve.a asm/liblasieveI14.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ -L. $(LIBS)
+	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
 
 asm/lib%.a:
 	$(MAKE) -C asm

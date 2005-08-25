@@ -1,5 +1,6 @@
 BINDIR=../../bin
 INC=-I.. -I../../include $(LOCALINC)
+LIBFLAGS=$(LOCALLIB)
 
 # passed in from higher-level directory now
 #CFLAGS = -Wall -O2 -I/usr/local/include

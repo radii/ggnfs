@@ -1,4 +1,8 @@
 ALLOPT=-march=$(ARCH) -mtune=$(ARCH) -ftracer -pipe
+INC=-I. -I.. -I../include $(LOCALINC)
+LIBS=-lgmp -lm
+BINDIR=../bin
+LIBFLAGS=$(LOCALLIB)
 
 DLMALLOC=0
 MATBUILD_TPIE=0
@@ -26,9 +30,6 @@ CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions -ftracer \
        -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
-INC=-I. -I.. -I../include $(LOCALINC)
-LIBS=-lgmp -lm
-BINDIR=../bin
 
 export ARCH HOST ALLOPT CFLAGS DEBUGOPT
 
@@ -74,7 +75,7 @@ bins : $(BINS)
 	$(CC) $(INC) $(CFLAGS) -c $*.c
 
 .s.o :
-	$(AS) $*.s
+	$(AS) -o $@ $*.s
 
 smintfact.o : smintfact.c
 	$(CC) $(INC) $(CFLAGS) -c smintfact.c -o $@
