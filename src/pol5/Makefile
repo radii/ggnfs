@@ -1,5 +1,5 @@
 BINDIR=../../bin
-CC = gcc -Wall -I.. -I../../include
+CC = gcc -Wall -I.. -I../../include $(LOCALINC)
 # passed in from higher-level directory now
 #CFLAGS = -Wall -O2 -I/usr/local/include
 #LIBFLAGS = -I. -I/usr/local/include -L/usr/local/lib
