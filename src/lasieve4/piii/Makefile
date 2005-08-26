@@ -21,44 +21,24 @@ SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c montgomery_mul.c basemath.c \
 
 all: liblasieveI12.a liblasieveI13.a liblasieveI14.a liblasieve.a
 
-%.o: %.c
+%.o: %.c siever-config.h ../lasieve.h
 	$(CC) -c $(CFLAGS) $(INC) $< -o $@
 
 %.o: %.s
 	$(CC) $(CFLAGS) $(INC) -c $^
-
-montgomery_mul.o: siever-config.h ../lasieve.h
 
 liblasieve.a: modinv1002.o gcd32.o ri-aux.o psp.o montgomery_mul.o \
               basemath.o sieve-from-sched.o siever-config.o \
               asm_mul64.o asm_mul96.o asm_mul128.o
 	$(AR) rcs $@ $^
 
-laschedI12.o: lasched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=12 -c -o $@ $<
+laschedI%.o: lasched.c siever-config.h ../lasieve.h
+	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
 
-laschedI13.o: lasched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=13 -c -o $@ $<
+medschedI%.o: medsched.c siever-config.h ../lasieve.h
+	$(CC) $(CFLAGS) $(INC) -DI_bits=$* -c -o $@ $<
 
-laschedI14.o: lasched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=14 -c -o $@ $<
-
-medschedI12.o: medsched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=12 -c -o $@ $<
-
-medschedI13.o: medsched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=13 -c -o $@ $<
-
-medschedI14.o: medsched.c siever-config.h ../lasieve.h
-	$(CC) $(CFLAGS) $(INC) -DI_bits=14 -c -o $@ $<
-
-liblasieveI12.a: laschedI12.o medschedI12.o
-	$(AR) rcs $@ $^
-
-liblasieveI13.a: laschedI13.o medschedI13.o
-	$(AR) rcs $@ $^
-
-liblasieveI14.a: laschedI14.o medschedI14.o
+liblasieveI%.a: laschedI%.o medschedI%.o
 	$(AR) rcs $@ $^
 
 bup:

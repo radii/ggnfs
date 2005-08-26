@@ -15,7 +15,7 @@ SRCFILES=gcd32.c 32bit.h modinv32.c psp.c siever-config32.h lasched.c medsched.c
 
 all: liblasieve.a liblasieveI12.a liblasieveI13.a liblasieveI14.a
 
-%.o: %.c
+%.o: %.c siever-config.h
 	$(CC) -c $(CFLAGS) $(INC) $< -o $@
 
 liblasieve.a: gcd32.o psp.o modinv32.o

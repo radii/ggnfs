@@ -15,8 +15,8 @@ AS=$(TOOLSPREFIX)as
 
 export CC CPP AR AS LOCALINC LOCALLIB
 
-.PHONY: choosetarget pentium3 pentium4 athlon x86_64 x86_32 ppc doc \
-        x86common common clean snapshot test
+.PHONY: choosetarget pentium3 pentium4 athlon x86_64 x86_32 ppc_970 ppc_7450 \
+        doc x86common common clean snapshot test
 
 choosetarget :
 	@echo "Possible targets are:"

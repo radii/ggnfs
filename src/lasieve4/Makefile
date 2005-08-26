@@ -48,33 +48,14 @@ asm/%:
 %.o: %.s
 	$(CC) $(INC) -c $^
 
-input-poly.o: lasieve.h
-
-recurrence6.o: recurrence6.c lasieve.h asm/siever-config.h
-	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
-
-redu2.o: lasieve.h
-
-primgen32.o ../fbgen.o: lasieve.h
+libgmp-aux.a: gmp-aux.o mpz-ull.o
+	$(AR) rcs $@ $^
 
 gnfs-lasieve4eI%.o: gnfs-lasieve4e.c lasieve.h asm/siever-config.h
 	$(CC) $(CFLAGS) $(INC) -c -DI_bits=$* -o $@ $<
 
-libgmp-aux.a: gmp-aux.o mpz-ull.o
-	$(AR) rcs $@ $^
-
-lasieve-prepn.o: lasieve.h
-
-$(BINDIR)/gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) libgmp-aux.a \
-                             asm/liblasieve.a asm/liblasieveI12.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
-
-$(BINDIR)/gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) libgmp-aux.a \
-                             asm/liblasieve.a asm/liblasieveI13.a $(FACT)
-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
-
-$(BINDIR)/gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) libgmp-aux.a \
-                             asm/liblasieve.a asm/liblasieveI14.a $(FACT)
+$(BINDIR)/gnfs-lasieve4I%e: gnfs-lasieve4eI%.o $(OBJS) libgmp-aux.a \
+                             asm/liblasieve.a asm/liblasieveI%.a $(FACT)
 	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
 
 asm/lib%.a:

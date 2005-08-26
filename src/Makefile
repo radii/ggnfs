@@ -13,8 +13,8 @@ ifeq ($(OSTYPE),msys)
     DLMALLOC=1
 endif
 
+# -D__ppc__ should be removed later
 ifeq ($(ARCH),k8)
-    # -D__ppc__ should be removed later
     ALLOPT+= -D__ppc__
 endif
 
@@ -71,22 +71,10 @@ tests : $(TESTS)
 bins : $(BINS)
 
 .c.o :
-	$(CC) $(INC) $(CFLAGS) -c $*.c
+	$(CC) $(INC) $(CFLAGS) -o $@ -c $*.c
 
 .s.o :
 	$(AS) -o $@ $*.s
-
-smintfact.o : smintfact.c
-	$(CC) $(INC) $(CFLAGS) -c smintfact.c -o $@
-
-fbmisc.o : fbmisc.c
-	$(CC) $(INC) $(CFLAGS) -c fbmisc.c -o $@
-
-rels.o : rels.c
-	$(CC) $(INC) $(CFLAGS) -c rels.c -o $@
-
-latsieve.o : latsieve.c
-	$(CC) $(INC) $(CFLAGS) -c latsieve.c -o $@
 
 $(BINDIR)/sieve : sieve.c clsieve.c $(OBJS) makefb.o
 	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ $^ $(LIBS)
