@@ -1,3 +1,7 @@
+
+8/26/05 (Brian Gladman)
+  * minor update to correct an error in the VC++ project build files
+  
 8/24/05 (trilliwig)
   * Added LOCALINC to include paths in Makefiles for src/lasieve4/piii,
     src/lasieve4/ppc32, and src/pol5.  Anyone able to try if the itanium
