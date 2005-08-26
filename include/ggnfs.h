@@ -570,14 +570,17 @@ int createFB(nfs_fb_t *FB, char *ofname);
 	
 /* muldmod32.s */
 #ifdef __ppc__
-#include <stdint.h>
-static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
-{
-   return ((uint64_t)x*(uint64_t)y%m);
-}
+	#ifndef _MSC_VER
+		#include <stdint.h>
+	#endif
+	
+	static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
+	{
+		return (s32)(((uint64_t)x*(uint64_t)y)%m);
+	}
 #elif defined( _MSC_VER )
 #else
-extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
+	extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
 #endif
 
 
