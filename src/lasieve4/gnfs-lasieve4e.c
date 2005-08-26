@@ -43,7 +43,7 @@
 
 #include "lasieve.h"
 
-#ifdef __ppc__
+#ifdef GGNFS_HOST_GENERIC
 const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,UINT_MAX};
 const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
 #endif

@@ -968,7 +968,7 @@ void polymulmod(G,F,T,K) mpz_t *G,*F,*T; int K;
 
 /* Return user CPU time measured in milliseconds. Thanks to Torbjorn. */
 #if defined (ANSIONLY) || defined (USG) || defined (__SVR4) || defined (_UNICOS) || defined(__hpux) \
-		|| defined(_MSC_VER) || defined(__MINGW32__) || defined(MINGW32) || defined(__ppc__)
+		|| defined(_MSC_VER) || defined(__MINGW32__) || defined(MINGW32) || defined(GGNFS_HOST_GENERIC)
 #include <time.h>
 
 int cputime()

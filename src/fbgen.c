@@ -30,7 +30,7 @@
 #include "lasieve4/lasieve.h"
 #include "if.h"
 
-#ifndef __ppc__
+#ifndef GGNFS_HOST_GENERIC
 volatile u32_t modulo32;
 #endif
 

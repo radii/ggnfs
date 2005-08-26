@@ -13,9 +13,8 @@ ifeq ($(OSTYPE),msys)
     DLMALLOC=1
 endif
 
-# -D__ppc__ should be removed later
-ifeq ($(ARCH),k8)
-    ALLOPT+= -D__ppc__
+ifeq ($(HOST),generic)
+    ALLOPT+= -DGGNFS_HOST_GENERIC
 endif
 
 # -DL2_CACHE_SIZE=512 works well on some Pentium 4 processors.
