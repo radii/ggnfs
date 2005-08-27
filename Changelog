@@ -1,7 +1,10 @@
 
+8/27/05 (Brian Gladman)
+  * change to VC6 and VC7 project files to make move to VC8 easier
+
 8/26/05 (Brian Gladman)
   * minor update to correct an error in the VC++ project build files
-  
+
 8/24/05 (trilliwig)
   * Added LOCALINC to include paths in Makefiles for src/lasieve4/piii,
     src/lasieve4/ppc32, and src/pol5.  Anyone able to try if the itanium
@@ -24,14 +27,14 @@
 8/23/05 (Brian Gladman)
   * minor change to define strcasecmp as _strcmpi for VC++ and
     to include the 'fake' VC++ unistd.h file in if.c  Replace
-	the define of _MSC_VER in ecm4c.c in order to simplify 
+	the define of _MSC_VER in ecm4c.c in order to simplify
 	the use of a VC++ config file.
-   
+
 8/23/05 (Brian Gladman)
-  * some minor changes to allow VC++ to use the inline version of 
-  	MULMOD32 instead of a subroutine (VC++ inline assembler can't 
-	deal directly with structures) 
-  * removal of special VC++ versions of if.c and if.h as the 
+  * some minor changes to allow VC++ to use the inline version of
+  	MULMOD32 instead of a subroutine (VC++ inline assembler can't
+	deal directly with structures)
+  * removal of special VC++ versions of if.c and if.h as the
     standard versions now work
   * changed a define in /piii/lasieve-asm.h	to be right way round
     (is now '#define modinv32 asm_modinv32', was reversed)
@@ -44,14 +47,14 @@
 8/22/05 (relf)
   * Minor header fixes and cleanups
   * Applied Dmitri Gribenko's patches to Makefiles (w/ minor postfixes)
-  * Makefile.ppc and Makefile.x86_64 now joined into Makefile since 
+  * Makefile.ppc and Makefile.x86_64 now joined into Makefile since
     they do generic things while Makefile.x86 does x86-specific things
   * TODO: make single Makefiles for all targets
 
 8/20/05 (relf)
   * example pol5/rsa512* moved to tests/rsa512_pol5/
   * lasieve4/piii/mpsq-hack.c moved to lasieve4/mpqs.c and shared
-  * x86_64 siever now works 
+  * x86_64 siever now works
   * x86_64 assembler code is added to gnfs-lasieve4e.c (but it seems pointless)
 
 8/19/05 (asl)
@@ -91,7 +94,7 @@
   * some missed #include's recovered
   * major problems w/ gcc 4.0 compilation resolved
   * extra "%l" specificators removed
-  * type conversion applied to printf() arguments where required 
+  * type conversion applied to printf() arguments where required
   * implicit function declarations made explicit
   * other minor issues fixed
 
@@ -138,14 +141,14 @@
   * Free unneeded arrays before the classical siever starts; reduces
     memory use by more than half for large factorizations
   * For the classical siever, set up each large factor base prime for
-    the next sieve line immediately after the prime is used. Also 
-    collapse some operations scanning the sieve array. These two combine 
+    the next sieve line immediately after the prime is used. Also
+    collapse some operations scanning the sieve array. These two combine
     for a small speedup (~5%).
 
 7/6/05 (frmky)
   * Applied a patch by Jason Papadopoulos to the classical sieve to fix an
-    incorrect initialization when the factor base is very small (under 
-    65536). 
+    incorrect initialization when the factor base is very small (under
+    65536).
 
 7/5/05 (trilliwig)
   * Moved crossover for the Kleinjung/Franke poly tool a little lower, so
@@ -167,7 +170,7 @@
     to use them in my environment. :)
 
 7/2/05 (frmky)
-  * Modified makesymlinks.sh to restore execute permissions to 
+  * Modified makesymlinks.sh to restore execute permissions to
     src/autogplot.sh and tests/factLat.pl
   * Applied a patch by Jason Papadopoulos to fix potential problems with
     64-bit 'a' values.
@@ -176,7 +179,7 @@
   * Smoothed out polynomial selection times for GNFS factorizations from 100
     to 135 digits.  The new default times range from 30 minutes for 100-digit
     factorizations to about 2 days for 135-digit factorizations.  The times
-    for 136-155 digit factorizations are pegged at 2 days for now.  We don't 
+    for 136-155 digit factorizations are pegged at 2 days for now.  We don't
     actually expect people to use the script anyway for GNFS factorizations
     that large.
 
@@ -208,7 +211,7 @@
     in the same directory, they don't all write to the same .last_spq*
     file.
   * Added Geoffrey Reynold's fix for bug when classical sieving is not
-    done in multi-client mode. 
+    done in multi-client mode.
   * Fixed runPol5() so it tolerates abnormal exits in the polynomial
     search programs.
 
@@ -324,8 +327,8 @@
     to have broken it in the process (possibly because I applied
     the patch he send on 3/2/05 to the latest source tree which
     may have had too many changes and confused 'patch').
-  * Removed the tests/F7 and tests/tst150 directories since the 
-    scripts in them were broken and I don't necessarily feel like 
+  * Removed the tests/F7 and tests/tst150 directories since the
+    scripts in them were broken and I don't necessarily feel like
     fixing.
 
 0.75.0, 3/24/05
@@ -555,7 +558,7 @@
     mpqs-hack.c fix, and some mods to the Perl script so it can
     report the commands that are being issued.
   * Changed the default value of maxRelsInFF in the Perl script
-    from 40 to 32, to give (by default) slightly sparser matrices 
+    from 40 to 32, to give (by default) slightly sparser matrices
     at the expense of a little extra sieving.
 
 0.72.5, 12/18/04
@@ -595,7 +598,7 @@
   * Sam pointed out that lpF.numFiles should be initialized to
     zero, not 4.
   * Included some more of Mark's patches for PPC compilation.
-   
+
 
 0.72.2, 12/14/04
   * Increased MAX_RAT_FACTORS, MAX_ALG_FACTORS and MAX_SP_FACTORS :
@@ -657,7 +660,7 @@
   * Added a snippet to procrels.c to detect the condition when
     there are no valid relations after addNewRelations5() has been
     called. This happens as a result of bad parameter choices or
-    invalid usage; previously, this would result in a segfault - 
+    invalid usage; previously, this would result in a segfault -
     now, a brief message is printed follwed by a graceful exit.
   * Some changes to runPolyselect() in the Perl script, so that it's
     a bit smarter about honing in on particular ranges of coefficient
@@ -672,7 +675,7 @@
     for VC compilation. While I was in there, though, I removed
     some unused junk leftover from an earlier hack of this file.
   * Included new VC project files from Brian.
-  * Started including Mark R.'s changes for PPC compilation - 
+  * Started including Mark R.'s changes for PPC compilation -
     he's taking it easy on me and sending the required changes
     in increments, so it will be a while before all the necessary
     stuff is in here for an actual PPC compile.
@@ -779,14 +782,14 @@
     sieve on several machines at once. This hack is very temporary,
     untested so far, and I don't encourage using it! If it doesn't
     work right for you, I will accept suggestions for a fix, but I
-    won't track down bugs byself, since it's only intended to be a 
+    won't track down bugs byself, since it's only intended to be a
     temporary hack. A longterm method will have to be far more robust.
     Note: this hack assumes a reasonably homogenous network of
     machines - it just blindly divides sieving regions up equally.
 
 0.70.8, 12/1/04
   * Added Greg's tweak to the Perl script to allow the non-monic
-    linear polynomial. Ran it with his test case, and everything 
+    linear polynomial. Ran it with his test case, and everything
     worked fine.
   * One more fix for Cyg compilation.
 
@@ -864,8 +867,8 @@
       When the table of parameters is refined and completed, this should
     make the software much easier to run. Everything is still fine
     tuneable by the advanced user (the default parameters are always
-    selected, and then overridden by any user-supplied parameters). 
-      One change in the script that will affect everyone is that there is 
+    selected, and then overridden by any user-supplied parameters).
+      One change in the script that will affect everyone is that there is
     a new field which must be in the poly file:
       type: <gnfs|snfs>
     In a couple of places, it is convenient for the script to know if this
@@ -878,7 +881,7 @@
     easily decide if one set of parameters is better than those in the table
     (this table will be very dynamic for a while, as it will take much testing
     to determine the best parameter choices on average).
-  * In an earlier release, I made a change I forgot to document. 
+  * In an earlier release, I made a change I forgot to document.
     matsolve now spits out a number it calls 'matrix difficulty'.
     This number represents, oddly enough, the difficulty of solving
     the resulting matrix. It is a function of both the matrix size,
@@ -1025,8 +1028,8 @@
     by giving -march=athlon (for procrels, at least). Of course, this won't
     speed up the lattice siever since it's already assembly coded, but at
     least a little boost for relation processing is worth it.
-    This probably means its time for a proper configure script, but I 
-    don't have time for that yet. In the meantime, I added a 
+    This probably means its time for a proper configure script, but I
+    don't have time for that yet. In the meantime, I added a
     Makefile.athlon for this. I suspect that various pentium flags may also
     help, so you may want to experiment with this.
 
@@ -1043,7 +1046,7 @@
     The next step is to carefully go through the code and see what
     really needs to be s32 and what can be u32 (i.e., in all post-sieving
     code, so that we can handle large primes upto 32 bits).
-    
+
 
 0.60.5-unstable, 10/21/04
   * Fixed up the 64-bit Lanczos code. It still needs to be cleaned
@@ -1083,7 +1086,7 @@
 
 0.60.1-unstable, 10/14/04
   * Fixed a naughty little bug that caused a miscount of the
-    total number of large primes in procrels (net result was a 
+    total number of large primes in procrels (net result was a
     memory allocation error).
 
 0.60-unstable, 10/13/04
@@ -1094,7 +1097,7 @@
     I should probably consider asking someone (Brian :) to keep a copy
     of the VC files somewhere else and I'll link to them. What keeps happening
     is that by the time I get to include the updates, I've already changed
-    things so that they are broken by the time they get included. 
+    things so that they are broken by the time they get included.
   * I finally started debugging the lasieve/lambda problem. My suspicion
     was (of course :) right, that it was crashing when it attempted to
     MPQS a leftover norm. Most likely, this is due to some error on my
@@ -1129,7 +1132,7 @@
         with the ability to control several nodes. This will require some level
         of network communication capabilities which Perl has but Bash does not
         (at least, not via any reasonably clean techniques that I know).
-    (4) I want to learn Perl. Not a bad start I think, though I'm sure 
+    (4) I want to learn Perl. Not a bad start I think, though I'm sure
         I broke some style rules.
     (5) It should be a transparent change for Linux users since we all
         have Perl anyway. So why not?
@@ -1156,7 +1159,7 @@
     I'm not yet done - I've only done the disk writing so far (which is
     the easy part :)
   * Modified the factLat.pl script to also kick out a jpeg showing the FF's as
-    a function of the total relations. 
+    a function of the total relations.
   * (MAJOR CHANGE) : The old `getdeps' program and source file are now called
     `procrels', which makes far more sense. The old name, getdeps, was a reminant
     from the early days of GGNFS when this program did both relation processing
@@ -1177,7 +1180,7 @@
     stuff should be in one file, so I combined the needed parts
     of spmatmul.c into blanczos32.c and removed spmatmul.c.
     Note that the directory with the VC files has changed from
-    vc_project to ggnfs.vc.) 
+    vc_project to ggnfs.vc.)
    (Nope - it's fixed now. I sent it to Brian first and he updated
     the files).
   * Added a new parameter, `examinefrac', to the polyselect input
@@ -1228,12 +1231,12 @@
       RL->maxDataSize = fileInfo.st_size;
     should be
       RL->maxDataSize = fileInfo.st_size / sizeof(long);
-                                                                                              
+
     Description:
     There is a mismatch of the unit between source and destination.
       (src) fileInfo.st_size ... bytes
       (dst) RL->maxDataSize ... longs
-                                                                                             
+
     Result:
     After the correction, large waste memory -- more than 300MB? -- has been saved.
 
@@ -1242,7 +1245,7 @@
           bufSize += fread(&buf[bufSize], sizeof(long), bufMax-bufIndex-10, fp);
     should be
           bufSize += fread(&buf[bufSize], sizeof(long), bufMax-bufSize, fp);
-                                                                                             
+
     Description:
     It's a simple mistake. fread() overruns memory blocks and causes segfaults on
 Cygwin.
@@ -1310,7 +1313,7 @@ Cygwin.
            emb: -60.38 -47.55 -47.55 -35.17 -35.17 , diff=- 0.0000
     Here, the final quantity is the one I'm talking about. It _should_ always
     stay fairly close to zero, but it sometimes jumps after the first iteration.
-    This seems to indicate that somewhere we are dividing or multiplying 
+    This seems to indicate that somewhere we are dividing or multiplying
     by a different ideal than we adjust the exponents by.)
 
 0.53.2, 8/21/04
@@ -1341,9 +1344,9 @@ Cygwin.
     point to allow the script to send job files to worker nodes
     via sockets. This is not high on my priority list at the moment,
     but it is fairly easy to do from the server side, given the current
-    script. It also shouldn't take much work on the client side. 
-    It would just be a matter of adding a few lines of code to the siever to 
-    query a server for a job file (if run in client mode). 
+    script. It also shouldn't take much work on the client side.
+    It would just be a matter of adding a few lines of code to the siever to
+    query a server for a job file (if run in client mode).
     If it gets one, dump it to file and everything proceeds as normal.
     If it did not get one, the siever will shutdown, after complaining
     about not finding a job file. The hard part of this will be getting
@@ -1354,6 +1357,6 @@ Cygwin.
 
 0.53.0, 8/16/04
   * KAMADA Makoto submitted another patch which fixed the serious
-    Cygwin bug and further sped up addNewRelations4() by another 
+    Cygwin bug and further sped up addNewRelations4() by another
     18% or so. Many thanks to Makoto for his hard work in tracking
     that bug down and speeding up the various functions in getdeps.c.
