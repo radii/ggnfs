@@ -13,7 +13,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define __PPC32__SIEVER_CONFIG_H__
 
 #ifdef _MSC_VER
-	#include "../include/ggnfs.h" /* uint32_t and similar types are defines here for MS VC */
+	#include "../include/ggnfs.h" /* uint32_t and similar types are defined here for MS VC */
 #else
 	#include <stdint.h>
 #endif
