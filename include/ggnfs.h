@@ -777,10 +777,14 @@ unsigned int get_next_prime();
 
 #define NFS_HASH_Q(_a, _b, _k) (((u32)(3*(_a/2)+(_b)))%(_k))
 
-#if defined ( _MSC_VER )
-#define MULMOD32(_res, _op1, _op2, _mod) __asm mov	eax,_op1 __asm imul	_op2 __asm idiv	_mod __asm mov	_res,edx
-#elif defined(GGNFS_HOST_GENERIC)
+/*
+ * STEN: GGNFS_HOST_GENERIC macro can be defined when compiling in MS VC x64 
+ * configuration so check if it is defined first, then check for _MSC_VER 
+ */
+#if defined(GGNFS_HOST_GENERIC) 
 #define MULMOD32(_res, _op1, _op2, _mod) _res = mulmod32(_op1, _op2, _mod)
+#elif defined ( _MSC_VER )
+#define MULMOD32(_res, _op1, _op2, _mod) __asm mov	eax,_op1 __asm imul	_op2 __asm idiv	_mod __asm mov	_res,edx
 #else
 #define MULMOD32(_res, _op1, _op2, _mod) \
           asm(" imull %2\n\t idivl %3\n\t movl %%edx, %0"  \
