@@ -616,8 +616,8 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
       }
     }
   }
-#endif
   }
+#endif
 }
 
 /******************************************************************/
