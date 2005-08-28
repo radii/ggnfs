@@ -32,7 +32,7 @@ typedef uint32_t ulong;
 #define GNFS_CS32
 #endif
 
-#ifdef __x86_64__
+#if defined(__x86_64__) && !defined(_WIN64)
 #define HAVE_SSIMD
 #endif
 
