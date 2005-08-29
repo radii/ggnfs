@@ -1,3 +1,9 @@
+8/29/05 (Brian Gladman)
+  * change to VC6, VC7 and VC8 build organisation to provide individual
+    build directories (to avoid object file version conflicts)
+  * copied Intel syntax assembler files from VC++ build directory
+    to src\lasieve4\piii and src\pol5 so they are alongside their
+    AT&T equivalents
 
 8/27/05 (Brian Gladman)
   * change to VC6 and VC7 project files to make move to VC8 easier
