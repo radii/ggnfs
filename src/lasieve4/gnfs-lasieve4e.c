@@ -13,6 +13,7 @@
   02111-1307, USA.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <math.h>
@@ -66,7 +67,7 @@ const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
 #define SCHED_PATHOLOGY 2
 
 static float FB_bound[2], sieve_report_multiplier[2];
-static u16_t sieve_min[2], max_primebits[2], max_factorbits[2];
+static long sieve_min[2], max_primebits[2], max_factorbits[2];
 static u32_t *(FB[2]), *(proots[2]), FBsize[2];
 static double *(tpoly_f[2]), *(tpoly_fr[2]);
 static i16_t *rroots1, *rroots2;
@@ -81,14 +82,14 @@ u32_t all_spq_done;
 static mpz_t m, N, aux1, aux2, aux3, sr_a, sr_b;
 static mpz_t *(poly[2]);
 double *(poly_f[2]), poly_norm[2];
-i32_t  poldeg[2], poldeg_max;
+u32_t  poldeg[2], poldeg_max;
 u32_t  keep_factorbase;
 
 static mpz_t rational_rest, algebraic_rest;
 mpz_t factors[MAX_LPFACTORS];
 static u32_t yield=0, n_mpqsfail[2]={0,0}, n_mpqsvain[2]={0,0};
 static u32_t mpqs_clock=0;
-static u32_t sieve_clock=0, sch_clock=0, td_clock=0, tdi_clock=0;
+static clock_t sieve_clock=0, sch_clock=0, td_clock=0, tdi_clock=0;
 static u32_t cs_clock[2]={0,0}, Schedule_clock=0, medsched_clock=0;
 static u32_t si_clock[2]={0,0}, s1_clock[2]={0,0};
 static u32_t s2_clock[2]={0,0}, s3_clock[2]={0,0};
@@ -438,13 +439,15 @@ void getFB(int force_aFBcalc)
         break;
       ld = log(prime);
       l1 = add_primepowers2xaFB(&xaFB_alloc, n_I, side, prime, proots[side][i]);
-      FB_logs[side][i] = rint(l1 * ld * sieve_multiplier[side]);
+	  assert(rint(l1 * ld * sieve_multiplier[side]) <= UCHAR_MAX);
+      FB_logs[side][i] = (unsigned char)rint(l1 * ld * sieve_multiplier[side]);
     }
     while (i < FBsize[side]) {
       ld = log(FB[side][i]);
       if (l > FB_maxlog[side])
         FB_maxlog[side] = ld;
-      FB_logs[side][i++] = rint(sieve_multiplier[side] * ld);
+	  assert(rint(sieve_multiplier[side] * ld) <= UCHAR_MAX);
+      FB_logs[side][i++] = (unsigned char)rint(sieve_multiplier[side] * ld);
     }
     FB_maxlog[side] *= sieve_multiplier[side];
     qsort(xFB[side], xFBs[side], sizeof(*(xFB[side])), xFBcmp);
@@ -481,13 +484,15 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   // align i_o & i_max to 32-byte boundary
   for(;i_o<i_max && ((size_t)i_o & 0x1F);++i_o) {
     if (*i_o >= st1) {
-      cand[ncand] = i_o - sieve_interval;
+	  assert((i_o - sieve_interval) <= USHRT_MAX);
+      cand[ncand] = (u16_t)(i_o - sieve_interval);
       fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
     }
   }
   while(i_o<i_max && ((size_t)i_max & 0x1F)) {
     if (*--i_max >= st1) {
-      cand[ncand] = i_max - sieve_interval;
+	  assert((i_max - sieve_interval) <= USHRT_MAX);
+      cand[ncand] = (u16_t)(i_max - sieve_interval);
       fss_sv[ncand++] = *i_max + horizontal_sievesums[j];
     }
   }
@@ -509,7 +514,8 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
       if (((v & BC_MASK) | ((v + bc) & BC_MASK)) == 0) continue;
       for (i_o=(uchar *)i_oo; i_o<(uchar *)(i_oo+1); i_o++) {
 	if (*i_o >= st1) {
-	  cand[ncand] = i_o - sieve_interval;
+	  assert((i_o - sieve_interval) <= USHRT_MAX);
+	  cand[ncand] = (u16_t)(i_o - sieve_interval);
 	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
 	}
       }
@@ -521,7 +527,8 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
       if ((*i_oo & BC_MASK) == 0) continue;
       for (i_o=(uchar *)i_oo; i_o<(uchar *)(i_oo+1); i_o++) {
 	if (*i_o >= st1) {
-	  cand[ncand] = i_o - sieve_interval;
+	  assert((i_o - sieve_interval) <= USHRT_MAX);
+	  cand[ncand] = (u16_t)(i_o - sieve_interval);
 	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
 	}
       }
@@ -853,7 +860,8 @@ int lasieve()
               buf += 6;
           }
         }
-        x2FBs[s] = (buf2 - x2FB[s]) / 4;
+		assert(((buf2 - x2FB[s]) / 4) <= USHRT_MAX);
+        x2FBs[s] = (u16_t)((buf2 - x2FB[s]) / 4);
         smallpsieve_aux_ub_odd[s] = ibuf;
         smallsieve_aux1_ub_odd[s] = buf;
       }
@@ -957,7 +965,7 @@ int lasieve()
       }
 
       new_clock = clock();
-      sch_clock += (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+      sch_clock += (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
       last_clock = new_clock;
 
       for (oddness_type = 1; oddness_type < 4; oddness_type++) {
@@ -1218,7 +1226,7 @@ int lasieve()
 
             new_clock = clock();
             medsched_clock +=
-              (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+              (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             last_clock = new_clock;
           }
 #endif
@@ -1241,9 +1249,10 @@ int lasieve()
                     u32_t p, r, pr;
                     unsigned char l, *si;
 
+					assert(x[2] <= UCHAR_MAX);
                     p = x[0];
                     pr = x[1];
-                    l = x[2];
+                    l = (unsigned char)x[2];
                     r = x[3];
                     si = tiny_sieve_buffer + r;
                     while (si < si_ub) {
@@ -1264,10 +1273,11 @@ int lasieve()
                     u32_t p, r, pr, d, d0;
                     unsigned char l, *si;
 
+					assert(x[3] <= UCHAR_MAX);
                     p = x[0];
                     d = x[1];
                     pr = x[2];
-                    l = x[3];
+                    l = (unsigned char)x[3];
                     r = x[4];
                     d0 = x[5];
                     if (d0 > 0) {
@@ -1294,10 +1304,11 @@ int lasieve()
                     u32_t p, r, pr, d, d0;
                     unsigned char l, *si;
 
+					assert(x[3] <= UCHAR_MAX);
                     p = x[0];
                     d = x[1];
                     pr = x[2];
-                    l = x[3];
+                    l = (unsigned char)x[3];
                     r = x[4];
 
                     d0 = x[5];
@@ -1339,7 +1350,7 @@ int lasieve()
 #endif
             new_clock = clock();
             clock_diff =
-              (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+              (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             si_clock[s] += clock_diff;
             sieve_clock += clock_diff;
             last_clock = new_clock;
@@ -1355,9 +1366,10 @@ int lasieve()
                 u32_t p, r, pr;
                 unsigned char l, *y;
 
+				assert(x[2] <= UCHAR_MAX);
                 p = x[0];
                 pr = x[1];
-                l = x[2];
+                l = (unsigned char)x[2];
                 r = x[3];
                 for (y = sieve_interval; y < sieve_interval + L1_SIZE;
                      y += n_i) {
@@ -1393,9 +1405,10 @@ int lasieve()
                 u32_t p, r, pr;
                 unsigned char l, *y;
 
+				assert(x[2] <= UCHAR_MAX);
                 p = x[0];
                 pr = x[1];
-                l = x[2];
+                l = (unsigned char)x[2];
                 r = x[3];
                 for (y = sieve_interval; y < sieve_interval + L1_SIZE;
                      y += n_i) {
@@ -1427,9 +1440,10 @@ int lasieve()
                 u32_t p, r, pr;
                 unsigned char l, *y;
 
+				assert(x[2] <= UCHAR_MAX);
                 p = x[0];
                 pr = x[1];
-                l = x[2];
+                l = (unsigned char)x[2];
                 r = x[3];
                 for (y = sieve_interval; y < sieve_interval + L1_SIZE;
                      y += n_i) {
@@ -1460,9 +1474,10 @@ int lasieve()
                 u32_t p, r, pr;
                 unsigned char l, *y;
 
+				assert(x[2] <= UCHAR_MAX);
                 p = x[0];
                 pr = x[1];
-                l = x[2];
+                l = (unsigned char)x[2];
                 r = x[3];
                 for (y = sieve_interval; y < sieve_interval + L1_SIZE;
                      y += n_i) {
@@ -1492,9 +1507,10 @@ int lasieve()
                 u32_t p, r, pr;
                 unsigned char l, *y;
 
+				assert(x[2] <= UCHAR_MAX);
                 p = x[0];
                 pr = x[1];
-                l = x[2];
+                l = (unsigned char)x[2];
                 r = x[3];
                 for (y = sieve_interval; y < sieve_interval + L1_SIZE;
                      y += n_i) {
@@ -1519,10 +1535,11 @@ int lasieve()
                 u32_t p, r, pr, d, d0;
                 unsigned char l;
 
+				assert(x[3] <= UCHAR_MAX);
                 p = x[0];
                 d = x[1];
                 pr = x[2];
-                l = x[3];
+                l = (unsigned char)x[3];
                 r = x[4];
 
                 for (d0 = x[5]; d0 < j_per_strip; d0 += d) {
@@ -1559,8 +1576,9 @@ int lasieve()
                 u32_t p, d;
                 unsigned char l;
 
+				assert(x[1] <= UCHAR_MAX);
                 p = x[0];
-                l = x[1];
+                l = (unsigned char)x[1];
                 d = x[2];
                 while (d < j_per_strip) {
                   horizontal_sievesums[d] += l;
@@ -1577,7 +1595,7 @@ int lasieve()
 
             new_clock = clock();
             clock_diff =
-              (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+              (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             s1_clock[s] += clock_diff;
             sieve_clock += clock_diff;
             last_clock = new_clock;
@@ -1616,7 +1634,7 @@ int lasieve()
 
             new_clock = clock();
             clock_diff =
-              (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+              (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             s2_clock[s] += clock_diff;
 #ifdef BADSCHED
             ncand = 0;
@@ -1703,7 +1721,7 @@ int lasieve()
 #endif
             new_clock = clock();
             clock_diff =
-              (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+              (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             sieve_clock += clock_diff;
             s3_clock[s] += clock_diff;
             last_clock = new_clock;
@@ -1728,8 +1746,10 @@ int lasieve()
                     a = poldeg[s] * log(j_offset + 1);
                     if (special_q_side == s)
                       a -= special_q_log;
+					
                     a = rint(a*sieve_multiplier[s] - sieve_report_multiplier[s]*FB_maxlog[s]);
-                    lt = a;
+					assert( (a >= INT_MIN) && (a <= INT_MAX) );
+                    lt = (i32_t)a;
                   }
                   for (true_i_lb=0; true_i_lb<true_i_ub; true_i_lb+=CANDIDATE_SEARCH_STEPS) {
                     i32_t sieve_threshold;
@@ -1800,8 +1820,10 @@ int lasieve()
                       a = poldeg[s] * log(true_i_lb + 1);
                       if (special_q_side == first_sieve_side)
                         a -= log(special_q);
-                      a = rint(a*sieve_multiplier[s]-sieve_report_multiplier[s]*FB_maxlog[s]);
-                      lt = a;
+
+					  a = rint(a*sieve_multiplier[s]-sieve_report_multiplier[s]*FB_maxlog[s]);
+					  assert( (a >= INT_MIN) && (a <= INT_MAX) );
+                      lt = (i32_t)a;
                       next_lt_update *= 2;
                       next_lt_update++;
                     }
@@ -1886,7 +1908,7 @@ int lasieve()
             }
 
             new_clock = clock();
-            clock_diff = (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+            clock_diff = (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
             sieve_clock += clock_diff;
             cs_clock[s] += clock_diff;
             last_clock = new_clock;
@@ -1943,7 +1965,7 @@ int lasieve()
               nzss[1]++;
 #endif
             last_tdclock = clock();
-            tdi_clock += (1000.0 * (last_tdclock - last_clock)) / CLOCKS_PER_SEC;
+            tdi_clock += (clock_t)((1000.0 * (last_tdclock - last_clock)) / CLOCKS_PER_SEC);
             ncand = nc1;
             qsort(cand, ncand, sizeof(*cand), tdcand_cmp);
             td_buf1[0] = td_buf[first_td_side];
@@ -1954,7 +1976,7 @@ int lasieve()
 #endif
 
               {
-                u32_t nfbp;
+                size_t nfbp;
                 u32_t p_bound;
                 u16_t last_j, strip_i, strip_j;
 
@@ -2002,7 +2024,7 @@ int lasieve()
                 }
 
                 newclock = clock();
-                tdsi_clock[side] += (1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC;
+                tdsi_clock[side] += (u32_t)((1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC);
                 last_tdclock = newclock;
 
                 memcpy(tds_fbi_curpos, tds_fbi, UCHAR_MAX * sizeof(*tds_fbi));
@@ -2052,7 +2074,7 @@ int lasieve()
                 }
 #endif
                 newclock = clock();
-                tds2_clock[side] += (1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC;
+                tds2_clock[side] += (u32_t)((1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC);
                 last_tdclock = newclock;
 
                 {
@@ -2106,7 +2128,7 @@ int lasieve()
                   }
                 }
                 newclock = clock();
-                tds3_clock[side] += (1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC;
+                tds3_clock[side] += (u32_t)((1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC);
                 last_tdclock = newclock;
 
                 for (i = 0; i < UCHAR_MAX && i < ncand; i++) {
@@ -2143,7 +2165,7 @@ int lasieve()
                     x[3] = r;
                   }
                   newclock = clock();
-                  tds1_clock[side] += (1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC;
+                  tds1_clock[side] += (u32_t)((1000.0 * (newclock - last_tdclock)) / CLOCKS_PER_SEC);
                   last_tdclock = newclock;
                 }
 
@@ -2520,7 +2542,7 @@ printf("Too large!\n");
                         }
                       }
                       verbose = ov;
-                      mpqs_clock += (1000.0 * (clock() - cl)) / CLOCKS_PER_SEC;
+                      mpqs_clock += (clock_t)((1000.0 * (clock() - cl)) / CLOCKS_PER_SEC);
                       if (s != 2)
                         continue;
 //                        fprintf(ofile, "W ");
@@ -2600,14 +2622,14 @@ printf("Too large!\n");
                   }
                 }
                 newclock = clock();
-                tds4_clock[side] += (1000.0*(newclock-last_tdclock))/CLOCKS_PER_SEC;
+                tds4_clock[side] += (u32_t)((1000.0*(newclock-last_tdclock))/CLOCKS_PER_SEC);
                 last_tdclock = newclock;
                 ncand = nc1;
               }
             }
           }
           new_clock = clock();
-          td_clock += (1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC;
+          td_clock += (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
           last_clock = new_clock;
         }
       }
@@ -2677,10 +2699,10 @@ int parseJobFile(char *fName)
         sieve_min[1] = atol(value);
       } else if ((strncmp(token, "lim0:", 5)==0) ||
                  (strncmp(token, "alim:", 5)==0)) {
-        FB_bound[0] = atol(value);
+        FB_bound[0] = (float)atol(value);
       } else if ((strncmp(token, "lim1:", 5)==0)||
                  (strncmp(token, "rlim:", 5)==0)) {
-        FB_bound[1] = atol(value);
+        FB_bound[1] = atof(value);
       } else if ((strncmp(token, "lpb0:", 5)==0) ||
                  (strncmp(token, "lpba:", 5)==0)) {
         max_primebits[0] = atoi(value);
@@ -3040,7 +3062,7 @@ int main(int argc, char **argv)
         u32_t sp_i;
         u32_t n, sl_i;
         u32_t ns;
-        size_t allocate, all1;
+        double allocate, all1;
 
         if (i == n_schedules[s] - 1)
           fbp_ub = FB_bound[s];
