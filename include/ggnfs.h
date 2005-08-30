@@ -30,8 +30,12 @@ extern "C" {
 
 typedef unsigned char uchar;
 
+#define _USE_MATH_DEFINES
+
 #include <stdio.h>
 #include <stdarg.h>
+#include <math.h>
+
 #define __STDC_FORMAT_MACROS
 #if defined (_MSC_VER)
 #include <basetsd.h>
@@ -111,8 +115,6 @@ typedef  int32_t i32_t;
 typedef uint64_t u64_t;
 typedef  int64_t i64_t;
 
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include "version.h"
 
 /* This is just for a procrels hack. */
