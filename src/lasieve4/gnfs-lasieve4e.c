@@ -2702,7 +2702,7 @@ int parseJobFile(char *fName)
         FB_bound[0] = (float)atol(value);
       } else if ((strncmp(token, "lim1:", 5)==0)||
                  (strncmp(token, "rlim:", 5)==0)) {
-        FB_bound[1] = atof(value);
+        FB_bound[1] = (float)atof(value);
       } else if ((strncmp(token, "lpb0:", 5)==0) ||
                  (strncmp(token, "lpba:", 5)==0)) {
         max_primebits[0] = atoi(value);
@@ -2717,10 +2717,10 @@ int parseJobFile(char *fName)
         max_factorbits[1] = atoi(value);
       } else if ((strncmp(token, "lambda0:", 8)==0) ||
                  (strncmp(token, "alambda:", 8)==0)) {
-        sieve_report_multiplier[0] = atof(value);
+        sieve_report_multiplier[0] = (float)atof(value);
       } else if ((strncmp(token, "lambda1:", 8)==0) ||
                  (strncmp(token, "rlambda:", 8)==0)) {
-        sieve_report_multiplier[1] = atof(value);
+        sieve_report_multiplier[1] = (float)atof(value);
       } 
 #ifdef _NO
       else {
@@ -3057,15 +3057,19 @@ int main(int argc, char **argv)
       schedules[s] = xmalloc(n_schedules[s] * sizeof(**schedules));
       fbi_lb = fbi1[s];
       for (i = 0; i < n_schedules[s]; i++) {
-        u32_t fbp_lb, fbp_ub;
+  	    u32_t fbp_ub;
+		u32_t fbp_lb;
         u32_t fbi, fbi_ub;
         u32_t sp_i;
         u32_t n, sl_i;
         u32_t ns;
-        double allocate, all1;
+        size_t allocate, all1;
 
         if (i == n_schedules[s] - 1)
-          fbp_ub = FB_bound[s];
+		{
+		  assert(FB_bound[s] < UINT_MAX);
+          fbp_ub = (u32_t)FB_bound[s];
+		}
         else
           fbp_ub = schedule_primebounds[i];
         if (i == 0)
@@ -3079,10 +3083,12 @@ int main(int argc, char **argv)
           ns = 1 << (schedule_sizebits[i] - L1_BITS);
         schedules[s][i].n_strips = ns;
 
-        allocate = rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
+		assert(rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
+        allocate = (size_t)rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
         allocate *= SE_SIZE;
 
-        all1 = allocate + n_i * ceil(pvl_max[s] / log(fbp_lb)) * SE_SIZE;
+		assert(((double)allocate + n_i * ceil(pvl_max[s] / log(fbp_lb)) * SE_SIZE) <= ULONG_MAX);
+        all1 = allocate + (size_t)(n_i * ceil(pvl_max[s] / log(fbp_lb)) * SE_SIZE);
         schedules[s][i].alloc = allocate;
         schedules[s][i].alloc1 = all1;
 
@@ -3187,7 +3193,8 @@ int main(int argc, char **argv)
 
         medsched_alloc[s] = j_per_strip * (fbi1[s] - fbis[s]) * SE_SIZE;
 
-        medsched_alloc[s] += n_i * ceil(pvl_max[s] / log(n_i)) * SE_SIZE;
+		assert(((double)medsched_alloc[s] + n_i * ceil(pvl_max[s] / log(n_i)) * SE_SIZE) <= ULONG_MAX);
+        medsched_alloc[s] += (size_t)(n_i * ceil(pvl_max[s] / log(n_i)) * SE_SIZE);
         n_medsched_pieces[s] =
           1 + FB_logs[s][fbi1[s] - 1] - FB_logs[s][fbis[s]];
         med_sched[s] =
@@ -3246,7 +3253,9 @@ int main(int argc, char **argv)
     mpz_init(large_factors[s]);
     large_primes[s] =
       xmalloc(max_factorbits[s] * sizeof(*(large_primes[s])));
-    for (i = 0; i < max_factorbits[s]; i++) {
+
+	assert((max_factorbits[s] >= 0) && (max_factorbits[s] <= INT_MAX));
+    for (i = 0; i < (u32_t)max_factorbits[s]; i++) {
       mpz_init(large_primes[s][i]);
     }
     mpz_init_set_d(FBb_sq[s], FB_bound[s]);
@@ -3348,7 +3357,10 @@ u16_t get_plog_lb(unsigned char *lb_array, i16_t ** root_array,
         pv_min = y;
     }
     if (pv_min > 0)
-      lb_array[k] = rint(sm * log(pv_min));
+	{
+      assert(rint(sm * log(pv_min)) <= UCHAR_MAX);
+      lb_array[k] = (unsigned char)rint(sm * log(pv_min));
+	}
     else
       lb_array[k] = 0;
   }
@@ -3558,8 +3570,11 @@ static u32_t add_primepowers2xaFB(size_t * xaFB_alloc_ptr, u32_t pp_bound,
     exponent++;
   }
   if (init_xFB != 0)
-    xFB[s][xFBs[s] - 1].l = rint(sieve_multiplier[s]*log(q)) -
-                              rint(sieve_multiplier[s] * log(qo / p));
+  {
+    assert(rint(sieve_multiplier[s]*log(q)) - rint(sieve_multiplier[s] * log(qo / p)) <= UINT_MAX);
+    xFB[s][xFBs[s] - 1].l = (u32_t)(rint(sieve_multiplier[s]*log(q)) - rint(sieve_multiplier[s] * log(qo / p)));
+  }
+
   if (q <= pp_bound / p) {
     u32_t j;
 
