@@ -18,18 +18,24 @@ will probably become easier.
 Issues to Note
 --------------
 
-1. A number of GGNFS source files use 'long long' types, which were not 
-supported in Microsoft VC++ version 6 and earlier versions. Hence unless 
-you are prepared to edit a number of source files you will need VC++ version 
+1. A number of GGNFS source files use 'long long' types, which were not
+supported in Microsoft VC++ version 6 and earlier versions. Hence unless
+you are prepared to edit a number of source files you will need VC++ version
 7 or later
 
-It is important to use the same Microsoft runtime libraries when building GMP 
-and GGNFS.  If this is not done there will probably be many library conflicts 
-during the linking stage.  Since there are debug and non-debug, single and 
+It is important to use the same Microsoft runtime libraries when building GMP
+and GGNFS.  If this is not done there will probably be many library conflicts
+during the linking stage.  Since there are debug and non-debug, single and
 multi-threaded, DLL and non-DLL versions of the Microsoft libraries, the scope
 for errors in this step is large.
 
-As delivered the GGNFS project files are set up to build the multi-threaded 
+As delivered the GGNFS project files are set up to build the multi-threaded
 version of GGNFS for use with a multi-threaded version of GMP.
 
-    Brian Gladman
+There are three versions of the VC++ build files within build.vc - for VC++
+version 6, version 7 and version 8 (beta).  For the latter gmp.build.vc8 is
+needed and this is obtained by copying the gmp.build.vc7 contents to a new
+gmp.build.vc8 and then using the vc8 IDE to convert the vc7 build files to
+vc8 versions and then building gmp.lib with the v8 compiler.
+
+    Brian Gladman, 30/08/05
