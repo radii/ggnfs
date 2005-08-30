@@ -36,12 +36,14 @@ typedef unsigned char uchar;
 #if defined (_MSC_VER)
 #include <basetsd.h>
 
-#ifndef M_LN2
-	#define M_LN2       0.69314718055994530942
-#endif
+#if _MSC_VER < 1200 
+	#ifndef M_LN2
+		#define M_LN2       0.69314718055994530942
+	#endif
 
-#ifndef M_LOG2E
-	#define M_LOG2E     1.4426950408889634074
+	#ifndef M_LOG2E
+		#define M_LOG2E     1.4426950408889634074
+	#endif
 #endif
 
 #define int8_t  INT8
