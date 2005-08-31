@@ -16,6 +16,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define MPQS_STAT
 #define MPQS_ZEIT
 */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -601,6 +602,7 @@ static void mpqs_generate_FB()
     rest=(u16_t)mpz_mod_ui(mpqs_dummy,mpqs_kN,p);  /* ca 5M */
     if (rest) {
       if (mpqs_jacobi(rest,p)==1) { /* ca 10M */
+	    assert(p);
         *fb++=p;
         *fb++=mpqs_sqrt(rest,p,mpqs_prime_sqrthelp[i]); /* ca 13M */
         nfb++;
@@ -678,7 +680,7 @@ static int mpqs_SI_init()
   d=mpz_get_d(mpqs_kN);
   d/=8.; d=sqrt(d); d*=(double)mpqs_sievelen;
   d=log(d);
-  d-=log((double)(1<<mpqs_accept));
+  d-=log((double)((u64_t)1<<mpqs_accept));
   mpqs_logbound=128;  /* ??? */
   d=(double)(mpqs_logbound)/d;
   for (i=0; i<mpqs_nFB; i++) {
@@ -802,6 +804,7 @@ static int mpqs_next_pol()
       if (!mpqs_Adiv_active[i]) prod_other*=(i64_t)(mpqs_Adiv_all[i]);
     for (i=1; i<mpqs_nFB; i++) {
       p=fb[2*i];
+	  assert(p);
 #if 0
       bb=(u32_t)(prod_other%(i64_t)p);
       bb*=(u32_t)(mpqs_2A_all_inv[i]); bb%=(u32_t)p;
