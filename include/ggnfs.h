@@ -40,13 +40,21 @@ typedef unsigned char uchar;
 #if defined (_MSC_VER)
 #include <basetsd.h>
 
-#if _MSC_VER < 1200 
+#if _MSC_VER < 1300 /* VC6 math.h lacks of these defines */
 	#ifndef M_LN2
 		#define M_LN2       0.69314718055994530942
 	#endif
 
 	#ifndef M_LOG2E
 		#define M_LOG2E     1.4426950408889634074
+	#endif
+
+	#ifndef M_PI
+		#define M_PI		3.14159265358979323846f
+	#endif
+
+	#ifndef M_SQRT2
+		#define M_SQRT2     1.41421356237309504880
 	#endif
 #endif
 
