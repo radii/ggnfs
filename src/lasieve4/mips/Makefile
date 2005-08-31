@@ -38,9 +38,6 @@ SRCFILES=gcd32.c 32bit.h psp.c siever-config.w \
 %.dvi: %.tex
 	tex $<
 
-%.s: %.asm
-	gasp -c '#' -o $@ $^
-
 %.o: %.s
 	cc -c $^
 

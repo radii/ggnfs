@@ -44,9 +44,6 @@ all: $(BINS)
 %.o: %.s
 	$(CC) $(INC) -c $(CFLAGS) $(CFLAGS2) $^
 
-%.s: %.asm
-	gasp -c '#' -o $@ $^
-
 $(BINDIR)/pol51m0b: pol51m0b.o $(OBJS) $(OBJS2)
 	$(CC) $(INC) -o $@ $(CFLAGS) $(CFLAGS2) $^ $(LIBFLAGS) $(LIBS)
 

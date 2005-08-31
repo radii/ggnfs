@@ -35,9 +35,6 @@ SRCFILES=gcd32.c 32bit.h modinv32.c psp.c siever-config32.w siever-config64.w la
 %.dvi: %.tex
 	tex $<
 
-%.s: %.asm
-	gasp -c '#' -o $@ $^
-
 %.o: %.s
 	cc -c $^
 

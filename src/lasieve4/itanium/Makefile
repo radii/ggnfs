@@ -35,9 +35,6 @@ SRCFILES=gcd32.c 32bit.h modinv32.c psp.c lasched.w medsched.w siever-config.w
 %.dvi: %.tex
 	tex $<
 
-%.s: %.asm
-	gasp -c '#' -o $@ $^
-
 %.o: %.s
 	cc -c $^
 
