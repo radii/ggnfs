@@ -32,6 +32,8 @@
 
 #if !defined(_MSC_VER)
 #include <sys/time.h>
+#else
+int verbose;
 #endif
 #include "ggnfs.h"
 

@@ -1,3 +1,8 @@
+
+8/29/05 (Brian Gladman)
+  * added matbuild-tpie to the VC7 and VC8 build projects (could not do
+    this for VC6 as I no longer use this version)
+
 8/29/05 (Brian Gladman)
   * change to VC6, VC7 and VC8 build organisation to provide individual
     build directories (to avoid object file version conflicts)
