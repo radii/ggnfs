@@ -117,18 +117,19 @@ int doTrialDiv(long *factors, mpz_t n)
    we use only one iteration of Miler-Rabin. In fact, we could
    even consider using a faster homebrewed test at some point.
 */
+mpz_t div1, div2, remain;
+
 /********************************************************************/
 int rho_factor(long *factors, mpz_t n)
 /********************************************************************/
 { int    numFactors=0, res, sorted=1, i, retVal;
-  static mpz_t div1, div2, remain;
-  static __mpz_struct stack[32];
+  static mpz_t stack[32];
   static int initialized=0, stackSize=0;
   long c;
 
   if (!(initialized)) {
     mpz_init(div1); mpz_init(div2); mpz_init(remain);
-    for (i=0; i<32; i++) mpz_init(&stack[i]);
+    for (i=0; i<32; i++) mpz_init(stack[i]);
     initialized=1;
   }
   if (mpz_cmp_ui(n, 1)==0) {
@@ -172,9 +173,9 @@ int rho_factor(long *factors, mpz_t n)
       factors[numFactors++] = mpz_get_ui(div1);
     } else return -1; /* Prime factor that doesn't fit in a long. */
   } else {
-    mpz_set(&stack[stackSize++], div2);
+    mpz_set(stack[stackSize++], div2);
     retVal = rho_factor(&factors[numFactors], div1);
-    mpz_set(div2, &stack[--stackSize]);
+    mpz_set(div2, stack[--stackSize]);
     if (retVal >=0) numFactors += retVal;
     else return retVal;
   }

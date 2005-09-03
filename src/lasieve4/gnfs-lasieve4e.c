@@ -23,6 +23,10 @@
 #include <string.h>
 #include <time.h>
 
+#if defined (_MSC_VER) && defined (_DEBUG)
+	#include <crtdbg.h>
+#endif
+
 #if defined (_MSC_VER) || defined (__MINGW32__) || defined (MINGW32)
 #include "getopt.h"
 #define popen  _popen
@@ -764,7 +768,7 @@ int lasieve()
       modulo32 = special_q;
       spq_x = modmul32(spq_i, i_shift);
 
-      if (I_bits == 0) {
+      if (i_bits == 0) {
         logbook(1, "(%d,%d) (%d,%d)\n", a0, b0, a1, b1);
         continue;
       }
@@ -2752,6 +2756,18 @@ int main(int argc, char **argv)
   u16_t catch_signals;
   u32_t n_spq=0, n_spq_discard=0;
   u32_t s, i;
+
+#if defined (_MSC_VER) && defined (_DEBUG)
+  int tmpDbgFlag;
+  tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+/*
+  tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF;
+  tmpDbgFlag |= _CRTDBG_CHECK_CRT_DF;
+  tmpDbgFlag |= _CRTDBG_DELAY_FREE_MEM_DF;
+  tmpDbgFlag |= _CRTDBG_LEAK_CHECK_DF;
+*/
+  _CrtSetDbgFlag(tmpDbgFlag);
+#endif
 
   sieveStartTime = sTime();
 
