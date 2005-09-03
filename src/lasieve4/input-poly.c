@@ -163,6 +163,7 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
     fgets(thisLine, 1023, fp);
     if ((sscanf(thisLine, "%255s %255s", token, value)==2) &&
                 (thisLine[0] != '#')) {
+	  token[sizeof(token)-1] = 0;
       if (strncmp(token, "n:", 2)==0) {
         mpz_set_str(N, value, 10);
       } else if (strncmp(token, "m:", 2)==0) {
