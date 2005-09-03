@@ -71,7 +71,7 @@ const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
 #define SCHED_PATHOLOGY 2
 
 static float FB_bound[2], sieve_report_multiplier[2];
-static long sieve_min[2], max_primebits[2], max_factorbits[2];
+static size_t sieve_min[2], max_primebits[2], max_factorbits[2];
 static u32_t *(FB[2]), *(proots[2]), FBsize[2];
 static double *(tpoly_f[2]), *(tpoly_fr[2]);
 static i16_t *rroots1, *rroots2;
@@ -83,10 +83,10 @@ u16_t get_plog_lb(unsigned char *,i16_t **,size_t *,double *,i32_t,double);
 
 static u32_t first_spq, last_spq, sieve_count;
 u32_t all_spq_done;
-static mpz_t m, N, aux1, aux2, aux3, sr_a, sr_b;
-static mpz_t *(poly[2]);
+static mpz_t g_m, g_N, g_aux1, g_aux2, g_aux3, g_sr_a, g_sr_b;
+static mpz_t *(g_poly[2]);
 double *(poly_f[2]), poly_norm[2];
-u32_t  poldeg[2], poldeg_max;
+u32_t  g_poldeg[2], poldeg_max;
 u32_t  keep_factorbase;
 
 static mpz_t rational_rest, algebraic_rest;
@@ -234,8 +234,8 @@ void Usage()
 
 static u32_t n_prereports = 0, n_reports = 0, n_rep1 = 0, n_rep2 = 0;
 static u32_t n_tdsurvivors[2] = { 0, 0 };
-static FILE *ofile;
-static char *ofile_name;
+static FILE *g_ofile;
+static char *g_ofile_name;
 
 #ifdef STC_DEBUG
 FILE *debugfile;
@@ -269,16 +269,16 @@ void getFB(int force_aFBcalc)
   initprime32(&ps);
 
   for (side = 0; side < 2; side++) {
-    if (poldeg[side] == 1) {
+    if (g_poldeg[side] == 1) {
       FB[side] = xmalloc(FBS_alloc * sizeof(u32_t));
       proots[side] = xmalloc(FBS_alloc * sizeof(u32_t));
       prime = firstprime32(&ps);
       for (prime = nextprime32(&ps), fbi1[side] = 0, FBsize[side] = 0;
            prime < FB_bound[side]; prime = nextprime32(&ps)) {
-        x = mpz_fdiv_ui(poly[side][1], prime);
+        x = mpz_fdiv_ui(g_poly[side][1], prime);
         if (x > 0) {
           modulo32 = prime;
-          x = modmul32(modinv32(x), mpz_fdiv_ui(poly[side][0], prime));
+          x = modmul32(modinv32(x), mpz_fdiv_ui(g_poly[side][0], prime));
           x = x > 0 ? prime - x : 0;
         } else
           x = prime;
@@ -306,14 +306,14 @@ void getFB(int force_aFBcalc)
         u32_t *root_buffer;
         size_t aFB_alloc;
 
-        root_buffer = xmalloc(poldeg[side] * sizeof(*root_buffer));
+        root_buffer = xmalloc(g_poldeg[side] * sizeof(*root_buffer));
         aFB_alloc = 4096;
         FB[side] = xmalloc(aFB_alloc * sizeof(**FB));
         proots[side] = xmalloc(aFB_alloc * sizeof(**proots));
         for (prime = firstprime32(&ps), FBsize[side] = 0;
              prime < FB_bound[side]; prime = nextprime32(&ps)) {
 
-          nr = root_finder(root_buffer, poly[side], poldeg[side], prime);
+          nr = root_finder(root_buffer, g_poly[side], g_poldeg[side], prime);
           for (i = 0; i < nr; i++) {
             if (aFB_alloc <= FBsize[side]) {
               aFB_alloc *= 2;
@@ -388,12 +388,12 @@ void getFB(int force_aFBcalc)
       safbs++;
   }
   logbook(0, "FBsize %u+%u (deg %u), %u+%u (deg %u)\n",
-          FBsize[0], safbs, poldeg[0], FBsize[1], srfbs, poldeg[1]);
+          FBsize[0], safbs, g_poldeg[0], FBsize[1], srfbs, g_poldeg[1]);
   free(afbname);
 
   for (i = 0; i < 2; i++) {
-    tpoly_f[i] = xmalloc((1 + poldeg[i]) * sizeof(**tpoly_f));
-    tpoly_fr[i] = xmalloc((1 + poldeg[i]) * sizeof(**tpoly_fr));
+    tpoly_f[i] = xmalloc((1 + g_poldeg[i]) * sizeof(**tpoly_f));
+    tpoly_fr[i] = xmalloc((1 + g_poldeg[i]) * sizeof(**tpoly_fr));
   }
   plog_lb1 = xmalloc(2 * n_J / CANDIDATE_SEARCH_STEPS);
   plog_lb2 = xmalloc(2 * n_J / CANDIDATE_SEARCH_STEPS);
@@ -402,20 +402,19 @@ void getFB(int force_aFBcalc)
     exit(0);
 
   for (side = 0; side < 2; side++) {
-    u32_t prime, nr;
     struct xFBstruct *s;
     u32_t *root_buffer;
     size_t xaFB_alloc = 0;
 
     FB_logs[side] = xmalloc(FBsize[side]);
-    if (poldeg[side] == 1)
-      sieve_multiplier[side] = (UCHAR_MAX-50)/log(n_J*fabs(mpz_get_d(poly[side][0])));
+    if (g_poldeg[side] == 1)
+      sieve_multiplier[side] = (UCHAR_MAX-50)/log(n_J*fabs(mpz_get_d(g_poly[side][0])));
     else
       sieve_multiplier[side] = (UCHAR_MAX-50)/log(poly_norm[side]);
 
-    root_buffer = xmalloc(poldeg[side]*sizeof(*root_buffer));
+    root_buffer = xmalloc(g_poldeg[side]*sizeof(*root_buffer));
     prime = 2;
-    nr = root_finder(root_buffer, poly[side], poldeg[side], prime);
+    nr = root_finder(root_buffer, g_poly[side], g_poldeg[side], prime);
 
     for (i = 0; i < nr; i++) {
       adjust_bufsize((void **) &(xFB[side]), &xaFB_alloc, 1+xFBs[side],16,sizeof(**xFB));
@@ -620,7 +619,8 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
 
       while (i_o < i_max2) {
 	if (*i_o >= st1) {
-	  cand[ncand] = i_o - sieve_interval;
+	  assert((i_o - sieve_interval) <= USHRT_MAX);
+	  cand[ncand] = (u16_t)(i_o - sieve_interval);
 	  fss_sv[ncand++] = *i_o + horizontal_sievesums[j];
 	}
 	i_o++;
@@ -635,7 +635,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
 int lasieve()
 /******************************************************************/
 { clock_t last_clock;
-  u32_t  *r, s, i;
+  u32_t  *r_ptr, s, i;
   u32_t   subsieve_nr, j_offset;
   u32_t   absa0, absa1, absb0, absb1;
   char    a0s, a1s;
@@ -645,7 +645,7 @@ int lasieve()
   last_clock = clock();
   n_spq = 0;
   n_spq_discard = 0;
-  r = xmalloc(poldeg_max * sizeof(*r));
+  r_ptr = xmalloc(poldeg_max * sizeof(*r_ptr));
   special_q = pr32_seek(&special_q_ps, first_spq);
   tStart = lastReport = sTime();
   for ( ; special_q < last_spq && special_q != 0; special_q = nextprime32(&special_q_ps)) {
@@ -674,23 +674,23 @@ int lasieve()
       first_td_side = cmdline_first_td_side;
     else
       first_td_side = first_sieve_side;
-    if (poldeg[special_q_side] > 1) {
-      nr = root_finder(r, poly[special_q_side], poldeg[special_q_side], special_q);
+    if (g_poldeg[special_q_side] > 1) {
+      nr = root_finder(r_ptr, g_poly[special_q_side], g_poldeg[special_q_side], special_q);
       if (nr == 0)
         continue;
-      if (r[nr - 1] == special_q) {
+      if (r_ptr[nr - 1] == special_q) {
         nr--;
       }
     } else {
-      u32_t x = mpz_fdiv_ui(poly[special_q_side][1], special_q);
+      u32_t x = mpz_fdiv_ui(g_poly[special_q_side][1], special_q);
 
       if (x == 0) {
         n_spq_discard++;
         continue;
       }
       modulo32 = special_q;
-      x = modmul32(modinv32(x), mpz_fdiv_ui(poly[special_q_side][0], special_q));
-      r[0] = x == 0 ? 0 : special_q - x;
+      x = modmul32(modinv32(x), mpz_fdiv_ui(g_poly[special_q_side][0], special_q));
+      r_ptr[0] = x == 0 ? 0 : special_q - x;
       nr = 1;
     }
 
@@ -727,7 +727,7 @@ int lasieve()
           char *cmd;
 
           asprintf(&cmd, "touch badsched.%s.%u.%u.%u", basename,
-                   special_q_side, special_q, r[root_no]);
+                   special_q_side, special_q, r_ptr[root_no]);
           system(cmd);
           free(cmd);
           continue;
@@ -739,7 +739,7 @@ int lasieve()
         }
       }
       n_spq++;
-      reduce2(&a0, &b0, &a1, &b1, (i32_t) special_q, 0, (i32_t) r[root_no],
+      reduce2(&a0, &b0, &a1, &b1, (i32_t) special_q, 0, (i32_t) r_ptr[root_no],
               1, sigma * sigma);
 
       if (b0 % ((i32_t) special_q) == 0 && b1 % ((i32_t) special_q) == 0) {
@@ -952,19 +952,29 @@ int lasieve()
         u32_t k;
 
         for (i = 0; i < 2; i++) {
-          tpol(tpoly_f[i], poly_f[i], poldeg[i], a0, a1, b0, b1);
+          tpol(tpoly_f[i], poly_f[i], g_poldeg[i], a0, a1, b0, b1);
         }
+
+		if (first_sieve_side >= sizeof(tpoly_f)/sizeof(tpoly_f[0]))
+		{
+			assert(0);
+			complain("Invalid first_sieve_side value!\n", first_sieve_side);
+#ifdef _MSC_VER
+			exit(1); // just to make PreFAST shutup
+#endif
+		}
+
         n_rroots1 = get_plog_lb(plog_lb1, &rroots1, &rroots1_alloc,
                                 tpoly_f[first_sieve_side],
-                                poldeg[first_sieve_side],
+                                g_poldeg[first_sieve_side],
                                 sieve_multiplier[first_sieve_side]);
         for (k = 0; k < 2; k++) {
-          for (i = 0; i <= poldeg[k]; i++)
-            tpoly_fr[k][poldeg[k] - i] = tpoly_f[k][i];
+          for (i = 0; i <= g_poldeg[k]; i++)
+            tpoly_fr[k][g_poldeg[k] - i] = tpoly_f[k][i];
         }
         n_rroots2 = get_plog_lb(plog_lb2, &rroots2, &rroots2_alloc,
                                 tpoly_fr[first_sieve_side],
-                                poldeg[first_sieve_side],
+                                g_poldeg[first_sieve_side],
                                 sieve_multiplier[first_sieve_side]);
       }
 
@@ -1000,7 +1010,7 @@ int lasieve()
                 x = smallsieve_aux1_ub_odd[s];
                 y = smallpsieve_aux_ub_odd[s];
                 z = smallsieve_aux2[s];
-                for (i = 0; i < 4 * x2FBs[s]; i += 4) {
+                for (i = 0; i < (u32_t)(4 * x2FBs[s]); i += 4) {
                   u32_t p, pr, d, l;
                   u16_t **a;
 
@@ -1067,7 +1077,7 @@ int lasieve()
                 x = smallsieve_aux1_ub_odd[s];
                 y = smallpsieve_aux_ub_odd[s];
                 z = smallsieve_aux2[s];
-                for (i = 0; i < 4 * x2FBs[s]; i += 4) {
+                for (i = 0; i < (u32_t)(4 * x2FBs[s]); i += 4) {
                   u32_t p, pr, d, l;
                   u16_t **a;
 
@@ -1134,7 +1144,7 @@ int lasieve()
                 x = smallsieve_aux1_ub_odd[s];
                 y = smallpsieve_aux_ub_odd[s];
                 z = smallsieve_aux2[s];
-                for (i = 0; i < 4 * x2FBs[s]; i += 4) {
+                for (i = 0; i < (u32_t)(4 * x2FBs[s]); i += 4) {
                   u32_t p, pr, d, l;
                   u16_t **a;
 
@@ -1226,8 +1236,6 @@ int lasieve()
           }
 
           {
-            clock_t new_clock;
-
             new_clock = clock();
             medsched_clock +=
               (clock_t)((1000.0 * (new_clock - last_clock)) / CLOCKS_PER_SEC);
@@ -1235,7 +1243,7 @@ int lasieve()
           }
 #endif
           for (s = first_sieve_side, stepno = 0; stepno < 2; stepno++, s = 1 - s) {
-            clock_t new_clock, clock_diff;
+            clock_t clock_diff;
 
             {
               u32_t j;
@@ -1747,7 +1755,7 @@ int lasieve()
                   {
                     double a;
 
-                    a = poldeg[s] * log(j_offset + 1);
+                    a = g_poldeg[s] * log(j_offset + 1);
                     if (special_q_side == s)
                       a -= special_q_log;
 					
@@ -1755,7 +1763,8 @@ int lasieve()
 					assert( (a >= INT_MIN) && (a <= INT_MAX) );
                     lt = (i32_t)a;
                   }
-                  for (true_i_lb=0; true_i_lb<true_i_ub; true_i_lb+=CANDIDATE_SEARCH_STEPS) {
+                  for (true_i_lb=0; true_i_lb<true_i_ub; true_i_lb+=CANDIDATE_SEARCH_STEPS) 
+				  {
                     i32_t sieve_threshold;
                     u32_t lulb, luub;
                     size_t j;
@@ -1809,7 +1818,7 @@ int lasieve()
                 }
 
                 {
-                  u32_t true_i_lb, next_lt_update;
+                  u32_t next_lt_update;
                   i32_t lt=0;
 
                   for (true_i_lb=j_offset&(~(CANDIDATE_SEARCH_STEPS - 1)),
@@ -1821,7 +1830,7 @@ int lasieve()
                     if (true_i_lb >= next_lt_update) {
                       double a;
 
-                      a = poldeg[s] * log(true_i_lb + 1);
+                      a = g_poldeg[s] * log(true_i_lb + 1);
                       if (special_q_side == first_sieve_side)
                         a -= log(special_q);
 
@@ -1897,7 +1906,7 @@ int lasieve()
                 ii = cand[i] & (n_i - 1);
                 st_i = 2 * ii + (oddness_type == 2 ? 0 : 1);
                 t_j = 2 * jj + (oddness_type == 1 ? 0 : 1);
-                pvl = log(fabs(rpol_eval(tpoly_f[s], poldeg[s], 
+                pvl = log(fabs(rpol_eval(tpoly_f[s], g_poldeg[s], 
                               (double) st_i - (double) i_shift, (double) t_j)));
                 if (special_q_side == s)
                   pvl -= special_q_log;
@@ -1949,7 +1958,7 @@ int lasieve()
               if (gcd32(st_i < i_shift ? i_shift - st_i : st_i - i_shift,true_j) != 1)
                 continue;
               n_rep1++;
-              pvl = log(fabs(rpol_eval(tpoly_f[s], poldeg[s],
+              pvl = log(fabs(rpol_eval(tpoly_f[s], g_poldeg[s],
                          (double) st_i-(double) i_shift, (double) true_j)));
               if (special_q_side == s)
                 pvl -= special_q_log;
@@ -2219,41 +2228,41 @@ int lasieve()
                   }
                   true_i = (i32_t) st_i - (i32_t) i_shift;
 
-                  mpz_set_si(aux1, true_i);
-                  mpz_mul_si(aux1, aux1, a0);
-                  mpz_set_si(aux2, a1);
-                  mpz_mul_ui(aux2, aux2, (u32_t) true_j);
-                  mpz_add(sr_a, aux1, aux2);
+                  mpz_set_si(g_aux1, true_i);
+                  mpz_mul_si(g_aux1, g_aux1, a0);
+                  mpz_set_si(g_aux2, a1);
+                  mpz_mul_ui(g_aux2, g_aux2, (u32_t) true_j);
+                  mpz_add(g_sr_a, g_aux1, g_aux2);
 
-                  mpz_set_si(aux1, true_i);
-                  mpz_mul_si(aux1, aux1, b0);
-                  mpz_set_si(aux2, b1);
-                  mpz_mul_ui(aux2, aux2, (u32_t) true_j);
-                  mpz_add(sr_b, aux1, aux2);
+                  mpz_set_si(g_aux1, true_i);
+                  mpz_mul_si(g_aux1, g_aux1, b0);
+                  mpz_set_si(g_aux2, b1);
+                  mpz_mul_ui(g_aux2, g_aux2, (u32_t) true_j);
+                  mpz_add(g_sr_b, g_aux1, g_aux2);
 
-                  if (mpz_sgn(sr_b) < 0) {
-                    mpz_neg(sr_b, sr_b);
-                    mpz_neg(sr_a, sr_a);
+                  if (mpz_sgn(g_sr_b) < 0) {
+                    mpz_neg(g_sr_b, g_sr_b);
+                    mpz_neg(g_sr_a, g_sr_a);
                   }
 
                   {
 
                     i = 1;
-                    mpz_set(aux2, sr_a);
-                    mpz_set(aux1, poly[side][0]);
+                    mpz_set(g_aux2, g_sr_a);
+                    mpz_set(g_aux1, g_poly[side][0]);
                     for (;;) {
-                      mpz_mul(aux1, aux1, sr_b);
-                      mpz_mul(aux3, aux2, poly[side][i]);
-                      mpz_add(aux1, aux1, aux3);
-                      if (++i > poldeg[side])
+                      mpz_mul(g_aux1, g_aux1, g_sr_b);
+                      mpz_mul(g_aux3, g_aux2, g_poly[side][i]);
+                      mpz_add(g_aux1, g_aux1, g_aux3);
+                      if (++i > g_poldeg[side])
                         break;
-                      mpz_mul(aux2, aux2, sr_a);
+                      mpz_mul(g_aux2, g_aux2, g_sr_a);
                     }
                   }
 
-                  if (td_buf_alloc[side] < nfbp + mpz_sizeinbase(aux1, 2)) {
+                  if (td_buf_alloc[side] < nfbp + mpz_sizeinbase(g_aux1, 2)) {
                     td_buf_alloc[side] += 1024;
-                    while (td_buf_alloc[side] < nfbp + mpz_sizeinbase(aux1, 2)) {
+                    while (td_buf_alloc[side] < nfbp + mpz_sizeinbase(g_aux1, 2)) {
                       td_buf_alloc[side] += 1024;
                     }
                     td_buf[side] = xrealloc(td_buf[side], td_buf_alloc[side] * sizeof(**td_buf));
@@ -2283,20 +2292,20 @@ int lasieve()
 
                       p = *(x++);
                       if (coll != 0) {
-                        while (mpz_fdiv_q_ui(aux2, aux1, p) == 0) {
-                          mpz_set(aux1, aux2);
+                        while (mpz_fdiv_q_ui(g_aux2, g_aux1, p) == 0) {
+                          mpz_set(g_aux1, g_aux2);
                           *(fbp_ptr++) = p;
                         }
                         continue;
                       }
 
-                      if (mpz_fdiv_q_ui(aux1, aux1, p) != 0)
+                      if (mpz_fdiv_q_ui(g_aux1, g_aux1, p) != 0)
                         Schlendrian("TD sieve on side %u: %u does not divide\n",side, p);
                       *(fbp_ptr++) = p;
                       for (;;) {
-                        if (mpz_fdiv_q_ui(aux2, aux1, p) != 0)
+                        if (mpz_fdiv_q_ui(g_aux2, g_aux1, p) != 0)
                           break;
-                        mpz_set(aux1, aux2);
+                        mpz_set(g_aux1, g_aux2);
                         *(fbp_ptr++) = p;
                       }
                     }
@@ -2319,13 +2328,13 @@ int lasieve()
                           u32_t p;
 
                           p = *x;
-                          if (mpz_fdiv_q_ui(aux1, aux1, p) != 0)
+                          if (mpz_fdiv_q_ui(g_aux1, g_aux1, p) != 0)
                             Schlendrian("TD small FB on side %u: %u does not divide\n",side, p);
                           *(fbp_ptr++) = p;
                           for (;;) {
-                            if (mpz_fdiv_q_ui(aux2, aux1, p) != 0)
+                            if (mpz_fdiv_q_ui(g_aux2, g_aux1, p) != 0)
                               break;
-                            mpz_set(aux1, aux2);
+                            mpz_set(g_aux1, g_aux2);
                             *(fbp_ptr++) = p;
                           }
                         }
@@ -2356,46 +2365,46 @@ int lasieve()
                         u32_t p;
 
                         p = *x;
-                        if (coll && poldeg[side] > 0 && p > p_bound) {
-                          while (mpz_fdiv_q_ui(aux2, aux1, p) == 0) {
-                            mpz_set(aux1, aux2);
+                        if (coll && g_poldeg[side] > 0 && p > p_bound) {
+                          while (mpz_fdiv_q_ui(g_aux2, g_aux1, p) == 0) {
+                            mpz_set(g_aux1, g_aux2);
                             *(fbp_ptr++) = p;
                           }
                           continue;
                         }
-                        if (mpz_fdiv_q_ui(aux1, aux1, p) != 0)
+                        if (mpz_fdiv_q_ui(g_aux1, g_aux1, p) != 0)
                           Schlendrian("TD projective FB on side %u: %u does not divide\n",
                                         side, p);
                         *(fbp_ptr++) = p;
                         for (;;) {
-                          if (mpz_fdiv_q_ui(aux2, aux1, p) != 0)
+                          if (mpz_fdiv_q_ui(g_aux2, g_aux1, p) != 0)
                             break;
-                          mpz_set(aux1, aux2);
+                          mpz_set(g_aux1, g_aux2);
                           *(fbp_ptr++) = p;
                         }
                       }
                     }
                   }
 
-                  while (mpz_get_ui(aux1) % 2 == 0) {
-                    mpz_fdiv_q_2exp(aux1, aux1, 1);
+                  while (mpz_get_ui(g_aux1) % 2 == 0) {
+                    mpz_fdiv_q_2exp(g_aux1, g_aux1, 1);
                     *(fbp_ptr++) = 2;
                   }
 
                   if (side == special_q_side) {
-                    if (mpz_fdiv_q_ui(aux1, aux1, special_q) != 0) {
+                    if (mpz_fdiv_q_ui(g_aux1, g_aux1, special_q) != 0) {
                       Schlendrian("Special q %u does not divide\n", special_q);
                     }
                     *(fbp_ptr++) = special_q;
                   }
 
-                  if (mpz_sizeinbase(aux1, 2) <= max_factorbits[side]) {
+                  if (mpz_sizeinbase(g_aux1, 2) <= max_factorbits[side]) {
                     n_tdsurvivors[side]++;
                     if (side == first_td_side) {
-                      if (mpz_sgn(aux1) > 0)
-                        mpz_set(td_rests[nc1], aux1);
+                      if (mpz_sgn(g_aux1) > 0)
+                        mpz_set(td_rests[nc1], g_aux1);
                       else
-                        mpz_neg(td_rests[nc1], aux1);
+                        mpz_neg(td_rests[nc1], g_aux1);
                       cand[nc1++] = cand[ci];
                       td_buf1[nc1] = fbp_ptr;
                       nfbp = fbp_ptr - td_buf[side];
@@ -2405,7 +2414,7 @@ int lasieve()
                     {
                       u32_t s, *(fbp_buffers[2]), *(fbp_buffers_ub[2]);
                       i16_t need_mpqs[2];
-                      u32_t nlp[2];
+                      size_t nlp[2];
                       clock_t cl;
                       u32_t ov;
 
@@ -2415,10 +2424,10 @@ int lasieve()
                       fbp_buffers[1 - s] = fbp_buf;
                       fbp_buffers_ub[1 - s] = fbp_ptr;
                       mpz_set(large_factors[s], td_rests[ci]);
-                      if (mpz_sgn(aux1) > 0)
-                        mpz_set(large_factors[1 - s], aux1);
+                      if (mpz_sgn(g_aux1) > 0)
+                        mpz_set(large_factors[1 - s], g_aux1);
                       else
-                        mpz_neg(large_factors[1 - s], aux1);
+                        mpz_neg(large_factors[1 - s], g_aux1);
 #if 0
                       printf("%u %u\n",
                              mpz_sizeinbase(large_factors[0], 2),
@@ -2467,7 +2476,7 @@ int lasieve()
 #if 0
 #define KLEINJUNG_MPQS
 #endif
-                          i32_t i, nf;
+						  size_t nf;
                           mpz_t *mf;
 #ifdef KLEINJUNG_MPQS
 
@@ -2496,11 +2505,11 @@ int lasieve()
 #endif
 #define TRY_RHO_ON_FAILURES
 #ifdef TRY_RHO_ON_FAILURES
-                        { i32_t factors[10];
+                        { i32_t small_factors[10];
 
-                          nf = rho_factor(factors, large_factors[s1]);
+                          nf = rho_factor(small_factors, large_factors[s1]);
                           for (i = 0; i < nf; i++) {
-                            mpz_set_ui(large_primes[s1][i], factors[i]);
+                            mpz_set_ui(large_primes[s1][i], small_factors[i]);
                             if (mpz_sizeinbase(large_primes[s1][i],2) > max_primebits[s1]) {
                               n_mpqsvain[s1]++;
                               break;
@@ -2518,9 +2527,9 @@ int lasieve()
                               fprintf(stderr, "mpqs failed for ");
                               mpz_out_str(stderr, 10, large_factors[s1]);
                               fprintf(stderr, "(a,b): ");
-                              mpz_out_str(stderr, 10, sr_a);
+                              mpz_out_str(stderr, 10, g_sr_a);
                               fprintf(stderr, " ");
-                              mpz_out_str(stderr, 10, sr_b);
+                              mpz_out_str(stderr, 10, g_sr_b);
                               fprintf(stderr, "\n");
                             }
                             n_mpqsfail[s1]++;
@@ -2552,9 +2561,9 @@ printf("Too large!\n");
 //                        fprintf(ofile, "W ");
 #define OBASE 16
                       yield++;
-                      mpz_out_str(ofile, 10, sr_a);
-                      fprintf(ofile, ",");
-                      mpz_out_str(ofile, 10, sr_b);
+                      mpz_out_str(g_ofile, 10, g_sr_a);
+                      fprintf(g_ofile, ",");
+                      mpz_out_str(g_ofile, 10, g_sr_b);
 #ifdef _ORIG_OUTPUT_FORMAT
                       for (s = 0; s < 2; s++) {
                         u32_t *x;
@@ -2573,32 +2582,32 @@ printf("Too large!\n");
                       { int numR=0;
                         u32_t *x;
 
-                        fprintf(ofile, ":");
+                        fprintf(g_ofile, ":");
                         for (i = 0; i < nlp[1]; i++) { /* rational first. */
-                          if (i>0) fprintf(ofile, ",");
-                          mpz_out_str(ofile, OBASE, large_primes[1][i]);
+                          if (i>0) fprintf(g_ofile, ",");
+                          mpz_out_str(g_ofile, OBASE, large_primes[1][i]);
                           numR++;
                         }
                         for (x = fbp_buffers[1]; x < fbp_buffers_ub[1];x++) {
-                          if (numR>0) fprintf(ofile, ",%X", (unsigned int)*x);
-                          else { fprintf(ofile, "%X", (unsigned int)*x); numR++;}
+                          if (numR>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
+                          else { fprintf(g_ofile, "%X", (unsigned int)*x); numR++;}
                         }
                       }
                       { int numA=0;
                         u32_t *x;
 
-                        fprintf(ofile, ":");
+                        fprintf(g_ofile, ":");
                         for (i = 0; i < nlp[0]; i++) { /* algebraic next. */
-                          if (i>0) fprintf(ofile, ",");
-                          mpz_out_str(ofile, OBASE, large_primes[0][i]);
+                          if (i>0) fprintf(g_ofile, ",");
+                          mpz_out_str(g_ofile, OBASE, large_primes[0][i]);
                           numA++;
                         }
                         for (x = fbp_buffers[0]; x < fbp_buffers_ub[0];x++) {
-                          if (numA>0) fprintf(ofile, ",%X", (unsigned int)*x);
-                          else { fprintf(ofile, "%X", (unsigned int)*x); numA++;}
+                          if (numA>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
+                          else { fprintf(g_ofile, "%X", (unsigned int)*x); numA++;}
                         }
                       }
-                      fprintf(ofile, "\n");
+                      fprintf(g_ofile, "\n");
 #endif
                     }
                   } else
@@ -2660,7 +2669,7 @@ printf("Too large!\n");
       }
     }
   }
-  free(r);
+  free(r_ptr);
   return 0;
 }
 
@@ -2678,7 +2687,7 @@ int parseJobFile(char *fName)
     printf("Error opening %s for read!\n", fName);
     return -1;
   }
-  input_poly(N, poly, poldeg, poly + 1, poldeg + 1, m, fp);
+  input_poly(g_N, g_poly, g_poldeg, g_poly + 1, g_poldeg + 1, g_m, fp);
   rewind(fp);
   while (!(feof(fp))) {
     thisLine[0] = 0;
@@ -2689,6 +2698,8 @@ int parseJobFile(char *fName)
         fgets(thisLine, 1023, fp);
     } else  if ((sscanf(thisLine, "%255s %255s", token, value)==2) && 
                 (thisLine[0] != '#')) {
+
+	  token[sizeof(token)-1] = 0;
       if (strncmp(token, "skew:", 5)==0) {
         sigma = (float)atof(value);
       } else if (strncmp(token, "q0:", 3)==0) {
@@ -2718,6 +2729,7 @@ int parseJobFile(char *fName)
         max_factorbits[0] = atoi(value);
       } else if ((strncmp(token, "mfb1:", 5)==0) ||
                  (strncmp(token, "mfbr:", 5)==0)) {
+	    value[sizeof(value)-1] = 0;
         max_factorbits[1] = atoi(value);
       } else if ((strncmp(token, "lambda0:", 8)==0) ||
                  (strncmp(token, "alambda:", 8)==0)) {
@@ -2754,7 +2766,6 @@ int main(int argc, char **argv)
 /**************************************************/
 { u16_t zip_output, force_aFBcalc;
   u16_t catch_signals;
-  u32_t n_spq=0, n_spq_discard=0;
   u32_t s, i;
 
 #if defined (_MSC_VER) && defined (_DEBUG)
@@ -2769,14 +2780,17 @@ int main(int argc, char **argv)
   _CrtSetDbgFlag(tmpDbgFlag);
 #endif
 
+  n_spq = 0;
+  n_spq_discard = 0;
+
   sieveStartTime = sTime();
 
 #ifdef STC_DEBUG
   debugfile = fopen("rtdsdebug", "wb");
 #endif
-    mpz_init(N); mpz_init(m); 
-    mpz_init(aux1); mpz_init(aux2); mpz_init(aux3);
-    mpz_init(sr_a); mpz_init(sr_b);
+    mpz_init(g_N); mpz_init(g_m); 
+    mpz_init(g_aux1); mpz_init(g_aux2); mpz_init(g_aux3);
+    mpz_init(g_sr_a); mpz_init(g_sr_b);
     mpz_init(rational_rest); mpz_init(algebraic_rest);
     mpz_ull_init();
 
@@ -2785,7 +2799,7 @@ int main(int argc, char **argv)
 
     first_spq = 0;
     sieve_count = UINT_MAX;
-    ofile_name = "spairs.out";
+    g_ofile_name = "spairs.out";
     zip_output = 0;
     special_q_side = NO_SIDE;
     sigma = 0;
@@ -2847,7 +2861,7 @@ int main(int argc, char **argv)
         case 'N':
           NumRead(process_no); break;
         case 'o':
-          ofile_name = optarg; break;
+          g_ofile_name = optarg; break;
         case 'r':
           if (special_q_side != NO_SIDE) {
             errprintf("Ignoring -r\n"); break;
@@ -2903,15 +2917,25 @@ int main(int argc, char **argv)
         errprintf("Please use -a or -r\n");
         Usage();
       }
+
+	  if (special_q_side >= sizeof(FB_bound)/sizeof(FB_bound[0]))
+	  {
+		  assert(0);
+		  complain("Invalid special_q_side value!\n", special_q_side);
+#ifdef _MSC_VER
+		  exit(1); // just to make PreFAST shutup
+#endif
+	  }
+
       if (FB_bound[special_q_side] > first_spq) {
         complain("Special q lower bound %u below FB bound %g\n", 
                   first_spq, FB_bound[special_q_side]);
       }
     }
-    if (poldeg[0] < poldeg[1])
-      poldeg_max = poldeg[1];
+    if (g_poldeg[0] < g_poldeg[1])
+      poldeg_max = g_poldeg[1];
     else
-      poldeg_max = poldeg[0];
+      poldeg_max = g_poldeg[0];
 
     i_shift = 1 << (I_bits - 1);
     n_I = 1 << I_bits;
@@ -2928,10 +2952,10 @@ int main(int argc, char **argv)
       x = sqrt(first_spq * sigma) * n_I;
       y = x / sigma;
       for (j = 0; j < 2; j++) {
-        poly_f[j] = xmalloc((poldeg[j] + 1) * sizeof(*poly_f[j]));
+        poly_f[j] = xmalloc((g_poldeg[j] + 1) * sizeof(*poly_f[j]));
 
-        for (i = 0, z = 1, poly_norm[j] = 0; i <= poldeg[j]; i++) {
-          poly_f[j][i] = mpz_get_d(poly[j][i]);
+        for (i = 0, z = 1, poly_norm[j] = 0; i <= g_poldeg[j]; i++) {
+          poly_f[j][i] = mpz_get_d(g_poly[j][i]);
           poly_norm[j] = poly_norm[j] * y + fabs(poly_f[j][i]) * z;
           z *= x;
         }
@@ -2943,33 +2967,33 @@ int main(int argc, char **argv)
   siever_init();
 
   if (sieve_count != 0) {
-    if (ofile_name == NULL) {
+    if (g_ofile_name == NULL) {
       if (zip_output == 0) {
-        asprintf(&ofile_name, "%s.lasieve-%u.%u-%u", basename,
+        asprintf(&g_ofile_name, "%s.lasieve-%u.%u-%u", basename,
                  special_q_side, first_spq, last_spq);
       } else {
-        asprintf(&ofile_name,"gzip --best --stdout > %s.lasieve-%u.%u-%u.gz", 
+        asprintf(&g_ofile_name,"gzip --best --stdout > %s.lasieve-%u.%u-%u.gz", 
                   basename, special_q_side, first_spq, last_spq);
       }
     } else {
-      if (strcmp(ofile_name, "-") == 0) {
+      if (strcmp(g_ofile_name, "-") == 0) {
         if (zip_output == 0) {
-          ofile = stdout;
-          ofile_name = "to stdout";
+          g_ofile = stdout;
+          g_ofile_name = "to stdout";
           goto done_opening_output;
         } else
-          ofile_name = "gzip --best --stdout";
+          g_ofile_name = "gzip --best --stdout";
       } else {
           zip_output = 0;
       }
     }
     if (zip_output == 0) {
       /* CJM: consider making this a "a". */
-      if ((ofile = fopen(ofile_name, "wb")) == NULL)
-        complain("Cannot open %s for output: %m\n", ofile_name);
+      if ((g_ofile = fopen(g_ofile_name, "wb")) == NULL)
+        complain("Cannot open %s for output: %m\n", g_ofile_name);
     } else {
-      if ((ofile = popen(ofile_name, "w")) == NULL)
-        complain("Cannot exec %s for output: %m\n", ofile_name);
+      if ((g_ofile = popen(g_ofile_name, "w")) == NULL)
+        complain("Cannot exec %s for output: %m\n", g_ofile_name);
     }
   done_opening_output:
   /*    fprintf(ofile, "F 0 X %u 1\n", poldeg[0]); */
@@ -3058,9 +3082,9 @@ int main(int argc, char **argv)
       u32_t fbi_lb;
 
       if (sigma >= 1)
-        pvl_max[s] = poldeg[s] * log(last_spq * sqrt(sigma));
+        pvl_max[s] = g_poldeg[s] * log(last_spq * sqrt(sigma));
       else
-        pvl_max[s] = poldeg[s] * log(last_spq / sqrt(sigma));
+        pvl_max[s] = g_poldeg[s] * log(last_spq / sqrt(sigma));
       pvl_max[s] += log(poly_norm[s]);
       if (fbi1[s] >= FBsize[s] || i_bits + j_bits <= L1_BITS) {
         n_schedules[s] = 0;
@@ -3289,9 +3313,9 @@ int main(int argc, char **argv)
 
   if (sieve_count != 0) {
     if (zip_output != 0)
-      pclose(ofile);
+      pclose(g_ofile);
     else
-      fclose(ofile);
+      fclose(g_ofile);
   }
   logbook(0, "%u Special q, %u reduction iterations\n", n_spq, n_iter);
 
@@ -3522,7 +3546,7 @@ static u32_t add_primepowers2xaFB(size_t * xaFB_alloc_ptr, u32_t pp_bound,
     Schlendrian("add_primepowers2xaFB on empty xaFB\n");
 
   rbuf_alloc = 0;
-  Ar = xmalloc((1 + poldeg[s]) * sizeof(*Ar));
+  Ar = xmalloc((1 + g_poldeg[s]) * sizeof(*Ar));
 
   if (p != 0) {
     init_xFB = 0;
@@ -3545,19 +3569,19 @@ static u32_t add_primepowers2xaFB(size_t * xaFB_alloc_ptr, u32_t pp_bound,
   qo = q;
   exponent = 1;
   for (;;) {
-    u32_t j, r;
+    u32_t j;
 
     if (q > pp_bound / p)
       break;
     modulo32 = p * q;
-    for (j = 0; j <= poldeg[s]; j++)
-      Ar[j] = mpz_fdiv_ui(poly[s][j], modulo32);
+    for (j = 0; j <= g_poldeg[s]; j++)
+      Ar[j] = mpz_fdiv_ui(g_poly[s][j], modulo32);
     if (b == 1) {
       for (r = a, nr = 0; r < modulo32; r += qo) {
         u32_t pv;
 
-        for (j = 1, pv = Ar[poldeg[s]]; j <= poldeg[s]; j++) {
-          pv = modadd32(Ar[poldeg[s] - j], modmul32(pv, r));
+        for (j = 1, pv = Ar[g_poldeg[s]]; j <= g_poldeg[s]; j++) {
+          pv = modadd32(Ar[g_poldeg[s] - j], modmul32(pv, r));
         }
         if (pv == 0) {
           adjust_bufsize((void **) &rbuf, &rbuf_alloc, 1 + nr, 4, sizeof(*rbuf));
@@ -3569,7 +3593,7 @@ static u32_t add_primepowers2xaFB(size_t * xaFB_alloc_ptr, u32_t pp_bound,
       for (r = (modmul32(b, modinv32(a))) % qo, nr = 0; r < modulo32; r += qo) {
         u32_t pv;
 
-        for (j = 1, pv = Ar[0]; j <= poldeg[s]; j++) {
+        for (j = 1, pv = Ar[0]; j <= g_poldeg[s]; j++) {
           pv = modadd32(Ar[j], modmul32(pv, r));
         }
         if (pv == 0) {

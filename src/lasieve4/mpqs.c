@@ -1980,7 +1980,7 @@ zeitb(10);
 }
 
 
-size_t mpqs_factor(mpz_t N, long max_bits, mpz_t **factors)
+size_t mpqs_factor(mpz_t N, size_t max_bits, mpz_t **factors)
 {
   size_t err;
 
