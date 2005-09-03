@@ -258,9 +258,9 @@ void init_montgomery_R2()
   uint32_t h[NMAX_ULONGS], c;
 
   h[0] = 1;
-  for (i = 1; i < montgomery_ulongs; i++)
+  for (i = 1; i < (long)montgomery_ulongs; i++)
     h[i] = 0;
-  for (i = 0; i < 64 * montgomery_ulongs; i++) {
+  for (i = 0; i < 64 * (long)montgomery_ulongs; i++) {
     if (h[montgomery_ulongs - 1] & 0x80000000)
       c = 1;
     else
@@ -304,20 +304,21 @@ void init_montgomery_R2()
       complain("init_montgomery_R2\n");
 #endif
   }
-  for (j = 0; j < montgomery_ulongs; j++)
+  for (j = 0; j < (long)montgomery_ulongs; j++)
     montgomery_modulo_R2[j] = h[j];
 }
 
 /***************************************************/
 uint32_t montgomery_inverse()
 /***************************************************/
-{ uint32_t v1, v2, q, b, p;
+{ int32_t v1, v2;
+  uint32_t q, b, p;
 
   if (montgomery_modulo_n[0] == 1)
     return -1;
   v1 = 0;
   v2 = 1;
-  b = -montgomery_modulo_n[0];
+  b = -(long)montgomery_modulo_n[0];
   p = montgomery_modulo_n[0];   /* 2^32-b */
   v1 += v2;
   if (b >= p) {
@@ -362,7 +363,7 @@ uint32_t montgomery_inverse()
 /***************************************************/
 int set_montgomery_multiplication(mpz_t n)
 /***************************************************/
-{ uint32_t bl, old;
+{ size_t bl, old;
   long j;
 
   old = montgomery_ulongs;

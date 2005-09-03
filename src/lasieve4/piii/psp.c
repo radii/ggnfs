@@ -141,23 +141,23 @@ int psp(mpz_t n)
   if (!(montgomery_modulo_n[0] & 1))
     return 0;                   /* number is even */
   ex[0] = montgomery_modulo_n[0] - 1;
-  for (i = 1; i < montgomery_ulongs; i++)
+  for (i = 1; i < (long)montgomery_ulongs; i++)
     ex[i] = montgomery_modulo_n[i];
-  for (i = 0; i < montgomery_ulongs; i++)
+  for (i = 0; i < (long)montgomery_ulongs; i++)
     if (ex[i])
       break;
-  if (i >= montgomery_ulongs)
+  if (i >= (long)montgomery_ulongs)
     return 0;                   /* number is 1 */
 
   e = 0;
   while (!(ex[0] & 1)) {
-    for (i = 0; i < montgomery_ulongs - 1; i++)
+    for (i = 0; i < (long)montgomery_ulongs - 1; i++)
       ex[i] = (ex[i] >> 1) | (ex[i + 1] << 31);
     ex[montgomery_ulongs - 1] >>= 1;
     e++;
   }
   one[0] = 1;
-  for (i = 1; i < montgomery_ulongs; i++)
+  for (i = 1; i < (long)montgomery_ulongs; i++)
     one[i] = 0;
   asm_mulmod(one, montgomery_modulo_R2, one);
 
@@ -173,7 +173,7 @@ int psp(mpz_t n)
     v <<= 1;
   }
 
-  for (i = 0; i < montgomery_ulongs; i++)
+  for (i = 0; i < (long)montgomery_ulongs; i++)
     x[i] = 0;
   s = 1;
   for (i = b - 1; i >= 0; i--) {
