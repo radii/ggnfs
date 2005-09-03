@@ -23,7 +23,9 @@
 static unsigned long have_init = 0;
 static mpz_t auxz, auxz2;
 
-#define ULLONG_MAX 0xffffffffffffffffULL
+#ifndef ULLONG_MAX
+	#define ULLONG_MAX 0xffffffffffffffffULL
+#endif
 
 /****************************************************/
 void mpz_ull_init()
