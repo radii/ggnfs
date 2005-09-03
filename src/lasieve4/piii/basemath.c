@@ -47,7 +47,7 @@ int asm_cmp64(uint32_t * a, uint32_t * b)
 /**************************************************/
 int asm_cmp(uint32_t * a, uint32_t * b)
 /**************************************************/
-{ long i;
+{ UINT32 i;
 
   for (i = 0; i < montgomery_ulongs; i++)
     if (a[i] != b[i])
@@ -162,7 +162,7 @@ void gcd(uint32_t * gcd, uint32_t * a, uint32_t * b)
 void asm_half_old(uint32_t * a)
 /**************************************************/
 { uint32_t c, n_half[NMAX_ULONGS];
-  long i;
+  UINT32 i;
 
   for (i = 0; i < montgomery_ulongs - 1; i++)
     n_half[i] =
@@ -182,15 +182,18 @@ void asm_half_old(uint32_t * a)
 /**************************************************/
 int asm_invert(uint32_t * res, uint32_t * b)
 /**************************************************/ 
-{ long i, f1, len;
+{ long i;
+  long f1, len;
   uint32_t t1[NMAX_ULONGS], t2[NMAX_ULONGS];
   uint32_t v1[NMAX_ULONGS], v2[NMAX_ULONGS];
+#if 0
   uint32_t n_half[NMAX_ULONGS];
+#endif
 
-  for (i = 0; i < montgomery_ulongs; i++)
+  for (i = 0; i < (long)montgomery_ulongs; i++)
     if (b[i])
       break;
-  if (i >= montgomery_ulongs)
+  if (i >= (long)montgomery_ulongs)
     return 0;
   if (b[0] & 1) {
     asm_copy(t1, b);
@@ -246,7 +249,7 @@ int asm_invert(uint32_t * res, uint32_t * b)
   }
   if (t1[0] != 1)
     return 0;
-  for (i = 1; i < montgomery_ulongs; i++)
+  for (i = 1; i < (long)montgomery_ulongs; i++)
     if (t1[i])
       return 0;
   if (f1)
