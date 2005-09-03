@@ -13,6 +13,7 @@
   02111-1307, USA.
 */
 
+#include <assert.h>
 #include <math.h>
 
 #include "lasieve.h"
@@ -39,7 +40,8 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
     if (a0sq < a1sq) {
       i32_t k;
 
-      k = rint(s / a0sq);
+	  assert(((s / a0sq) >= INT_MIN) && ((s / a0sq) <= INT_MAX));
+      k = (i32_t)rint(s / a0sq);
       if (k == 0)
         break;
       a1 -= k * a0;
@@ -49,7 +51,8 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
     } else {
       i32_t k;
 
-      k = rint(s / a1sq);
+	  assert(((s / a1sq) >= INT_MIN) && ((s / a1sq) <= INT_MAX));
+      k = (i32_t)rint(s / a1sq);
       if (k == 0)
         break;
       a0 -= k * a1;
