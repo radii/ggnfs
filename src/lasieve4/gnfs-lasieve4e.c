@@ -2476,7 +2476,7 @@ int lasieve()
 #if 0
 #define KLEINJUNG_MPQS
 #endif
-						  size_t nf;
+						  int nf;
                           mpz_t *mf;
 #ifdef KLEINJUNG_MPQS
 
@@ -2775,8 +2775,8 @@ int main(int argc, char **argv)
   tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF;
   tmpDbgFlag |= _CRTDBG_CHECK_CRT_DF;
   tmpDbgFlag |= _CRTDBG_DELAY_FREE_MEM_DF;
-  tmpDbgFlag |= _CRTDBG_LEAK_CHECK_DF;
 */
+  tmpDbgFlag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(tmpDbgFlag);
 #endif
 

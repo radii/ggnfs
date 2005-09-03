@@ -55,9 +55,9 @@ extern u32_t stat_asm_div, stat_final_mulmod;
 #define MPQS_FB_MAXPRIME     4096     /* used in sieve and final */
 
 /* common with asm functions */
-u16_t mpqs_nFBk_1;
-u16_t mpqs_td_begin, mpqs_sievebegin;
-u32_t mpqs_FB_inv_info[4*MPQS_MAX_NPRIMES];
+static u16_t mpqs_nFBk_1;
+static u16_t mpqs_td_begin, mpqs_sievebegin;
+static u32_t mpqs_FB_inv_info[4*MPQS_MAX_NPRIMES];
 u16_t mpqs_nFBk, mpqs_FBk[3];  /* 3*5*7*11 too big */
 unsigned char mpqs_FB_log[MPQS_MAX_FBSIZE];
 u16_t mpqs_nFB, mpqs_nAdiv_total;
@@ -692,6 +692,7 @@ static int mpqs_SI_init()
     mpqs_FB_inv_info[4*j+6]=mpqs_FB_inv[j+1];
     mpqs_FB_inv_info[4*j+7]=mpqs_FB_inv[j+1];
   }
+  printf("label1 %d\n", 1);
   for (; j<mpqs_nFB; j++) mpqs_FB_inv[j]=mpqs_inv(mpqs_FB[2*j]);
   for (j=0; j<mpqs_nFBk; j++) mpqs_FBk_inv[j]=mpqs_inv(mpqs_FBk[j]);
   for (j=0; j<mpqs_nAdiv_total; j++)
@@ -729,18 +730,23 @@ static int mpqs_SI_init()
 /* ensure that |C|<2^64 */
   for (i=0; i<mpqs_nAdiv_total; i++)
     A_div_log[i]=log((double)(mpqs_Adiv_all[i]))/log(2.);
+
   d=log(mpqs_kN_dbl)/log(2.);
+  
   for (i=0; i<j; i++) {
     v=0;
-    for (k=0; k<mpqs_nAdiv_total; k++)
+
+	for (k=0; k<mpqs_nAdiv_total; k++)
       if (mpqs_A_mask[i]&(1<<k)) v+=A_div_log[k];
-    if (d-v>63.95) {
-      j--; /* printf(":");*/
+   
+	if (d-v>63.95) {
+      j--; /* printf(":"); */
       mpqs_A_mask[i]=mpqs_A_mask[j];
       i--;
     }
   }
 
+  printf("j = %hu\n", j);
   mpqs_nA=j; mpqs_A_index=-1; mpqs_B_index=(1<<mpqs_nAdiv)-1;
 
   prod=1; d=1.;
@@ -793,7 +799,13 @@ static int mpqs_next_pol()
   if (mpqs_B_index>=1<<(mpqs_nAdiv-1)) {
 /*zeitA(7);*/
     mpqs_A_index++;
-    if (mpqs_A_index>=mpqs_nA) return 0;
+    
+	if (mpqs_A_index>=mpqs_nA) 
+	{
+//		assert(0);
+		return 0;
+	}
+
     mask=mpqs_A_mask[mpqs_A_index];
     for (i=0; i<mpqs_nAdiv_total; i++)
       if (mask & (1<<i)) mpqs_Adiv_active[i]=1;
@@ -1112,12 +1124,12 @@ zeita(6);
       p=mpqs_Adiv_all[i]; lo=mpqs_Adiv_log[i];
       s1=mpqs_Adiv_start1[i];
       s2=mpqs_Adiv_start2[i];
-      while (s1<mpqs_sievelen) { sv[s1]+=lo; s1+=p; }
-      while (s2<mpqs_sievelen) { sv[s2]+=lo; s2+=p; }
+      while (s1<mpqs_sievelen) { sv[s1] = (sv[s1] + lo) & 0xFF; s1+=p; }
+      while (s2<mpqs_sievelen) { sv[s2] = (sv[s1] + lo) & 0xFF; s2+=p; }
     } else {
       p=mpqs_Adiv_all[i]; lo=mpqs_Adiv_log[i];
       s1=mpqs_Adiv_start1[i];
-      while (s1<mpqs_sievelen) { sv[s1]+=lo; s1+=p; }
+      while (s1<mpqs_sievelen) { sv[s1] = (sv[s1] + lo) & 0xFF; s1+=p; }
     }
 #ifdef MPQS_ZEIT
 zeitb(6);
@@ -1241,7 +1253,7 @@ static int mpqs_decompose()
   double dbl_qx, dx;
   i16_t x;
   u64_t lp;
-  u32_t ulqx;
+  u64_t ulqx;
   u64_t inv, ls1, ls2;
   u64_t ax, ay, az, at;
 
@@ -1862,9 +1874,10 @@ stat_final_mulmod++;
 
 
 
-static size_t mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
+static int mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
 {
-  size_t nbits, i, err;
+  int err;
+  size_t nbits, i;
   int ev;
 
 #ifdef MPQS_ZEIT
@@ -1980,9 +1993,9 @@ zeitb(10);
 }
 
 
-size_t mpqs_factor(mpz_t N, size_t max_bits, mpz_t **factors)
+int mpqs_factor(mpz_t N, size_t max_bits, mpz_t **factors)
 {
-  size_t err;
+  int err;
 
   err=mpqs_factor0(N,max_bits,factors,0);
   if (err==-4) err=mpqs_factor0(N,max_bits,factors,1);
