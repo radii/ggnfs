@@ -47,7 +47,7 @@ int asm_cmp64(uint32_t * a, uint32_t * b)
 /**************************************************/
 int asm_cmp(uint32_t * a, uint32_t * b)
 /**************************************************/
-{ UINT32 i;
+{ uint32_t i;
 
   for (i = 0; i < montgomery_ulongs; i++)
     if (a[i] != b[i])
@@ -162,7 +162,7 @@ void gcd(uint32_t * gcd, uint32_t * a, uint32_t * b)
 void asm_half_old(uint32_t * a)
 /**************************************************/
 { uint32_t c, n_half[NMAX_ULONGS];
-  UINT32 i;
+  uint32_t i;
 
   for (i = 0; i < montgomery_ulongs - 1; i++)
     n_half[i] =
