@@ -18,7 +18,8 @@
 
 #include "lasieve.h"
 
-static u32_t A, A_bits, ub;
+static u32_t A, A_bits;
+static i32_t ub;
 
 void rec_info_init(u32_t A1, u32_t ub1)
 {
@@ -44,7 +45,8 @@ void rec_info_init(u32_t A1, u32_t ub1)
 
 u32_t get_recurrence_info(u32_t * res_ptr, u32_t p, u32_t r)
 {
-  u32_t b, c, s, t;
+  u32_t b, c;
+  i32_t s, t;
 
   if (r == 0) {
 
