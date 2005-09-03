@@ -54,9 +54,9 @@ void clearprime32(pr32_struct*ps);
 void p32_seek(pr32_struct*ps,uint32_t lb);
 
 /* real-poly-aux.h */
-void tpol(double *rop,double *op,int32_t deg,int32_t x0,int32_t x1,int32_t y0,int32_t y1);
+void tpol(double *rop,double *op,uint32_t deg,int32_t x0,int32_t x1,int32_t y0,int32_t y1);
 double rpol_eval(double *p,int32_t d,double x,double y);
-double rpol_lb(double *pol,int32_t poldeg,double a,double b);
+double rpol_lb(double *pol,uint32_t poldeg,double a,double b);
 
 
 /* recurrence6.h */

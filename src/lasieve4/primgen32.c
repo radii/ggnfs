@@ -13,6 +13,7 @@
   02111-1307, USA.
 */
 
+#include <assert.h>
 #include <math.h>
 #include <sys/types.h>
 #include <limits.h>
@@ -120,7 +121,9 @@ u32_t nextprime32(pr32_struct * ps)
             ssz = P32_SIEVESIZE;
           else
             ssz = (UINT_MAX - ps->first_in_sieve) / 2;
-          M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
+
+		  assert((1 + floor(sqrt(ps->first_in_sieve + 2 * ssz))) <= UINT_MAX);
+          M = (u32_t)(1 + floor(sqrt(ps->first_in_sieve + 2 * ssz)));
           for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
             j = ps->first_in_sieve % q;
             if (j) {
@@ -186,7 +189,9 @@ u32_t nextprime32(pr32_struct * ps)
 
       oldprime = ps->Prime;
       start = oldprime + 2;
-      M = 1 + floor(sqrt(start + 2 * P32_SIEVESIZE));
+
+	  assert((1 + floor(sqrt(start + 2 * P32_SIEVESIZE))) <= UINT_MAX);
+      M = (u32_t)(1 + floor(sqrt(start + 2 * P32_SIEVESIZE)));
       for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
         j = start % q;
         if (j) {
@@ -245,7 +250,9 @@ u32_t nextprime32(pr32_struct * ps)
         ssz = P32_SIEVESIZE;
       else
         ssz = (UINT_MAX - ps->first_in_sieve) / 2;
-      M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
+
+	  assert((1 + floor(sqrt(ps->first_in_sieve + 2 * ssz))) <= UINT_MAX);
+      M = (u32_t)(1 + floor(sqrt(ps->first_in_sieve + 2 * ssz)));
       for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
         j = ps->first_in_sieve % q;
         if (j) {
@@ -320,7 +327,9 @@ u32_t pr32_seek(pr32_struct * ps, u32_t lb)
       ssz = P32_SIEVESIZE;
     else
       ssz = (UINT_MAX - ps->first_in_sieve) / 2;
-    M = 1 + floor(sqrt(ps->first_in_sieve + 2 * ssz));
+
+	assert((1 + floor(sqrt(ps->first_in_sieve + 2 * ssz))) <= UINT_MAX);
+    M = (u32_t)(1 + floor(sqrt(ps->first_in_sieve + 2 * ssz)));
     for (i = 2, q = 3; q <= M; q += 2 * primediffs[i++]) {
       j = ps->first_in_sieve % q;
       if (j) {

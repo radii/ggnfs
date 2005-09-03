@@ -26,7 +26,7 @@ static size_t aux_alloc = 0;
 /* Action of GL(2,Z) on homogeneous polys. */
 
 /************************************************************/
-void tpol(double *rop, double *op, i32_t deg, i32_t x0, i32_t x1,
+void tpol(double *rop, double *op, u32_t deg, i32_t x0, i32_t x1,
           i32_t y0, i32_t y1)
 /************************************************************/
 {
@@ -83,10 +83,10 @@ double rpol_eval(double *p, i32_t d, double x, double y)
 }
 
 /************************************************************/
-double rpol_lb(double *pol, i32_t poldeg, double a, double b)
+double rpol_lb(double *pol, u32_t poldeg, double a, double b)
 /************************************************************/
 {
-  i32_t i;
+  u32_t i;
   double m1, m2, s1, s2;
 
   if (poldeg == UINT_MAX)
