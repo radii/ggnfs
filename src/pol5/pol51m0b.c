@@ -26,7 +26,9 @@
 #endif
 
 /* We need to write a floorl() for Cygwin. In the meantime: */
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(MINGW32)
+/* MinGW may use HAVE_FLOAT64, as long as we compile with -O0 (at least for
+   gcc 3.4) */
+#if defined(__CYGWIN__)
 #undef HAVE_FLOAT64
 #endif
 
@@ -43,8 +45,6 @@
 #include <limits.h>
 #include "fnmatch.h"
 #include <string.h>
-
-#include <ggnfs.h>
 
 #define  MULTIPLIER            60   /* 2*2*3*5 */
 #define  P0_MAX             46300   /* <=2^15.5 */
@@ -455,7 +455,7 @@ void gmp_root5(mpz_t targ, mpz_t approx) /* computes (N/a5)^0.2 */
 }
 
 
-void compute_root(shift)
+void compute_root(unsigned int shift)
 {
   mpz_set_ui(gmp_help1,shift);
   mpz_mul_ui(gmp_help1,gmp_help1,MULTIPLIER);

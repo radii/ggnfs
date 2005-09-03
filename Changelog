@@ -1,3 +1,20 @@
+9/3/05 (trilliwig)
+  * Cleaned up some redundant compiler flags and defines.  In particular,
+    -mtune is implied by -march.  Not to mention that in versions of gcc
+    before 3.4, -mtune is not recognized (it was -mcpu).
+  * Forced compilation flags for the Franke polynomial selection tools to
+    use -O0 (no optimization).  Optimization breaks pol51* on Linux and MinGW,
+    at least with gcc 3.4.  This allows us to use long doubles (HAVE_FLOAT64)
+    under MinGW now, so that should mitigate the performance impact somewhat.
+  * Changed getline() return type in src/if.[ch].  It must return a signed
+    size (ssize_t).  This fixes the pol51m0b breakage under Linux.  Also
+    added explicit typing of compute_root()'s argument in src/pol5/pol51m0?.c.
+  * The lattice siever no longer opens ggnfs.log in binary mode, so those
+    output lines should now be correctly terminated under Windows.
+  * Removed bigint library specification as GMP from factLat.pl.  Apparently
+    the GMP BigInt library is not available to Perl on some systems.
+  * Modified factLat.pl to print q0 values to ggnfs.log at beginning of
+    lattice sieve runs.
 
 8/29/05 (Brian Gladman)
   * added matbuild-tpie to the VC7 and VC8 build projects (could not do

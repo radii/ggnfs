@@ -1,4 +1,4 @@
-VERSION=0.77.1-20050824
+VERSION=0.77.1-20050903
 THISDIR=branch_0
 
 TOOLSPREFIX=
@@ -15,11 +15,12 @@ AS=$(TOOLSPREFIX)as
 
 export CC CPP AR AS LOCALINC LOCALLIB
 
-.PHONY: choosetarget pentium3 pentium4 athlon x86_64 x86_32 ppc_970 ppc_7450 \
-        doc x86common common clean snapshot test
+.PHONY: choosetarget pentium2 pentium3 pentium4 athlon x86_64 x86_32 \
+        ppc_970 ppc_7450 doc x86common common clean snapshot test
 
 choosetarget :
 	@echo "Possible targets are:"
+	@echo "	pentium2              	 Intel Pentium 2 (untested)"
 	@echo "	pentium3              	 Intel Pentium 3"
 	@echo "	pentium4              	 Intel Pentium 4"
 	@echo "	pentium-m              	 Intel Pentium M"
@@ -31,6 +32,9 @@ choosetarget :
 	@echo "	snapshot       		 Sources snapshot"
 	@echo "	install			 Installation"
 	@echo "	clean         		 Clean up"
+
+pentium2 :
+	@ARCH="pentium2" $(MAKE) common
 
 pentium3 :
 	@ARCH="pentium3" $(MAKE) x86common

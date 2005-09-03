@@ -2738,7 +2738,7 @@ int parseJobFile(char *fName)
 void logTotalTime()
 /**************************************************/
 { double t=sTime()-sieveStartTime;
-  FILE *fp=fopen("ggnfs.log", "ab");
+  FILE *fp=fopen("ggnfs.log", "a");
 
   fprintf(fp, "\tLatSieveTime: %ld\n", (long)t);
   fclose(fp);

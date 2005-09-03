@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # The path where the binaries are:
-$GGNFS_BIN_PATH="../bin";
+$GGNFS_BIN_PATH="../../bin";
 # And some other popular choices:
 #$GGNFS_BIN_PATH="../../src";
 #$GGNFS_BIN_PATH="../ggnfs.vc/bin";
@@ -29,9 +29,12 @@ $GGNFS_BIN_PATH="../bin";
 ########################################################################
 use Math::BigInt;
 use Math::BigFloat;
-use Math::BigInt lib => 'GMP';
+# Bah, this causes a fatal error if GMP BigInt is not available.
+# use Math::BigInt lib => 'GMP';
 
-$SYS_BIN_PATH="c:/mingw/msys/1.0/bin";
+# $SYS_BIN_PATH="c:/mingw/msys/1.0/bin";
+$SYS_BIN_PATH="";
+# $SYS_BIN_PATH="/bin";
 
 $FORCECC="on"; # on | off | auto
 $SAVEPAIRS=0;
@@ -1441,6 +1444,9 @@ while (!(-e $SPMAT)) {
   }
   $startTime = time;
 
+  open(OF, ">>$LOGFILE");
+  print OF "->               client $CLIENT_ID q0: $Q0\n";
+  close(OF);
   # It's very important to call like this, so that if the user CTRL-C's,
   # or otherwise kills the process, we see it and terminate as well.
   $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME -v -n$PNUM $sieveSideOpt $JOBNAME";

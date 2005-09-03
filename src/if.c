@@ -31,15 +31,11 @@
 #include <string.h>
 #include <gmp.h>
 #include <limits.h>
-
 #include "if.h"
+
 
 int verbose = 0;
 static size_t used_cols, ncol = 80;
-#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#define NEED_GETLINE
-#define NEED_ASPRINTF
-#endif
 
 FILE *logfile = NULL;
 void complain(char * fmt, ...);
@@ -400,7 +396,7 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 #ifdef NEED_GETLINE
 #define GETL_INCR 128
 /****************************************************/
-size_t getline(char **lineptr, size_t * n, FILE * stream)
+ssize_t getline(char **lineptr, size_t * n, FILE * stream)
 /****************************************************/
 {
   size_t rv = 0;

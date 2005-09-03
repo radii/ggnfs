@@ -14,6 +14,11 @@
 #ifndef _IF_H
 #define _IF_H
 
+#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#define NEED_GETLINE
+#define NEED_ASPRINTF
+#endif
+
 #include <gmp.h>
 #include <stdlib.h>
 #include <stdarg.h> 
@@ -59,14 +64,13 @@ int asprintf(char**,const char*,...);
 #endif
 
 //#ifdef NEED_GETLINE
-size_t getline(char**,size_t*,FILE*);
 //#endif
-
 
 /* These are supposed to be obtained by #define _GNU_SOURCE
    before including stdio.h, but that seems to break things,
    so here we go: 
 */
+ssize_t getline(char**,size_t*,FILE*);
 int asprintf(char **strp, const char *fmt, ...);
 int vasprintf(char **strp, const char *fmt, va_list ap);
 

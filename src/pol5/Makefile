@@ -10,7 +10,7 @@ CFLAGS2=
 #LIBFLAGS = -I. -I/usr/local/include -L/usr/local/lib
 
 POL5_SOURCEFILES = fnmatch.c pol51m0b.c pol51m0n.c pol51opt.c \
-  if.c ../if.h assess.c primes.c roots.c zeit.c dickman.tab \
+  ../if.c ../if.h assess.c primes.c roots.c zeit.c dickman.tab \
   asm_hash5.asm asm_hash5n.asm asm_rs.asm \
   asm_hash5.s asm_hash5n.s asm_rs.s \
   asm_hash5_alpha.s asm_hash5n_alpha.s \
@@ -24,7 +24,7 @@ OBJS3=
 OBJS4=
 
 ifeq ($(HOST),x86)
-	CFLAGS2+=-DHAVE_FLOAT64 -DHAVE_ASM_INTEL
+	CFLAGS2+=-O0 -DHAVE_FLOAT64 -DHAVE_ASM_INTEL
 	OBJS2=asm_hash5.o
 	OBJS3=asm_hash5n.o
 	OBJS4=asm_rs.o

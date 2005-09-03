@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ggnfs.h>
+#include "ggnfs.h"
 
 clock_t *zeitcounter;
 uint64_t *asmzeitcounter;

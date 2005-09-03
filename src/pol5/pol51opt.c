@@ -18,6 +18,8 @@
 #define ZEIT
 */
 
+#include "ggnfs.h"
+
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -31,8 +33,6 @@
 #include <limits.h>
 #include "fnmatch.h"
 #include <string.h>
-
-#include <ggnfs.h>
 
 #define START_MESSAGE \
 "----------------------------------------------------\n"\
