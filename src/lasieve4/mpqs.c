@@ -1240,7 +1240,8 @@ static int mpqs_decompose()
   u16_t minus;
   double dbl_qx, dx;
   i16_t x;
-  u64_t lp, ulqx;
+  u64_t lp;
+  u32_t ulqx;
   u64_t inv, ls1, ls2;
   u64_t ax, ay, az, at;
 
@@ -1861,7 +1862,7 @@ stat_final_mulmod++;
 
 
 
-static long mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
+static size_t mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
 {
   size_t nbits, i, err;
   int ev;
@@ -1979,9 +1980,9 @@ zeitb(10);
 }
 
 
-long mpqs_factor(mpz_t N, long max_bits, mpz_t **factors)
+size_t mpqs_factor(mpz_t N, long max_bits, mpz_t **factors)
 {
-  long err;
+  size_t err;
 
   err=mpqs_factor0(N,max_bits,factors,0);
   if (err==-4) err=mpqs_factor0(N,max_bits,factors,1);
