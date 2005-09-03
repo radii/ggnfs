@@ -70,6 +70,12 @@ typedef unsigned char uchar;
 #define int64_t INT64
 #define uint64_t UINT64
 
+#ifdef _WIN64
+typedef __int64 ssize_t;
+#else
+typedef __int32 ssize_t;
+#endif
+
 #define PRId8 "I8d"
 #define PRIi8 "I8i"
 #define PRIo8 "I8o"

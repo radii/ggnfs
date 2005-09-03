@@ -15,6 +15,7 @@
     the GMP BigInt library is not available to Perl on some systems.
   * Modified factLat.pl to print q0 values to ggnfs.log at beginning of
     lattice sieve runs.
+  * Added Brian Gladman's definitions of ssize_t to the MS portion of ggnfs.h. 
 
 8/29/05 (Brian Gladman)
   * added matbuild-tpie to the VC7 and VC8 build projects (could not do
