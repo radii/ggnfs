@@ -54,9 +54,9 @@ extern u32_t stat_asm_div, stat_final_mulmod;
 #define MPQS_FB_MAXPRIME     4096     /* used in sieve and final */
 
 /* common with asm functions */
-u16_t mpqs_nFBk_1;
-u16_t mpqs_td_begin, mpqs_sievebegin;
-u16_t mpqs_FB_inv_info[4*MPQS_MAX_NPRIMES];
+static u16_t mpqs_nFBk_1;
+static u16_t mpqs_td_begin, mpqs_sievebegin;
+static u16_t mpqs_FB_inv_info[4*MPQS_MAX_NPRIMES];
 u16_t mpqs_nFBk, mpqs_FBk[3];  /* 3*5*7*11 too big */
 unsigned char mpqs_FB_log[MPQS_MAX_FBSIZE];
 u16_t mpqs_nFB, mpqs_nAdiv_total;
@@ -109,11 +109,11 @@ static u16_t mpqs_zero1, mpqs_zero2;
 static double mpqs_kN_dbl;
 static u64_t mpqs_kN_64, mpqs_A_inv_64;
 
-u16_t mpqs_FB[2*MPQS_MAX_FBSIZE];
-u16_t mpqs_FB_start[2*MPQS_MAX_FBSIZE];
-u32_t mpqs_sievelen;
+static u16_t mpqs_FB[2*MPQS_MAX_FBSIZE];
+static u16_t mpqs_FB_start[2*MPQS_MAX_FBSIZE];
+static u32_t mpqs_sievelen;
+static unsigned char *mpqs_sievearray;
 u32_t mpqs_FB_inv[MPQS_MAX_FBSIZE];
-unsigned char *mpqs_sievearray;
 
 unsigned char mpqs_256_inv_table[128]={
 1, 171, 205, 183, 57, 163, 197, 239, 
