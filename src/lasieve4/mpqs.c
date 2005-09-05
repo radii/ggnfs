@@ -438,7 +438,8 @@ void mpqs_init()
 }
 
 
-static u16_t mpqs_multiplier_cand[4][MPQS_MULT_NCAND]={
+static u16_t mpqs_multiplier_cand[4][MPQS_MULT_NCAND]=
+{
  { 1, 17, 33, 41, 57, 65, 73, 89 },
  { 3, 11, 19, 35, 43, 51, 59, 67 },
  { 5, 13, 21, 29, 37, 53, 61, 69 },
@@ -452,45 +453,93 @@ static void mpqs_choose_multiplier()
   double value[MPQS_MULT_NCAND], v, vp, vmin, dn;
   long i, j;  
 
-  for (i=0; i<MPQS_MULT_NTESTPR; i++)
-    residue[i]=(u16_t)mpz_mod_ui(mpqs_dummy,mpqs_N,(u32_t)mpqs_prime_table[i]);
-  Nmod8=(u16_t)mpz_mod_ui(mpqs_dummy,mpqs_N,8);
-  dn=log(mpz_get_d(mpqs_N))/log(2.);
-  dn=100.9-dn;
-  if (dn>7) mm=128; else mm=(u16_t)(exp(dn*log(2)));
-  for (j=0; j<MPQS_MULT_NCAND; j++) {
-    mult=mpqs_multiplier_cand[Nmod8/2][j];
-    if (mult<=mm) {
-      v=log((double)mult)-1.5*log(2);
-      for (i=1; i<MPQS_MULT_NTESTPR; i++) {
-        p=mpqs_prime_table[i]; vp=log((double)p)/((double)p);
-        if (mult%p) {
-          if (mpqs_jacobi((mult*residue[i])%p,p)==1) v-=vp;
-          else v+=vp;
+  /*
+   *  Calc residue_i = N mod p_i
+   */
+  for (i = 0; i < MPQS_MULT_NTESTPR; i++)
+    residue[i] = (u16_t)mpz_mod_ui(mpqs_dummy, mpqs_N, (u32_t)mpqs_prime_table[i]);
+  
+  Nmod8 = (u16_t)mpz_mod_ui(mpqs_dummy, mpqs_N, 8); /* Nmod8 = N mod 8      */
+  dn = log(mpz_get_d(mpqs_N)) / log(2.);            /* dn = log2(N)         */
+  dn = 100.9 - dn;                                  /* dn = 100.9 - log2(N) */
+  
+  if (dn > 7) 
+	  mm = 128;
+  else 
+	  mm = (u16_t)(exp(dn*log(2)));                 /* mm = e^(100.9 - log2(N)) */
+  
+  /*
+   * We now pick correct multiplifier candidate row and for all multiplifier
+   * candidates in it do the following:
+   *
+   *   Calculate some characteristic 'v' of the multiplifier and store it to the
+   *   value[j] array. We'll pick up later the multiplifier with the lowest 
+   *   characteristic of all.
+   *
+   * The characteristic calculation process is done as following:
+   * 
+   *   For the first MPQS_MULT_NCAND primes p_i we calculate the
+   *   jacobian function of the (k * N) mod p_i, where k - is our candidate
+   *   multiplifier. If jacobian(k*N mod p_i, p_i) == 1 we substract 
+   *   log(p_i)/p_i from the characteristic otherwise we add this value thus 
+   *   making the characteristic somewhat less acceptable.
+   *
+   */
+  for (j = 0; j < MPQS_MULT_NCAND; j++) 
+  {
+	/* we prefer kN = 1 mod 8 since 2 \in FB only under this condition */
+    mult = mpqs_multiplier_cand[Nmod8/2][j];
+   
+	if (mult <= mm) 
+	{
+      v = log((double)mult) - 1.5*log(2);
+      
+	  for (i = 1; i < MPQS_MULT_NTESTPR; i++) 
+	  {
+        p = mpqs_prime_table[i]; 
+		vp = log((double)p)/((double)p); /* vp = log(p)/p */
+      
+		if (mult % p) 
+		{
+          if (mpqs_jacobi((mult * residue[i])%p, p) == 1) 
+			  v -= vp;
+          else 
+			  v += vp;
         }
       }
-    } else v=1000;
-    value[j]=v;
+    } 
+	else 
+		v = 1000;
+    
+	value[j] = v;
   }
-  vmin=value[0];
-  for (j=1; j<MPQS_MULT_NCAND; j++)
-    if (value[j]<vmin) vmin=value[j];
-  for (j=0; j<MPQS_MULT_NCAND; j++)
-    if (value[j]==vmin) break;
-  if (j>=MPQS_MULT_NCAND) complain("mpqs_choose_multiplier.vmin\n");
-  mpqs_complexity=(vmin+log(mpz_get_d(mpqs_N)))/log(2.);
-  mpqs_multiplier=mpqs_multiplier_cand[Nmod8/2][j];
+
+  vmin = value[0];
+  
+  for (j = 1; j < MPQS_MULT_NCAND; j++)
+  {
+    if (value[j] < vmin) 
+		vmin = value[j];
+  }
+
+  for (j = 0; j < MPQS_MULT_NCAND; j++)
+  {
+    if (value[j]==vmin) 
+		break;
+  }
+
+  if (j >= MPQS_MULT_NCAND) 
+	  complain("mpqs_choose_multiplier.vmin\n");
+
+  mpqs_complexity = (vmin + log(mpz_get_d(mpqs_N))) / log(2.);
+  mpqs_multiplier = mpqs_multiplier_cand[Nmod8/2][j];
+
 #ifdef MPQS_STAT
 printf("%ld ",mpqs_multiplier);
 #endif
-  mpz_mul_ui(mpqs_kN,mpqs_N,mpqs_multiplier);
-#if 0
-  mpz_fdiv_q_2exp(mpqs_dummy,mpqs_kN,32);
-  mpqs_kN_64=(u64_t)mpz_get_ui(mpqs_dummy); mpqs_kN_64<<=32;
-  mpqs_kN_64+=(u64_t)mpz_get_ui(mpqs_kN);
-#else
-  mpqs_kN_64=mpz_get_ull(mpqs_kN);
-#endif
+
+  mpz_mul_ui(mpqs_kN, mpqs_N, mpqs_multiplier); /* kN = k*N */
+  mpqs_kN_64 = mpz_get_ull(mpqs_kN);
 }
 
 
