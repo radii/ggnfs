@@ -14,7 +14,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 */
 /*
 #define MPQS_STAT
-#define MPQS_ZEIT
 */
 #include <assert.h>
 #include <stdio.h>
@@ -1098,9 +1097,6 @@ static void mpqs_sieve()
   }
 #endif
   sv=mpqs_sievearray;
-#ifdef MPQS_ZEIT
-zeita(6);
-#endif
   for (i=0; i<mpqs_nAdiv_total; i++)
     if (!mpqs_Adiv_active[i]) {
       p=mpqs_Adiv_all[i]; lo=mpqs_Adiv_log[i];
@@ -1113,9 +1109,6 @@ zeita(6);
       s1=mpqs_Adiv_start1[i];
       while (s1<mpqs_sievelen) { sv[s1]+=lo; s1+=p; }
     }
-#ifdef MPQS_ZEIT
-zeitb(6);
-#endif
 }
 
 
@@ -1237,9 +1230,6 @@ static int mpqs_decompose()
   u32_t inv, ls1, ls2;
   u32_t ax, ay, az, at;
 
-#ifdef MPQS_ZEIT
-zeitA(11);
-#endif
   rels=mpqs_rel_buffer-1;
   for (i=1; i<=mpqs_nsurvivors; i++) rels[i][4]=0;
   i=mpqs_td_begin; fb+=2*i; fbs+=2*i;
@@ -1273,9 +1263,6 @@ zeitA(11);
       if (i2) { nr=rels[i2][4]; rels[i2][nr+5]=mpqs_nFBk_1+i; rels[i2][4]++; }
     }
   }
-#ifdef MPQS_ZEIT
-zeitB(11);
-#endif
   for (i=1; i<=mpqs_nsurvivors; i++) {
     nr=rels[i][4];
     ind=rels[i][0];
@@ -1300,16 +1287,10 @@ zeitB(11);
     if (dbl_qx<0.) { minus=1; qx=-qx; }
 
 #ifdef ASM_MPQS_TD
-#ifdef MPQS_ZEIT
-zeitA(12);
-#endif
 #ifdef MPQS_STAT
 stat_asm_td++;
 #endif
 if (asm_td(rels[i],minus,&qx,&ulqx)) {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
   goto next;
 }
 /*
@@ -1319,9 +1300,6 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 */
 /*printf(",");*/
 /*if (nr>27) {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
   goto next;
 }*/
 /*printf("%lu ",ulqx);*/
@@ -1361,18 +1339,12 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
         rels[i][5+rels[i][4]]=mpqs_nFBk_1; rels[i][4]++;
         qx>>=1;
       } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
         goto next;
       }
     }
     if (pr<4294967296ULL) {
       if (qx>(pr<<32)) {
 /*        printf(",");*/
-#ifdef MPQS_ZEIT
-zeitB(12);
-#endif
         goto next;
       }
     }
@@ -1396,9 +1368,6 @@ ulqx=az;
           rels[i][5+rels[i][4]]=ii; rels[i][4]++;
           ulqx/=(u32_t)p;
         } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
           goto next;
         }
       }
@@ -1413,9 +1382,6 @@ ulqx=az;
             rels[i][5+rels[i][4]]=1+j; rels[i][4]++;
             ulqx/=(u32_t)p;
           } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
             goto next;
           }
         }
@@ -1429,9 +1395,6 @@ ulqx=az;
             rels[i][5+rels[i][4]]=1+mpqs_nFB+mpqs_nFBk+j; rels[i][4]++;
             ulqx/=(u32_t)p;
           } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
             goto next;
           }
         }
@@ -1460,9 +1423,6 @@ ulqx=az;
  /*         ulqx/=(u32_t)p;*/
           ulqx=rr;
         } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
           goto next;
         }
       }
@@ -1478,14 +1438,9 @@ ulqx=az;
         }
       rels[i][4]+=mpqs_nAdiv;
     } else {
-#ifdef MPQS_ZEIT
- zeitB(12);
-#endif
       goto next;
     }
-#ifdef MPQS_ZEIT
-zeitB(12);
-#endif
+
     if (ulqx==1) {
       llp=(i64_t *)(mpqs_relations[mpqs_nrels]);
       *llp=axb;
@@ -1662,9 +1617,6 @@ static int mpqs_matrix()
   long i, j, l, t, k32;
   u32_t mask;
  
-#ifdef MPQS_ZEIT
-zeita(8);
-#endif
 /* solve matrix */
   while (mpqs_gauss_k<mpqs_gauss_n) {
 #ifdef PRUNING
@@ -1687,9 +1639,6 @@ zeita(8);
     mpqs_gauss_k++;
   }
   if (mpqs_gauss_k>=mpqs_gauss_n) {
-#ifdef MPQS_ZEIT
-zeitb(8);
-#endif
     return 0;
   }
   for (i=0; i<mpqs_gauss_n; i++) mpqs_sol[i]=0;
@@ -1700,9 +1649,6 @@ zeitb(8);
         mpqs_sol[i]=1;
   mpqs_sol[mpqs_gauss_k]=1;
   mpqs_gauss_k++;
-#ifdef MPQS_ZEIT
-zeitb(8);
-#endif
   return 1;
 }
 
@@ -1854,24 +1800,17 @@ static long mpqs_factor0(mpz_t N, long max_bits, mpz_t **factors, long retry)
   long nbits, i, err;
   int ev;
 
-#ifdef MPQS_ZEIT
-zeita(9);
-#endif
 #ifdef MPQS_STAT
   stat_mpqs_nsieves=0; stat_mpqs_nsurvivors=0; stat_mpqs_ntrials=0; stat_mpqs_ndiv=0;
 #endif
   if (!mpqs_isinit) mpqs_init();
-#ifdef MPQS_ZEIT
-zeitb(9);
-#endif
+
   nbits=mpz_sizeinbase(N,2);
   if (nbits>96) {
     fprintf(stderr,"warning: mpqs called with >96 Bit\n");
     return -2;
   }
-#ifdef MPQS_ZEIT
-zeita(1);
-#endif
+
   mpz_set(mpqs_N,N);
   mpqs_choose_multiplier();
   mpqs_choose_parameter(retry);
@@ -1880,71 +1819,37 @@ zeita(1);
     printf("%ld ",err);
     fprintf(stderr,"warning: mpqs: error in self-initialization ");
     mpz_out_str(stderr,10,N); printf("\n");
-#ifdef MPQS_ZEIT
-zeitb(1);
-#endif
     return -3;
   }
-#ifdef MPQS_ZEIT
-zeitb(1);
-#endif
+
   while (1) { /*printf("%ld,%ld; ",stat_mpqs_nsieves,mpqs_nrels);*/
-#ifdef MPQS_ZEIT
-zeita(2);
-#endif
     if (!mpqs_next_pol()) {
       if (retry) {
         fprintf(stderr,"warning: not enough polynomials in mpqs with ");
         mpz_out_str(stderr,10,N); fprintf(stderr,"\n");
       }
-#ifdef MPQS_ZEIT
-zeitb(2);
-#endif
       return -4;
     }
-#ifdef MPQS_ZEIT
-zeitb(2); zeita(3);
-#endif
     mpqs_sieve();
 #ifdef MPQS_STAT
 stat_mpqs_nsieves++;
-#endif
-#ifdef MPQS_ZEIT
-zeitb(3);
-zeita(4);
 #endif
     ev=mpqs_evaluate();
 #ifdef MPQS_STAT
 stat_mpqs_nsurvivors+=ev; /*printf("%d %Ld  ",ev,mpqs_C); */
 #endif
-#ifdef MPQS_ZEIT
-zeitb(4);
-#endif
-    if (ev) {
-#ifdef MPQS_ZEIT
-zeita(5);
-#endif
+
+if (ev) {
     { int mpqs_dec_res; /* CJM, 11/30/04. */
 
       if ((mpqs_dec_res = mpqs_decompose()))
         return -1;
     }
-#ifdef MPQS_ZEIT
-zeitb(5);
-#endif
+
       if (mpqs_nsurvivors && (mpqs_excess>MPQS_MIN_EXCESS)) {
-#ifdef MPQS_ZEIT
-zeita(8);
-#endif
+
         mpqs_matrix_init();
-#ifdef MPQS_ZEIT
-zeitb(8);
-zeita(10);
-#endif
         if (mpqs_final()) {
-#ifdef MPQS_ZEIT
-zeitb(10);
-#endif
 #ifdef MPQS_STAT
 printf("Stat: %lu %lu %lu %lu %lu %lu %lu \n",stat_mpqs_nsieves,stat_mpqs_nsurvivors,stat_mpqs_ntrials,stat_mpqs_ndiv,mpqs_nrels,mpqs_nprels,mpqs_ncrels);
 #endif
@@ -1953,9 +1858,6 @@ printf("Stat: %lu %lu %lu %lu %lu %lu %lu \n",stat_mpqs_nsieves,stat_mpqs_nsurvi
           *factors=mpqs_factors;
           return mpqs_nfactors;
         }
-#ifdef MPQS_ZEIT
-zeitb(10);
-#endif
       }
     }
     if (mpqs_nrels>MPQS_MAX_NRELS-MPQS_MIN_RELBUFFER) {
