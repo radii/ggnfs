@@ -191,8 +191,9 @@ static long mpqs_jacobi(u16_t a, u16_t b) /* always gcd(a,b)=1 and 0<a<b */
   return e;
 }
 
-
-static long mpqs_jacobi0(u16_t a, u16_t b) /* always gcd(a,b)=1 and 0<a<b */
+/* always gcd(a,b)=1 and 0<a<b */
+/*
+static long mpqs_jacobi0(u16_t a, u16_t b) 
 {
   long e, l, m, n;
 
@@ -221,7 +222,7 @@ static long mpqs_jacobi0(u16_t a, u16_t b) /* always gcd(a,b)=1 and 0<a<b */
   e=e&1; e=1-2*e;
   return e;
 }
-
+*/
 
 static u16_t mpqs_invert(u16_t a, u16_t p)
 {
@@ -266,7 +267,9 @@ static u16_t mpqs_powmod(u16_t a, u16_t e, u16_t p)
     if (!ex) return (u16_t)res;
     aa*=aa; aa%=(u32_t)p;
   }
-  return 0; /* never reached */
+
+  assert(0); /* never reached */
+  return 0;
 }
 
 
@@ -329,36 +332,6 @@ static u16_t mpqs_sqrt(u16_t a, u16_t p, u16_t help)
   return (u16_t)r;
 }
 
-#if 0
-static u32_t mpqs_inv(u16_t i)
-{
-  u32_t v1=0, v2=1, q, a, p;
-
-  p=0; a=i;
-  while (a>1) {
-    p-=a; v1+=v2;
-    if (p>=a) {
-      p-=a; v1+=v2;
-      if (p>=a) {
-        q=p/a; p%=a;
-        v1+=q*v2;
-      }
-    }
-    if (p<=1) { v2=-v1; break; }
-    a-=p; v2+=v1;
-    if (a>=p) {
-      a-=p; v2+=v1;
-      if (a>=p) {
-        q=a/p; a%=p;
-        v2+=q*v1;
-      }
-    }
-  }
-/*  if (v2*i!=1) complain("inv: %lu %lu %lu %lu %d ",v1,v2,a,p,i);
-  if (v2*i!=1) Schlendrian("mpqs_inv");*/
-  return v2;
-}
-#else
 static u32_t mpqs_inv(u16_t a)
 {
   u32_t inv, h;
@@ -371,7 +344,6 @@ static u32_t mpqs_inv(u16_t a)
   if (inv*(u32_t)a!=1ULL) Schlendrian("mpqs_inv");
   return inv;
 }
-#endif
 
 /* ---------------------------------------------------------- */
 
@@ -446,6 +418,10 @@ static u16_t mpqs_multiplier_cand[4][MPQS_MULT_NCAND]=
  { 7, 15, 23, 31, 39, 47, 55, 71 },
 };
 
+/*
+ *  STEN: Choose multiplifier k such that kN = 1 mod 8. We also want to choose 
+ *        such k, that gives us a factor base rich with small primes.
+ */
 static void mpqs_choose_multiplier()
 {
   u16_t Nmod8, mult, p, mm;
@@ -469,6 +445,8 @@ static void mpqs_choose_multiplier()
 	  mm = (u16_t)(exp(dn*log(2)));                 /* mm = e^(100.9 - log2(N)) */
   
   /*
+   * STEN:
+   *
    * We now pick correct multiplifier candidate row and for all multiplifier
    * candidates in it do the following:
    *
@@ -476,7 +454,8 @@ static void mpqs_choose_multiplier()
    *   value[j] array. We'll pick up later the multiplifier with the lowest 
    *   characteristic of all.
    *
-   * The characteristic calculation process is done as following:
+   * The characteristic calculation process is done as following 
+   * (some variation of the Knuth-Schroeppel function ??):
    * 
    *   For the first MPQS_MULT_NCAND primes p_i we calculate the
    *   jacobian function of the (k * N) mod p_i, where k - is our candidate
@@ -542,100 +521,100 @@ printf("%ld ",mpqs_multiplier);
   mpqs_kN_64 = mpz_get_ull(mpqs_kN);
 }
 
-
+/*
 static void mpqs_choose_multiplier0()
 {
   u32_t Nmod8;
 
-  Nmod8=mpz_mod_ui(mpqs_dummy,mpqs_N,8);
-  mpqs_multiplier=Nmod8;  /* vorläufig !!!!!!!!!!!!!!!!!!!!!! */
+  Nmod8 = mpz_mod_ui(mpqs_dummy,mpqs_N,8);
+  mpqs_multiplier = Nmod8;
   mpz_mul_ui(mpqs_kN,mpqs_N,mpqs_multiplier);
   mpz_fdiv_q_2exp(mpqs_dummy,mpqs_kN,32);
-  mpqs_kN_64=(u64_t)mpz_get_ui(mpqs_dummy); mpqs_kN_64<<=32;
-  mpqs_kN_64+=(u64_t)mpz_get_ui(mpqs_kN);
+  mpqs_kN_64 = (u64_t)mpz_get_ui(mpqs_dummy); 
+  mpqs_kN_64 <<= 32;
+  mpqs_kN_64 += (u64_t)mpz_get_ui(mpqs_kN);
 }
-
-#if 1
-static u16_t mpqs_param[12][6]={
- { 40, 3, 2, 4, 11, 16},
- { 50, 3, 2, 4, 12, 16},
- { 60, 3, 3, 4, 15, 16},
- { 70, 3, 3, 5, 14, 16},
- { 80, 3, 3, 5, 14, 16},
- { 90, 3, 3, 5, 15, 20},
- { 110, 3, 3, 5, 17, 20},
- { 120, 3, 3, 5, 19, 20},
- { 140, 3, 4, 6, 18, 30},
- { 140, 3, 4, 6, 20, 40},
- { 160, 3, 4, 6, 21, 50},
- { 180, 4, 4, 6, 23, 70}
-};
-/* vor retry-implementierung
-static u16_t mpqs_param[12][6]={
- { 40, 3, 2, 4, 11, 16},
- { 50, 3, 2, 4, 12, 16},
- { 60, 3, 3, 4, 15, 16},
- { 70, 3, 3, 5, 14, 16},
- { 80, 3, 3, 5, 14, 16},
- { 90, 3, 3, 5, 15, 20},
- { 110, 3, 3, 5, 17, 20},
- { 120, 3, 3, 5, 19, 20},
- { 140, 3, 4, 6, 18, 30},
- { 140, 3, 4, 6, 20, 40},
- { 160, 3, 4, 6, 21, 50},
- { 180, 4, 4, 6, 23, 70}
-};
 */
-#else
-static u16_t mpqs_param[10][6]={
- { 60, 3, 3, 4, 13, 16},
+
+/*
+ * STEN: Array of MPQS parameters. The correct row is choosed depending 
+ *       on mpqs_complexity value.
+ *
+ *       {nFB, sievebegin, nAdiv, nAdiv_total, accept, td_begin}
+ *
+ */
+static u16_t mpqs_param[12][6]={
+ { 40, 3, 2, 4, 11, 16},    
+ { 50, 3, 2, 4, 12, 16},
+ { 60, 3, 3, 4, 15, 16},
  { 70, 3, 3, 5, 14, 16},
  { 80, 3, 3, 5, 14, 16},
  { 90, 3, 3, 5, 15, 20},
- { 110, 3, 3, 5, 16, 20},
- { 120, 3, 3, 5, 18, 20},
- { 130, 3, 4, 6, 18, 30},
- { 130, 3, 4, 6, 19, 30},
- { 150, 3, 4, 6, 20, 50},
+ { 110, 3, 3, 5, 17, 20},
+ { 120, 3, 3, 5, 19, 20},
+ { 140, 3, 4, 6, 18, 30},
+ { 140, 3, 4, 6, 20, 40},
+ { 160, 3, 4, 6, 21, 50},
  { 180, 4, 4, 6, 23, 70}
 };
-#endif
 
+/* 
+ * STEN: Choose mpqs parameters.
+ *
+ * input:  mpqs_complexity
+ * output: mpqs_nFB, mpqs_sievebegin, mpqs_nAdiv, mpqs_nAdiv_total, 
+ *         mpqs_accept, mpqs_td_begin, 
+ *         and 
+ *         mpqs_sievelen, mpqs_disp, mpqs_nfactors, mpqs_nrels,
+ *         mpqs_nlp, mpqs_nprels, mpqs_ncrels.
+ *
+ */
 static void mpqs_choose_parameter(long retry)
 {
   long n, r;
 
-#if 1
-  n=(long)(mpqs_complexity+0.5);
-  if (n>96) n=96;
-  if (n<51) n=51;
-  n=(n+3)/4;
-  n-=13;  /* 0<=n<=11 */
-#else
-  n=(long)(mpqs_complexity+0.5);
-  if (n>96) n=96;
-  if (n<59) n=59;
-  n=(n+3)/4;
-  n-=15;  /* 0<=n<=9 */
-#endif
+  n = (long)(mpqs_complexity + 0.5); /* n = round(mpqs_complexity) */
+  if (n > 96) n = 96;
+  if (n < 51) n = 51;
+  n = (n + 3) / 4;
+  n -= 13;                           /* 0 <= n <= 11 */
 
-  r=retry;
-  if ((r) && (n<9)) { n++; r--; }
-  mpqs_nFB=mpqs_param[n][0];
-  if (r) mpqs_nFB+=r*mpqs_nFB/4;
-  if (mpqs_nFB>=MPQS_MAX_FBSIZE) mpqs_nFB=MPQS_MAX_FBSIZE-1;
-  mpqs_sievebegin=mpqs_param[n][1];
-  if (r) mpqs_sievebegin+=r;
-  mpqs_nAdiv=mpqs_param[n][2];
-  mpqs_nAdiv_total=mpqs_param[n][3];
-  mpqs_accept=mpqs_param[n][4];
-  mpqs_td_begin=mpqs_param[n][5];
+  r = retry;
+  
+  if ((r) && (n < 9)) 
+  { 
+	  n++; 
+	  r--; 
+  }
 
-  mpqs_sievelen=MPQS_SIEVELEN;  /* !!! */
-  mpqs_disp=mpqs_sievelen/2;
-  mpqs_nfactors=0; mpqs_nrels=0; mpqs_nlp=0; mpqs_nprels=0; mpqs_ncrels=0;
-  for (n=0; n<128; n++) mpqs_hash_table[n][0]=0;
-  for (n=0; n<256; n++) mpqs_rel_hash_table[n][0]=0;
+  mpqs_nFB = mpqs_param[n][0];
+
+  if (r) 
+	  mpqs_nFB += r * mpqs_nFB / 4;
+
+  if (mpqs_nFB >= MPQS_MAX_FBSIZE) 
+	  mpqs_nFB = MPQS_MAX_FBSIZE - 1;
+
+  mpqs_sievebegin = mpqs_param[n][1];
+  
+  if (r) 
+	  mpqs_sievebegin += r;
+
+  mpqs_nAdiv       = mpqs_param[n][2];
+  mpqs_nAdiv_total = mpqs_param[n][3];
+  mpqs_accept      = mpqs_param[n][4];
+  mpqs_td_begin    = mpqs_param[n][5];
+
+  mpqs_sievelen    = MPQS_SIEVELEN;  /* !!! */
+  mpqs_disp        = mpqs_sievelen / 2;
+  mpqs_nfactors    = 0; 
+  mpqs_nrels       = 0; 
+  mpqs_nlp         = 0; 
+  mpqs_nprels      = 0; 
+  mpqs_ncrels      = 0;
+
+  memset(mpqs_hash_table, 0, sizeof(mpqs_hash_table));
+  memset(mpqs_rel_hash_table, 0, sizeof(mpqs_rel_hash_table));
 }
 
 
