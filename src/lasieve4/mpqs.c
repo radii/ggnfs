@@ -1534,7 +1534,7 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 
 #ifdef _DEBUG
 	if (qx % pr) 
-		complain("mpqs_decompose: 'qx \% pr'!");
+		complain("mpqs_decompose: 'qx %% pr'!");
 	
 	if (qx/pr != az) 
 		complain("mpqs_decompose: 'qx/pr != az'!");
