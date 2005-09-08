@@ -2476,7 +2476,7 @@ int lasieve()
 #if 0
 #define KLEINJUNG_MPQS
 #endif
-						  int nf;
+						  long nf;
                           mpz_t *mf;
 #ifdef KLEINJUNG_MPQS
 
