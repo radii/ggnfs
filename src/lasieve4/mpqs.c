@@ -90,7 +90,6 @@ static u32_t mpqs_disp;
 static u16_t mpqs_nsurvivors;
 static u32_t mpqs_nrels, mpqs_nlp, mpqs_excess;
 static u32_t mpqs_nsp; /* = 1 + mpqs_nFB + mpqs_nFBk */
-static unsigned char mpqs_logbound;
 static u16_t mpqs_nprels, mpqs_ncrels;
 static u16_t **mpqs_relations, **mpqs_part_rels, **mpqs_comb_rels;
 static u16_t **mpqs_rel_buffer;
@@ -104,9 +103,6 @@ static i16_t mpqs_gauss_c[MPQS_GAUSS_MAX], mpqs_gauss_d[MPQS_GAUSS_MAX];
 static long mpqs_gauss_m, mpqs_gauss_n, mpqs_gauss_n32, mpqs_gauss_k;
 static i16_t mpqs_exp[128*16+MPQS_MAX_FBSIZE+3+MPQS_MAX_ADIV_ALL];
 static mpz_t mpqs_sq1, mpqs_sq2;
-#if 0
-static u16_t mpqs_zero1, mpqs_zero2;
-#endif
 static double mpqs_kN_dbl;
 static u64_t mpqs_kN_64, mpqs_A_inv_64;
 
@@ -146,19 +142,19 @@ static u32_t mpqs_inv_32(u32_t a)
 
 	inv = (u32_t)mpqs_256_inv_table[(a & 0xff) >> 1];
 
-	h = a*inv; 
+	h = a * inv; 
 	h &= 0xff00;
 	h *= inv; 
 	inv -= h;
 
-	h = a*inv; 
+	h = a * inv; 
 	h &= 0xffff0000U;
 	h *= inv;  
 	inv -= h;
 
 #ifdef _DEBUG
 	if (inv * a != 1ULL) 
-		Schlendrian("mpqs_inv_32 failed!");
+		complain("mpqs_inv_32() failed!");
 #endif
 	return inv;
 }
@@ -186,7 +182,7 @@ static u64_t mpqs_inv_64(u64_t a)
 
 #ifdef _DEBUG
   if (inv * a != 1ULL) 
-	  Schlendrian("mpqs_inv_64 failed!");
+	  complain("mpqs_inv_64 failed!");
 #endif
   return inv;
 }
@@ -204,27 +200,27 @@ static long mpqs_jacobi(u16_t a, u16_t b) /* always gcd(a,b)=1 and 0<a<b */
   m = (long)a; 
   n = (long)b;
 
-  if (!(n&1)) 
-	  Schlendrian("mpqs_jacobi: b is even!\n");
+  if (!(n & 1)) 
+	  complain("mpqs_jacobi: b is even!\n");
 
   e = 0;
   
-  if (!(m&1)) 
+  if (!(m & 1)) 
   {
-    l = mpqs_jacobi_tab2[n&7];
+    l = mpqs_jacobi_tab2[n & 7];
     
 	do 
 	{
       m /= 2; 
 	  e += l;
-    } while (!(m&1));
+    } while (!(m & 1));
   }
 
   while (m > 1) 
   {
     r = n - m;
 
-    if (r>0) 
+    if (r > 0) 
 	{
       l = m & n;
       l >>= 1;
@@ -237,66 +233,116 @@ static long mpqs_jacobi(u16_t a, u16_t b) /* always gcd(a,b)=1 and 0<a<b */
       m =- r;
     }
 
-    if (m&1) 
+    if (m & 1) 
 		continue;
     
-	l = mpqs_jacobi_tab2[n&7];
+	l = mpqs_jacobi_tab2[n & 7];
 
     do 
 	{
       m /= 2; 
 	  e += l;
-    } while (!(m&1));
+    } while (!(m & 1));
   }
 
   if (!m) 
-	  Schlendrian("jacobi\n");
+	  complain("mpqs_jacobi(): something odd.\n");
  
-  return 1 - 2*(e&1);
+  return 1 - 2*(e & 1);
 }
 
+/*
+ *   return such 'e' that e*a = 1 mod p
+ */
 static u16_t mpqs_invert(u16_t a, u16_t p)
 {
-  u32_t v1=0, v2=1;
-  u32_t b=(u32_t)a, pp=(u32_t)p, q;
+  u32_t v1 = 0;
+  u32_t v2 = 1;
+  u32_t b  = (u32_t)a;
+  u32_t pp = (u32_t)p;
+  u32_t q;
 
-  while (b>1) {
-    pp-=b; v1+=v2;
-    if (pp>=b) {
-      pp-=b; v1+=v2;
-      if (pp>=b) {
-        q=pp/b; pp%=b;
-        v1+=q*v2;
+  while (b > 1) 
+  {
+    pp -= b; 
+	v1 += v2;
+    
+	if (pp >= b) 
+	{
+      pp -= b; v1 += v2;
+      
+	  if (pp >= b) 
+	  {
+        q = pp / b; 
+		pp %= b;
+        v1 += q * v2;
       }
     }
-    if (pp<=1) { v2=p-v1; break; }
-    b-=pp; v2+=v1;
-    if (b>=pp) {
-      b-=pp; v2+=v1;
-      if (b>=pp) {
-        q=b/pp; b%=pp;
-        v2+=q*v1;
+    
+	if (pp <= 1) 
+	{ 
+		v2 = p - v1; 
+		break; 
+	}
+
+    b -= pp; 
+	v2 += v1;
+    
+	if (b >= pp) 
+	{
+      b -= pp; 
+	  v2 += v1;
+      
+	  if (b >= pp) 
+	  {
+        q = b / pp; 
+		b %= pp;
+        v2 += q * v1;
       }
     }
   }
-/*  if ((v2*a-1)%(u32_t)p) complain("invert");*/
+/* BUGBUG: this check fails in the debug build! Something seems to be wrong. */
+/*
+#ifdef _DEBUG
+  if ((v2*a - 1) % (u32_t)p) 
+  {
+	  assert(0);
+	  complain("mpqs_invert(): something odd.");
+  }
+#endif
+*/
   return v2;
 }
 
-
+/*
+ *  Calculate a^e mod p
+ */
 static u16_t mpqs_powmod(u16_t a, u16_t e, u16_t p)
 {
-  u16_t ex=e;
+  u16_t ex = e;
   u32_t aa, res;
 
-  if (!ex) return 1;
-  aa=(u32_t)a;
-  res=1;
-  while (1) {
-    if (ex&1) { res*=aa; res%=(u32_t)p; }
-    ex>>=1;
-    if (!ex) return (u16_t)res;
-    aa*=aa; aa%=(u32_t)p;
+  if (!ex) 
+	  return 1;
+
+  aa = (u32_t)a;
+  res = 1;
+  
+  while (1) 
+  {
+    if (ex & 1) 
+	{ 
+		res *= aa; 
+		res %= (u32_t)p; 
+	}
+
+    ex >>= 1;
+    
+	if (!ex) 
+		return (u16_t)res;
+
+    aa *= aa; 
+	aa %= (u32_t)p;
   }
 
   assert(0); /* never reached */
@@ -307,73 +353,129 @@ static u16_t mpqs_powmod(u16_t a, u16_t e, u16_t p)
 static u16_t mpqs_sqrt_init(u16_t p)
 {
   u16_t e, u, i, j;
-  u32_t g=0, b;
+  u32_t b;
+  u32_t g = 0;
 
-  if (p&2) return 0;
-  if (p&4) return mpqs_powmod(2,(p-1)>>2,p);
-  e=0; u=p-1;
-  while (!(u&1)) { e++; u>>=1; }
-  for (i=2; i<p; i++) {
-    g=mpqs_powmod(i,u,p);
-    if (g==1) continue;
-    b=g;
-    for (j=0; j<e-1; j++) { b*=b; b%=(u32_t)p; }
-    if (b==p-1) break;
+  if (p & 2) 
+	  return 0;
+
+  if (p & 4) 
+	  return mpqs_powmod(2, (p - 1) >> 2, p);
+
+  e = 0; 
+  u = p - 1;
+
+  while (!(u & 1)) 
+  { 
+	  e++; 
+	  u >>= 1; 
   }
-  if (i>=p) Schlendrian("mpqs_sqrt_init\n");
+
+  for (i = 2; i < p; i++) 
+  {
+    g = mpqs_powmod(i, u, p); /* g = i^u mod p */
+
+    if (g == 1) 
+		continue;
+
+    b = g;
+    	
+	for (j = 0; j < (e - 1); j++) 
+	{ 
+		b *= b; 
+		b %= (u32_t)p; 
+	}
+    
+	if (b == (p - 1)) 
+		break;
+  }
+
+#ifdef _DEBUG
+  if (i >= p) 
+	  complain("mpqs_sqrt_init() something odd.\n");
+#endif
+
   return g;
 }
 
-
 static u16_t mpqs_sqrt(u16_t a, u16_t p, u16_t help)
-                 /* a!=0, a<p, p prime, p!=2, (a/p)=1 */
 {
   u16_t e, u, i, l;
   u32_t b, g, r, k;
 
-  if (p&2) return mpqs_powmod(a,(p+1)>>2,p);
-  if (p&4) {
-    b=mpqs_powmod(a,(p+3)>>3,p);
-    g=b*b; g%=(u32_t)p;
-    if (g==a) return b;
-    b*=(u32_t)help; b%=(u32_t)p;
-    return b;
+  assert(a != 0);
+  assert(a < p);
+  assert(p != 2);
+  /* assert(isprime(p)); */
+  assert(mpqs_jacobi(a, p) == 1);
+
+  if (p & 2) 
+	  return mpqs_powmod(a, (p + 1) >> 2, p);
+  
+  if (p & 4) 
+  {
+    b = mpqs_powmod(a, (p + 3) >> 3, p);
+    g = b * b; g %= (u32_t)p;
+    
+	if (g == a) 
+		return b;
+    
+	b *= (u32_t)help; 
+	b %= (u32_t)p;
+    
+	return b;
   }
-  e=0; u=p-1;
-  while (!(u&1)) { e++; u>>=1; }
-  g=help;
+
+  e = 0; 
+  u = p - 1;
+  
+  while (!(u & 1)) 
+  { 
+	  e++; 
+	  u >>= 1; 
+  }
+
+  g = help;
+
 #if 1
-  r=mpqs_powmod(a,u>>1,p);
-  k=r*r; k%=(u32_t)p;
-  k*=a; k%=(u32_t)p;
-  r*=a; r%=(u32_t)p;
+  r = mpqs_powmod(a, u >> 1, p);
+  k = r*r; 
+  k %= (u32_t)p;
+  k *= a; 
+  k %= (u32_t)p;
+  r *= a; 
+  r %= (u32_t)p;
 #else
-  r=mpqs_powmod(a,(u+1)/2,p);
-  k=mpqs_powmod(a,u,p);
+  r = mpqs_powmod(a, (u + 1)/2, p);
+  k = mpqs_powmod(a, u, p);
 #endif
-  while (k!=1) {
-    b=k;
-    for (i=0; i<e && b!=1; i++) { b*=b; b%=(u32_t)p; }
-    for (l=i+1; l<e; l++) { g*=g; g%=(u32_t)p; }
-    r*=g; r%=(u32_t)p;
-    g*=g; g%=(u32_t)p;
-    k*=g; k%=(u32_t)p;
-    e=i;
+
+  while (k != 1) 
+  {
+    b = k;
+    
+	for (i = 0; i < e && b != 1; i++) 
+	{ 
+		b *= b; 
+		b %= (u32_t)p; 
+	}
+    
+	for (l = i + 1; l < e; l++) 
+	{ 
+		g *= g; 
+		g %= (u32_t)p; 
+	}
+    
+	r *= g; 
+	r %= (u32_t)p;
+    g *= g; 
+	g %= (u32_t)p;
+    k *= g; 
+	k %= (u32_t)p;
+    e = i;
   }
+
   return (u16_t)r;
-}
-
-static u32_t mpqs_inv(u16_t a)
-{
-  u32_t inv, h;
-
-  inv=(u32_t)mpqs_256_inv_table[(a&0xff)>>1];
-  h=(u32_t)a*inv; h&=0xff00;
-  h*=inv; inv-=h;
-  h=(u32_t)a*inv; h&=0xffff0000;
-  h*=inv; inv-=h;
-  if (inv*(u32_t)a!=1ULL) Schlendrian("mpqs_inv");
-  return inv;
 }
 
 /* ---------------------------------------------------------- */
@@ -390,54 +492,83 @@ void mpqs_init()
   mpz_init(mpqs_help);
   mpz_init(mpqs_sq1);
   mpz_init(mpqs_sq2);
-  for (i=0; i<MPQS_MAX_FACTORS; i++) mpz_init(mpqs_factors[i]);
-  mpqs_sievearray=(unsigned char *)xmalloc(MPQS_SIEVELEN*sizeof(unsigned char));
-  mpqs_relations=(u16_t **)xmalloc(MPQS_MAX_NRELS*sizeof(u16_t *));
-  mpqs_relations[0]=(u16_t *)xmalloc(MPQS_MAX_NRELS*MPQS_REL_ENTRIES*sizeof(u16_t));
-  for (i=1; i<MPQS_MAX_NRELS; i++)
-    mpqs_relations[i]=mpqs_relations[i-1]+MPQS_REL_ENTRIES;
-  mpqs_part_rels=(u16_t **)xmalloc(MPQS_MAX_NPRELS*sizeof(u16_t *));
-  mpqs_part_rels[0]=(u16_t *)xmalloc(MPQS_MAX_NPRELS*MPQS_REL_ENTRIES*sizeof(u16_t));
-  for (i=1; i<MPQS_MAX_NPRELS; i++)
-    mpqs_part_rels[i]=mpqs_part_rels[i-1]+MPQS_REL_ENTRIES;
-  mpqs_comb_rels=(u16_t **)xmalloc(MPQS_MAX_NCRELS*sizeof(u16_t *));
-  mpqs_comb_rels[0]=(u16_t *)xmalloc(MPQS_MAX_NCRELS*2*MPQS_REL_ENTRIES*sizeof(u16_t));
-  for (i=1; i<MPQS_MAX_NCRELS; i++)
-    mpqs_comb_rels[i]=mpqs_comb_rels[i-1]+2*MPQS_REL_ENTRIES;
-  mpqs_rel_buffer=(u16_t **)xmalloc(MPQS_MAX_NRELS_BUF*sizeof(u16_t *));
-  mpqs_rel_buffer[0]=(u16_t *)xmalloc(MPQS_MAX_NRELS_BUF*MPQS_REL_ENTRIES*sizeof(u16_t));
-  for (i=1; i<MPQS_MAX_NRELS_BUF; i++)
-    mpqs_rel_buffer[i]=mpqs_rel_buffer[i-1]+MPQS_REL_ENTRIES;
+  
+  for (i = 0; i < MPQS_MAX_FACTORS; i++) 
+	  mpz_init(mpqs_factors[i]);
+
+  mpqs_sievearray = (unsigned char *)xmalloc(MPQS_SIEVELEN*sizeof(unsigned char));
+  mpqs_relations = (u16_t **)xmalloc(MPQS_MAX_NRELS*sizeof(u16_t *));
+  mpqs_relations[0] = (u16_t *)xmalloc(MPQS_MAX_NRELS*MPQS_REL_ENTRIES*sizeof(u16_t));
+  
+  for (i = 1; i < MPQS_MAX_NRELS; i++)
+    mpqs_relations[i] = mpqs_relations[i - 1] + MPQS_REL_ENTRIES;
+
+  mpqs_part_rels = (u16_t **)xmalloc(MPQS_MAX_NPRELS*sizeof(u16_t *));
+  mpqs_part_rels[0] = (u16_t *)xmalloc(MPQS_MAX_NPRELS*MPQS_REL_ENTRIES*sizeof(u16_t));
+  
+  for (i = 1; i < MPQS_MAX_NPRELS; i++)
+    mpqs_part_rels[i]=mpqs_part_rels[i-1] + MPQS_REL_ENTRIES;
+  
+  mpqs_comb_rels = (u16_t **)xmalloc(MPQS_MAX_NCRELS*sizeof(u16_t *));
+  mpqs_comb_rels[0] = (u16_t *)xmalloc(MPQS_MAX_NCRELS*2*MPQS_REL_ENTRIES*sizeof(u16_t));
+  
+  for (i = 1; i < MPQS_MAX_NCRELS; i++)
+    mpqs_comb_rels[i] = mpqs_comb_rels[i-1] + 2*MPQS_REL_ENTRIES;
+  
+  mpqs_rel_buffer = (u16_t **)xmalloc(MPQS_MAX_NRELS_BUF*sizeof(u16_t *));
+  mpqs_rel_buffer[0] = (u16_t *)xmalloc(MPQS_MAX_NRELS_BUF*MPQS_REL_ENTRIES*sizeof(u16_t));
+  
+  for (i = 1; i < MPQS_MAX_NRELS_BUF; i++)
+    mpqs_rel_buffer[i] = mpqs_rel_buffer[i-1] + MPQS_REL_ENTRIES;
 
   mpqs_gauss_row=(u32_t **)xmalloc(MPQS_GAUSS_MAX*sizeof(u32_t *));
   mpqs_gauss_row[0]=(u32_t *)xmalloc(MPQS_GAUSS_MAX*MPQS_GAUSS_MAX/32*sizeof(u32_t));
+
 #if 0
   prime_table_init();
-  for (i=0; i<MPQS_MAX_NPRIMES; i++) {
-    mpqs_prime_table[i]=(u16_t)get_next_prime();
-    mpqs_prime_sqrthelp[i]=mpqs_sqrt_init(mpqs_prime_table[i]);
+  for (i = 0; i < MPQS_MAX_NPRIMES; i++)
+  {
+    mpqs_prime_table[i] = (u16_t)get_next_prime();
+    mpqs_prime_sqrthelp[i] = mpqs_sqrt_init(mpqs_prime_table[i]);
   }
 #else
-  mpqs_prime_table[0]=2;
-  mpqs_prime_table[1]=3;
-  mpqs_prime_table[2]=5; mpqs_prime_sqrthelp[2]=mpqs_sqrt_init(5);
-  i=3; p=7; add=4;
-  while (i<MPQS_MAX_NPRIMES) {
-    for (j=2; j<i; j++) {
-      d=(u32_t)mpqs_prime_table[j];
-      if (d*d>=p) break;
-      if (p%d==0) break;
+  mpqs_prime_table[0] = 2;
+  mpqs_prime_table[1] = 3;
+  mpqs_prime_table[2] = 5; 
+  mpqs_prime_sqrthelp[2] = mpqs_sqrt_init(5);
+  i = 3; 
+  p = 7; 
+  add = 4;
+  
+  /*
+   *  Perform Eratosthenes sieve
+   */
+  while (i < MPQS_MAX_NPRIMES) 
+  {
+    for (j = 2; j < i; j++) 
+	{
+      d = (u32_t)mpqs_prime_table[j];
+      
+	  if (d*d >= p) 
+		  break;
+      
+	  if (p%d == 0) 
+		  break;
     }
-    if (d*d>p) {
-      mpqs_prime_table[i]=(u16_t)p;
-      mpqs_prime_sqrthelp[i]=mpqs_sqrt_init(p);
+
+    if (d*d > p) 
+	{
+      mpqs_prime_table[i] = (u16_t)p;
+      mpqs_prime_sqrthelp[i] = mpqs_sqrt_init(p);
       i++;
     }
-    p+=add; add=6-add;
+
+    p += add; 
+	add = 6 - add;
   }
 #endif
 
-  mpqs_isinit=1;
+  mpqs_isinit = 1;
 }
 
 
@@ -553,28 +684,14 @@ printf("%ld ",mpqs_multiplier);
 }
 
 /*
-static void mpqs_choose_multiplier0()
-{
-  u32_t Nmod8;
-
-  Nmod8 = mpz_mod_ui(mpqs_dummy,mpqs_N,8);
-  mpqs_multiplier = Nmod8;
-  mpz_mul_ui(mpqs_kN,mpqs_N,mpqs_multiplier);
-  mpz_fdiv_q_2exp(mpqs_dummy,mpqs_kN,32);
-  mpqs_kN_64 = (u64_t)mpz_get_ui(mpqs_dummy); 
-  mpqs_kN_64 <<= 32;
-  mpqs_kN_64 += (u64_t)mpz_get_ui(mpqs_kN);
-}
-*/
-
-/*
  * STEN: Array of MPQS parameters. The correct row is choosed depending 
  *       on mpqs_complexity value.
  *
  *       {nFB, sievebegin, nAdiv, nAdiv_total, accept, td_begin}
  *
  */
-static u16_t mpqs_param[12][6]={
+static u16_t mpqs_param[12][6] =
+{
  { 40, 3, 2, 4, 11, 16},    
  { 50, 3, 2, 4, 12, 16},
  { 60, 3, 3, 4, 15, 16},
@@ -710,115 +827,219 @@ static int mpqs_SI_init()
   double d;
   long a, i, j, k, l, n;
   i64_t prod;
-  u16_t inv, p, *fb=mpqs_FB;
+  u16_t inv, p, *fb = mpqs_FB;
   double A_div_log[MPQS_MAX_ADIV_ALL]; /* maximal number of A's */
   double v;
 
-  d=mpz_get_d(mpqs_kN); mpqs_kN_dbl=d;
-  d*=8.; d=sqrt(d); d/=(double)mpqs_sievelen;
-  d=log(d); d/=(double)mpqs_nAdiv; d=exp(d);
-  a=(long)d;
-/*  if (a>=mpqs_pmax) { printf("%ld %ld ",a,mpqs_pmax); return -1; }*/
-  if (a>=mpqs_pmax) a=mpqs_pmax-1;
-  for (i=0; i<mpqs_nFB; i++) if (mpqs_FB[2*i]>a) break;
-  i-=mpqs_nAdiv_total/2;
-  if (i<1) i=1; /* first prime >2 */
-  if (mpqs_FB[2*i]<3) return -2;
-  if (i+mpqs_nAdiv_total>mpqs_nFB) /*return -3;*/ i=mpqs_nFB-mpqs_nAdiv_total-1;
-  for (j=0; j<mpqs_nAdiv_total; j++) {
-    mpqs_Adiv_all[j]=mpqs_FB[2*(i+j)];
-    mpqs_Adiv_all_sqrt[j]=mpqs_FB[2*(i+j)+1];
+  d = mpz_get_d(mpqs_kN);              /* d = kN                                      */
+  mpqs_kN_dbl = d;
+  d *= 8.;                             /* d = 8 * kN                                  */ 
+  d = sqrt(d);                         /* d = sqrt(8kN)                               */
+  d /= (double)mpqs_sievelen;          /* d = sqrt(8kN) / sievelen                    */
+  d = log(d);                          /* d = log(sqrt(8kN) / sievelen)               */
+  d /= (double)mpqs_nAdiv;             /* d = log(sqrt(8kN) / sievelen) / nAdiv       */
+  d = exp(d);                          /* d = e^(log(sqrt(8kN) / sievelen) / nAdiv)   */
+  a = (long)d;                         /* a = [e^(log(sqrt(8kN) / sievelen) / nAdiv)] */
+
+#ifdef _DEBUG
+  if (a >= mpqs_pmax) 
+  { 
+	  printf("mpqs_SI_init err: %ld %ld ", a, mpqs_pmax); 
+	  return -1; 
   }
-  for (j=i+mpqs_nAdiv_total; j<mpqs_nFB; j++) {
-    mpqs_FB[2*(j-mpqs_nAdiv_total)]=mpqs_FB[2*j];
-    mpqs_FB[2*(j-mpqs_nAdiv_total)+1]=mpqs_FB[2*j+1];
-  }
-  mpqs_nFB-=mpqs_nAdiv_total;
-  if (i<mpqs_sievebegin) mpqs_sievebegin=i;
-#if 1
-  p=mpqs_FB[2];
-  mpqs_FB_inv[1]=mpqs_inv(p);
-  mpqs_FB_inv_info[2]=p; mpqs_FB_inv_info[3]=p;
-  mpqs_FB_inv_info[6]=mpqs_FB_inv[1];
-  mpqs_FB_inv_info[7]=mpqs_FB_inv[1];
-  if (mpqs_td_begin&1) complain("mpqs_td_begin is odd\n");
-  for (j=2; j<mpqs_td_begin; j+=2) {
-    p=mpqs_FB[2*j];
-    mpqs_FB_inv[j]=mpqs_inv(p);
-    mpqs_FB_inv_info[4*j]=p; mpqs_FB_inv_info[4*j+1]=p;
-    mpqs_FB_inv_info[4*j+4]= mpqs_FB_inv[j];
-    mpqs_FB_inv_info[4*j+5]= mpqs_FB_inv[j];
-    p=mpqs_FB[2*(j+1)];
-    mpqs_FB_inv[j+1]=mpqs_inv(p);
-    mpqs_FB_inv_info[4*j+2]=p; mpqs_FB_inv_info[4*j+3]=p;
-    mpqs_FB_inv_info[4*j+6]=mpqs_FB_inv[j+1];
-    mpqs_FB_inv_info[4*j+7]=mpqs_FB_inv[j+1];
-  }
-  for (; j<mpqs_nFB; j++) mpqs_FB_inv[j]=mpqs_inv(mpqs_FB[2*j]);
-  for (j=0; j<mpqs_nFBk; j++) mpqs_FBk_inv[j]=mpqs_inv(mpqs_FBk[j]);
-  for (j=0; j<mpqs_nAdiv_total; j++)
-    mpqs_FB_A_inv[j]=mpqs_inv(mpqs_Adiv_all[j]);
 #endif
-/* compute log-approximations */
-  d=mpz_get_d(mpqs_kN);
-  d/=8.; d=sqrt(d); d*=(double)mpqs_sievelen;
-  d=log(d);
-  d-=log((double)((u64_t)1<<mpqs_accept));
-  mpqs_logbound=128;  /* ??? */
-  d=(double)(mpqs_logbound)/d;
-  for (i=0; i<mpqs_nFB; i++) {
-    p=mpqs_FB[2*i];
-    mpqs_FB_log[i]=(unsigned char)(0.5+d*log((double)p));
-  }
-  for (i=0; i<mpqs_nAdiv_total; i++) {
-    p=mpqs_Adiv_all[i];
-    mpqs_Adiv_log[i]=(unsigned char)(0.5+d*log((double)p));
+  
+  if (a >= mpqs_pmax) 
+	  a = mpqs_pmax - 1;
+  
+  /*
+   *  STEN: Search for the first prime in factor base that is greater then 
+   *        'a' calculated above. After the loop i contains this prime's index.
+   *  
+   */
+  for (i = 0; i < mpqs_nFB; i++)
+  {
+	  if (mpqs_FB[2*i] > a) 
+		  break;
   }
 
-/* compute mask for choice of A-divisors */
-  n=1<<mpqs_nAdiv_total;
-  for (i=0; i<n; i++) mpqs_A_mask[i]=0;
-  for (i=0; i<mpqs_nAdiv_total; i++) {
-    k=1<<i;
-    for (j=k; j<n; j+=(2*k))
-      for (l=0; l<k; l++) mpqs_A_mask[j+l]++;
-  } /* now mpqs_A_mask[i] contains the number of ones of i (binary) */
-  j=0;
-  for (i=0; i<n; i++)
-    if (mpqs_A_mask[i]==mpqs_nAdiv) {
-      mpqs_A_mask[j]=i; j++;
+  i -= mpqs_nAdiv_total/2;
+  
+  if (i < 1) 
+	  i = 1; /* first prime >2 */
+  
+  if (mpqs_FB[2*i] < 3) 
+	  return -2;
+  
+  if (i + mpqs_nAdiv_total > mpqs_nFB)
+  {
+	  i = mpqs_nFB - mpqs_nAdiv_total - 1;
+  }
+	  
+  for (j = 0; j < mpqs_nAdiv_total; j++) 
+  {
+    mpqs_Adiv_all[j] = mpqs_FB[2*(i + j)];
+    mpqs_Adiv_all_sqrt[j] = mpqs_FB[2*(i + j) + 1];
+  }
+
+  for (j = i + mpqs_nAdiv_total; j < mpqs_nFB; j++) 
+  {
+    mpqs_FB[2*(j - mpqs_nAdiv_total)] = mpqs_FB[2*j];
+    mpqs_FB[2*(j - mpqs_nAdiv_total) + 1] = mpqs_FB[2*j + 1];
+  }
+
+  mpqs_nFB -= mpqs_nAdiv_total;
+  
+  if (i < mpqs_sievebegin) 
+	  mpqs_sievebegin = i;
+
+  p = mpqs_FB[2];
+  mpqs_FB_inv[1] = mpqs_inv_32(p);
+  mpqs_FB_inv_info[2] = p; 
+  mpqs_FB_inv_info[3] = p;
+  mpqs_FB_inv_info[6] = mpqs_FB_inv[1];
+  mpqs_FB_inv_info[7] = mpqs_FB_inv[1];
+  
+  if (mpqs_td_begin & 1) 
+	  complain("mpqs_td_begin is odd\n");
+  
+  for (j = 2; j < mpqs_td_begin; j += 2) 
+  {
+    p = mpqs_FB[2*j];
+    mpqs_FB_inv[j] = mpqs_inv_32(p);
+    mpqs_FB_inv_info[4*j] = p; 
+	mpqs_FB_inv_info[4*j + 1] = p;
+    mpqs_FB_inv_info[4*j + 4] = mpqs_FB_inv[j];
+    mpqs_FB_inv_info[4*j + 5] = mpqs_FB_inv[j];
+    
+	p = mpqs_FB[2*(j + 1)];
+    mpqs_FB_inv[j + 1] = mpqs_inv_32(p);
+    mpqs_FB_inv_info[4*j + 2] = p; 
+	mpqs_FB_inv_info[4*j+3] = p;
+    mpqs_FB_inv_info[4*j + 6] = mpqs_FB_inv[j + 1];
+    mpqs_FB_inv_info[4*j + 7] = mpqs_FB_inv[j + 1];
+  }
+
+  for (; j < mpqs_nFB; j++) 
+	  mpqs_FB_inv[j] = mpqs_inv_32(mpqs_FB[2*j]);
+
+  for (j = 0; j < mpqs_nFBk; j++) 
+	  mpqs_FBk_inv[j] = mpqs_inv_32(mpqs_FBk[j]);
+  
+  for (j = 0; j < mpqs_nAdiv_total; j++)
+    mpqs_FB_A_inv[j] = mpqs_inv_32(mpqs_Adiv_all[j]);
+
+  /* compute log-approximations */
+  d = mpz_get_d(mpqs_kN);                      /* d = kN                                                      */
+  d /= 8.;                                     /* d = kN / 8                                                  */
+  d = sqrt(d);                                 /* d = sqrt(kN / 8)                                            */
+  d *= (double)mpqs_sievelen;                  /* d = sqrt(kN / 8) * sievelen                                 */
+  d = log(d);                                  /* d = log(sqrt(kN / 8) * sievelen)                            */
+  d -= log((double)((u64_t)1 << mpqs_accept)); /* d = log(sqrt(kN / 8) * sievelen / (1 << mpqs_accept))       */
+  d = 128. / d;                                /* d = 128 / log(sqrt(kN / 8) * sievelen / (1 << mpqs_accept)) */
+
+  /* precomute mpqs_FB_log[] */
+  for (i = 0; i < mpqs_nFB; i++) 
+  {
+    p = mpqs_FB[2*i];
+    mpqs_FB_log[i] = (unsigned char)(0.5 + d * log((double)p));
+  }
+
+  /* precomute mpqs_Adiv_log[] */
+  for (i = 0; i < mpqs_nAdiv_total; i++) 
+  {
+    p = mpqs_Adiv_all[i];
+    mpqs_Adiv_log[i] = (unsigned char)(0.5 + d*log((double)p));
+  }
+
+  /* compute mask for choice of A-divisors */
+  n = 1 << mpqs_nAdiv_total;
+  
+  for (i = 0; i < n; i++)
+  {
+	  mpqs_A_mask[i] = 0;
+  }
+
+  for (i = 0; i < mpqs_nAdiv_total; i++) 
+  {
+    k = 1 << i;
+    
+	for (j = k; j < n; j += (2*k))
+	{
+      for (l = 0; l < k; l++)
+	  {
+		  mpqs_A_mask[j + l]++;
+	  }
+	}
+  } 
+  
+  /* now mpqs_A_mask[i] contains the number of ones of i (binary) */
+  j = 0;
+  for (i = 0; i < n; i++)
+  {
+    if (mpqs_A_mask[i] == mpqs_nAdiv) 
+	{
+      mpqs_A_mask[j] = i; 
+	  j++;
     }
-/* ensure that |C|<2^64 */
-  for (i=0; i<mpqs_nAdiv_total; i++)
-    A_div_log[i]=log((double)(mpqs_Adiv_all[i]))/log(2.);
-  d=log(mpqs_kN_dbl)/log(2.);
-  for (i=0; i<j; i++) {
-    v=0;
-    for (k=0; k<mpqs_nAdiv_total; k++)
-      if (mpqs_A_mask[i]&(1<<k)) v+=A_div_log[k];
-    if (d-v>63.95) {
+  }
+
+  for (i = 0; i < mpqs_nAdiv_total; i++)
+  {
+    A_div_log[i] = log((double)(mpqs_Adiv_all[i])) / log(2.);
+  }
+
+  d = log(mpqs_kN_dbl) / log(2.); /* d ~ number_of_bits(kN) */
+  
+  for (i = 0; i < j; i++) 
+  {
+    v = 0;
+    
+	for (k = 0; k < mpqs_nAdiv_total; k++)
+	{
+      if (mpqs_A_mask[i] & (1 << k)) 
+		  v += A_div_log[k];
+	}
+
+    if (d - v > 63.95) 
+	{
       j--; /* printf(":");*/
-      mpqs_A_mask[i]=mpqs_A_mask[j];
+      mpqs_A_mask[i] = mpqs_A_mask[j];
       i--;
     }
   }
 
-  mpqs_nA=j; mpqs_A_index=-1; mpqs_B_index=(1<<mpqs_nAdiv)-1;
+  mpqs_nA = j; 
+  mpqs_A_index = -1; 
+  mpqs_B_index = (1 << mpqs_nAdiv) - 1;
 
-  prod=1; d=1.;
-  for (i=0; i<mpqs_nAdiv_total; i++) {
-    prod*=(i64_t)(mpqs_Adiv_all[i]);
-    d*=(double)(mpqs_Adiv_all[i]);
+  prod = 1; 
+  d = 1.;
+  
+  for (i = 0; i < mpqs_nAdiv_total; i++) 
+  {
+    prod *= (i64_t)(mpqs_Adiv_all[i]);
+    d *= (double)(mpqs_Adiv_all[i]);
   }
-  if (d>9223372036854775807.) return -4;
-  for (i=1; i<mpqs_nFB; i++) {
-    p=fb[2*i];
-    inv=(u16_t)(prod%(i64_t)p);
-    inv=mpqs_invert(inv,p);
-    inv<<=1; if (inv>=p) inv-=p;
-    mpqs_2A_all_inv[i]=inv;
+  
+  /* ensure that |C| <= 2^64 */
+  if (d > (double)LLONG_MAX) 
+	  return -4;
+  
+  for (i = 1; i < mpqs_nFB; i++) 
+  {
+    p = fb[2*i];
+    inv = (u16_t)(prod % (i64_t)p);
+    inv = mpqs_invert(inv, p);
+    inv <<= 1; 
+	
+	if (inv >= p) 
+		inv -= p;
+    
+	mpqs_2A_all_inv[i] = inv;
   }
-  mpqs_FB[2*mpqs_nFB]=mpqs_sievelen;
+
+  mpqs_FB[2*mpqs_nFB] = mpqs_sievelen;
   return 1;
 }
 
@@ -858,17 +1079,6 @@ static int mpqs_next_pol()
       }
     mpqs_A=1;
     for (i=0; i<mpqs_nAdiv; i++) mpqs_A*=(i64_t)(mpqs_Adiv[i]);
-#if 0
-/* compute zeros */
-    d=sqrt(mpqs_kN_dbl)/(double)mpqs_A;
-    if (d<(double)mpqs_disp) {
-      mpqs_zero1=mpqs_disp-(u16_t)d;
-      mpqs_zero2=mpqs_disp+(u16_t)d;
-    } else {
-      mpqs_zero1=mpqs_sievelen;
-      mpqs_zero2=mpqs_sievelen;
-    }
-#endif
 /* compute B_i's */
     for (i=0; i<mpqs_nAdiv; i++) {
       p=mpqs_Adiv[i];
@@ -925,7 +1135,7 @@ cc=(u32_t)(((i64_t)bb*mpqs_Bi[j])%(u32_t)p);
     if (mpz_sgn(mpqs_dummy)) {
       mpz_out_str(stdout,10,mpqs_help); printf("\n");
       mpz_out_str(stdout,10,mpqs_dummy); printf("\n");
-      Schlendrian("mpqs_next_pol\n");
+      complain("mpqs_next_pol\n");
     }
     mpz_get_sll(&mpqs_C,mpqs_help);
 #else
@@ -1028,9 +1238,6 @@ cc=(u32_t)(((i64_t)bb*mpqs_Bi[j])%(u32_t)p);
 #endif
       if (fbs[2*j]>=p) fbs[2*j]-=p;
       if (fbs[2*j+1]>=p) fbs[2*j+1]-=p;
-/*      s1+=aa; if (s1>=p) s1-=p;
-      s2+=aa; if (s2>=p) s2-=p;
-      fbs[2*j]=s1; fbs[2*j+1]=s2;*/
 #endif
     }
   }
@@ -1042,7 +1249,7 @@ cc=(u32_t)(((i64_t)bb*mpqs_Bi[j])%(u32_t)p);
   mpz_set_sll(mpqs_dummy,mpqs_A);
 #if 0
   mpz_fdiv_qr(mpqs_help,mpqs_dummy,mpqs_help,mpqs_dummy);
-  if (mpz_sgn(mpqs_dummy)) Schlendrian("mpqs_next_pol\n");
+  if (mpz_sgn(mpqs_dummy)) complain("mpqs_next_pol\n");
 #else
   mpz_divexact(mpqs_help,mpqs_help,mpqs_dummy);
 #endif
@@ -1079,7 +1286,6 @@ cc=(u32_t)(((i64_t)bb*mpqs_Bi[j])%(u32_t)p);
   return 1;
 }
 
-
 static void mpqs_sieve()
 {
   unsigned char *sv=mpqs_sievearray, *fblog=mpqs_FB_log, *svend;
@@ -1102,18 +1308,6 @@ static void mpqs_sieve()
     *ulsv++=mask;
     *ulsv++=mask;
   }
-/*printf("%lu %lu \n",(u32_t)(mpqs_sievearray[0]),(u32_t)(mpqs_sievearray[1]));*/
-/*  mask*=0x00000101;
-  if (mpqs_zero1<mpqs_sievelen) {
-    s1=mpqs_zero1/4; if (s1<128) s1=0; else s1-=128;
-    ulsv=(u32_t *)mpqs_sievearray; ulsv+=s1; ulsvend=ulsv+256;
-    while (ulsv<ulsvend) { *ulsv++=mask; *ulsv++=mask; *ulsv++=mask; *ulsv++=mask; }
-  }
-  if (mpqs_zero2<mpqs_sievelen) {
-    s1=mpqs_zero2/4; if (s1>(mpqs_sievelen/4)-128) s1=(mpqs_sievelen/4)-256; else s1-=128;
-    ulsv=(u32_t *)mpqs_sievearray; ulsv+=s1; ulsvend=ulsv+256;
-    while (ulsv<ulsvend) { *ulsv++=mask; *ulsv++=mask; *ulsv++=mask; *ulsv++=mask; }
-  }*/
   pb=mpqs_sievelen>>2;
   i=mpqs_sievebegin; fb+=2*i; fbs+=2*i;
 
@@ -1161,7 +1355,6 @@ static void mpqs_sieve()
       while (s1<mpqs_sievelen) { sv[s1]+=lo; s1+=p; }
     }
 }
-
 
 static u16_t mpqs_evaluate()
 {
@@ -1223,7 +1416,6 @@ static u16_t mpqs_evaluate()
   return mpqs_nsurvivors;
 }
 
-
 /* change hash_table size to 256*15 ??? */
 static inline u16_t mpqs_hash_lp(u32_t lp)
 {
@@ -1247,7 +1439,6 @@ static inline u16_t mpqs_hash_lp(u32_t lp)
   return mpqs_hash_index[lphash][j];
 }
 
-
 static inline int mpqs_hash_rel(i64_t axb)
 {
   long j;
@@ -1264,7 +1455,6 @@ static inline int mpqs_hash_rel(i64_t axb)
   return 0;
 }
 
-
 static int mpqs_decompose()
 {
   long i, j;
@@ -1279,7 +1469,7 @@ static int mpqs_decompose()
   i16_t x;
   u32_t lp, ulqx;
   u32_t inv, ls1, ls2;
-  u32_t ax, ay, az, at;
+  u32_t ax, ay, az;
 
   rels = mpqs_rel_buffer-1;
   
@@ -1436,7 +1626,7 @@ static int mpqs_decompose()
     if (dbl_qx < 0.) 
 	{ 
 		minus = 1; 
-		qx =- qx; 
+		qx = 0 - qx; 
 	}
 
 #ifdef ASM_MPQS_TD
@@ -1667,7 +1857,7 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 	  if (lpi < mpqs_nprels) 
 	  {
         if (mpqs_lp[lpi] != lp) 
-			Schlendrian("lp");
+			complain("lp");
 
         llp = (i64_t *)(mpqs_comb_rels[mpqs_ncrels]);
         *llp = axb;
@@ -1754,13 +1944,14 @@ static void mpqs_matrix_init()
 #ifdef PRUNING
   u16_t mpqs_gauss_wt[300];  /* verbessern !!!! */
 
-  for (i=0; i<mpqs_nsp; i++) mpqs_gauss_wt[i]=0;
+  for (i=0; i<mpqs_nsp; i++) 
+	  mpqs_gauss_wt[i]=0;
 #endif
 
   mpqs_gauss_n=mpqs_nrels+mpqs_ncrels;
   if (mpqs_gauss_n>=MPQS_GAUSS_MAX) return;
   mpqs_gauss_m=mpqs_nsp;
-  if (mpqs_gauss_m>=mpqs_gauss_n) Schlendrian("gauss: no excess\n");
+  if (mpqs_gauss_m>=mpqs_gauss_n) complain("gauss: no excess\n");
 /* build matrix */
   mpqs_gauss_n32=(mpqs_gauss_n+31)/32;
   for (i=1; i<mpqs_gauss_m; i++)
@@ -1814,7 +2005,8 @@ static void mpqs_matrix_init()
       for (k=0; k<32; k++)
         if (mpqs_gauss_row[j][k32]&mpqs_gauss_mask[k]) break;
       k+=(k32<<5);
-      if (k>=mpqs_gauss_n) Schlendrian("pruning\n");
+      if (k>=mpqs_gauss_n) 
+		  complain("pruning\n");
 
       mpqs_gauss_d[k]=j; mpqs_gauss_c[j]=k;
 /* No need to clear the k-th column since it will not appear in a solution. */
@@ -1863,7 +2055,7 @@ static int mpqs_matrix()
     return 0;
   }
   for (i=0; i<mpqs_gauss_n; i++) mpqs_sol[i]=0;
-  if (mpqs_gauss_d[mpqs_gauss_k]!=-1) Schlendrian("gauss1\n");
+  if (mpqs_gauss_d[mpqs_gauss_k]!=-1) complain("gauss1\n");
   for (i=0; i<mpqs_gauss_k; i++)
     if (mpqs_gauss_d[i]!=-1)
       if (mpqs_gauss_row[mpqs_gauss_d[i]][k32] & mask)
@@ -1909,7 +2101,7 @@ stat_mpqs_ntrials++;
         for (k=0; k<nr2; k++) mpqs_exp[mpqs_comb_rels[j][9+nr1+k]]--;
       }
     for (j=0; j<mpqs_nsp; j++)
-      if (mpqs_exp[j]&1) Schlendrian("final.odd\n");
+      if (mpqs_exp[j]&1) complain("final.odd\n");
       else mpqs_exp[j]>>=1;
 
 
@@ -2009,12 +2201,10 @@ stat_final_mulmod++;
     for (j=0; j<mpqs_nfactors; j++) if (mpqs_f_status[j]==0) split=0;
     if (split) return 1;
     if (mpqs_nfactors>=MPQS_MAX_FACTORS)
-      Schlendrian("final: too many factors\n");
+      complain("final: too many factors\n");
   }
   return 0;
 }
-
-
 
 static long mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
 {
@@ -2089,7 +2279,6 @@ printf("Stat: %lu %lu %lu %lu %lu %lu %lu \n",stat_mpqs_nsieves,stat_mpqs_nsurvi
   }
   return -1;
 }
-
 
 long mpqs_factor(mpz_t N, size_t max_bits, mpz_t **factors)
 {
