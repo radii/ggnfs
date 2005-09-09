@@ -100,7 +100,7 @@ static u32_t mpqs_lp[128*15];
 static u32_t **mpqs_gauss_row;
 static unsigned char mpqs_sol[MPQS_GAUSS_MAX];
 static i16_t mpqs_gauss_c[MPQS_GAUSS_MAX], mpqs_gauss_d[MPQS_GAUSS_MAX];
-static long mpqs_gauss_m, mpqs_gauss_n, mpqs_gauss_n32, mpqs_gauss_k;
+static u32_t mpqs_gauss_m, mpqs_gauss_n, mpqs_gauss_n32, mpqs_gauss_k;
 static i16_t mpqs_exp[128*16+MPQS_MAX_FBSIZE+3+MPQS_MAX_ADIV_ALL];
 static mpz_t mpqs_sq1, mpqs_sq2;
 static double mpqs_kN_dbl;
@@ -814,13 +814,13 @@ static void mpqs_generate_FB()
     }
   }
 
+  assert(2*(nfb - 1) < sizeof(mpqs_FB)/sizeof(mpqs_FB[0]));
   mpqs_nFB       = nfb;
   mpqs_nFBk_1    = mpqs_nFBk + 1;
   mpqs_nsp       = 1 + mpqs_nFB + mpqs_nFBk;
   mpqs_pmax      = mpqs_FB[2*(nfb - 1)];
   mpqs_FB[2*nfb] = mpqs_sievelen;
 }
-
 
 static int mpqs_SI_init()
 {
@@ -891,7 +891,7 @@ static int mpqs_SI_init()
   mpqs_nFB -= mpqs_nAdiv_total;
   
   if (i < mpqs_sievebegin) 
-	  mpqs_sievebegin = i;
+	  mpqs_sievebegin = (u16_t)i;
 
   p = mpqs_FB[2];
   mpqs_FB_inv[1] = mpqs_inv_32(p);
@@ -979,7 +979,8 @@ static int mpqs_SI_init()
   {
     if (mpqs_A_mask[i] == mpqs_nAdiv) 
 	{
-      mpqs_A_mask[j] = i; 
+	  assert(i <= UCHAR_MAX);
+      mpqs_A_mask[j] = (unsigned char)i; 
 	  j++;
     }
   }
@@ -1009,7 +1010,8 @@ static int mpqs_SI_init()
     }
   }
 
-  mpqs_nA = j; 
+  assert(j <= USHRT_MAX);
+  mpqs_nA = (u16_t)j; 
   mpqs_A_index = -1; 
   mpqs_B_index = (1 << mpqs_nAdiv) - 1;
 
@@ -1052,237 +1054,314 @@ static int mpqs_next_pol()
   i16_t sh;
   u32_t bb, cc, c1, c2;
   unsigned char mask;
-#if 0
-/* Used for calculation of zeros. */
-  double d;
-#endif
   u16_t aa;
+
 #define GCC_BUG
 #ifndef GCC_BUG
   u32_t al, *ul;
 #endif
 
   mpqs_B_index++;
-  if (mpqs_B_index>=1<<(mpqs_nAdiv-1)) {
+
+  if (mpqs_B_index >= (1 << (mpqs_nAdiv-1))) 
+  {
     mpqs_A_index++;
-    if (mpqs_A_index>=mpqs_nA) return 0;
-    mask=mpqs_A_mask[mpqs_A_index];
-    for (i=0; i<mpqs_nAdiv_total; i++)
-      if (mask & (1<<i)) mpqs_Adiv_active[i]=1;
-      else mpqs_Adiv_active[i]=0;
-    j=0;
-    for (i=0; i<mpqs_nAdiv_total; i++)
-      if (mpqs_Adiv_active[i]) {
-        mpqs_Adiv[j]=mpqs_Adiv_all[i];
-        mpqs_Adiv_sqrt[j]=mpqs_Adiv_all_sqrt[i];
+    
+	if (mpqs_A_index >= mpqs_nA) 
+		return 0;
+
+    mask = mpqs_A_mask[mpqs_A_index];
+    
+	for (i = 0; i < mpqs_nAdiv_total; i++)
+	{
+      if (mask & (1 << i)) 
+		  mpqs_Adiv_active[i] = 1;
+      else 
+		  mpqs_Adiv_active[i] = 0;
+	}
+
+    j = 0;
+    
+	for (i=0; i<mpqs_nAdiv_total; i++)
+	{
+      if (mpqs_Adiv_active[i]) 
+	  {
+        mpqs_Adiv[j] = mpqs_Adiv_all[i];
+        mpqs_Adiv_sqrt[j] = mpqs_Adiv_all_sqrt[i];
         j++;
       }
-    mpqs_A=1;
-    for (i=0; i<mpqs_nAdiv; i++) mpqs_A*=(i64_t)(mpqs_Adiv[i]);
-/* compute B_i's */
-    for (i=0; i<mpqs_nAdiv; i++) {
-      p=mpqs_Adiv[i];
-      bi=mpqs_A/(i64_t)(p);
-      inv=(u16_t)(bi%(i64_t)p); /* bi>0 */
-      inv=mpqs_invert(inv,p);
-      bi*=(i64_t)inv; bi%=mpqs_A;
-      bi*=(i64_t)mpqs_Adiv_sqrt[i]; bi%=mpqs_A;
-      mpqs_Bi[i]=bi;
+	}
+
+    mpqs_A = 1;
+    
+	for (i = 0; i < mpqs_nAdiv; i++) 
+		mpqs_A *= (i64_t)(mpqs_Adiv[i]);
+
+	/* compute B_i's */
+    for (i = 0; i < mpqs_nAdiv; i++) 
+	{
+      p   = mpqs_Adiv[i];
+      bi  = mpqs_A / (i64_t)(p);
+      inv = (u16_t)(bi % (i64_t)p); /* bi>0 */
+      inv = mpqs_invert(inv,p);
+      bi *= (i64_t)inv; 
+	  bi %= mpqs_A;
+      bi *= (i64_t)mpqs_Adiv_sqrt[i]; 
+	  bi %= mpqs_A;
+      mpqs_Bi[i] = bi;
     }
-    mpqs_B=0;
-    for (i=0; i<mpqs_nAdiv; i++) mpqs_B+=mpqs_Bi[i];
-    prod_other=1;
-    for (i=0; i<mpqs_nAdiv_total; i++)
-      if (!mpqs_Adiv_active[i]) prod_other*=(i64_t)(mpqs_Adiv_all[i]);
-    for (i=1; i<mpqs_nFB; i++) {
-      p=fb[2*i];
+
+    mpqs_B = 0;
+    
+	for (i = 0; i < mpqs_nAdiv; i++)
+	{
+		mpqs_B += mpqs_Bi[i];
+	}
+
+    prod_other = 1;
+    
+	for (i=0; i<mpqs_nAdiv_total; i++)
+	{
+      if (!mpqs_Adiv_active[i]) 
+		  prod_other *= (i64_t)(mpqs_Adiv_all[i]);
+	}
+
+    for (i = 1; i < mpqs_nFB; i++) 
+	{
+      p = fb[2*i];
 	  assert(p);
-#if 0
-      bb=(u32_t)(prod_other%(i64_t)p);
-      bb*=(u32_t)(mpqs_2A_all_inv[i]); bb%=(u32_t)p;
-#else
-bb=(u32_t)(((i64_t)(mpqs_2A_all_inv[i])*prod_other)%(u32_t)p);
-#endif
-      for (j=0; j<mpqs_nAdiv; j++) {
-#if 1
-        cc=bb*(u32_t)(mpqs_Bi[j]%(i64_t)p); cc%=(u32_t)p;
-#else
-cc=(u32_t)(((i64_t)bb*mpqs_Bi[j])%(u32_t)p);
-#endif
-        mpqs_SI_add[j][i]=(u16_t)cc;
+
+	  bb = (u32_t)(((i64_t)(mpqs_2A_all_inv[i]) * prod_other) % (u32_t)p);
+
+      for (j = 0; j < mpqs_nAdiv; j++) 
+	  {
+        cc = bb * (u32_t)(mpqs_Bi[j] % (i64_t)p); 
+		cc %= (u32_t)p;
+        mpqs_SI_add[j][i] = (u16_t)cc;
       }
-      if (bb&1) bb+=p;
-      bb>>=1;  /* now bb=1/A mod p */
-      cc=p-(u32_t)(mpqs_B%(i64_t)p);  /* mpqs_B>0 */
-      c1=cc+fb[2*i+1]; c1*=bb; c1+=mpqs_disp; c1%=(u32_t)p;
-      c2=cc+(p-fb[2*i+1]); c2*=bb; c2+=mpqs_disp; c2%=(u32_t)p;
-#if 0
-      if (c1<c2) { fbs[2*i]=(u16_t)c1; fbs[2*i+1]=(u16_t)c2; }
-      else { fbs[2*i]=(u16_t)c2; fbs[2*i+1]=(u16_t)c1; }
-#else
-      fbs[2*i]=(u16_t)c1; fbs[2*i+1]=(u16_t)c2;
-#endif
+
+      if (bb & 1) 
+		  bb += p;
+      
+	  bb >>= 1;  /* now bb=1/A mod p */
+      cc = p - (u32_t)(mpqs_B % (i64_t)p);  /* mpqs_B > 0 */
+      c1 = cc + fb[2*i+1]; 
+	  c1 *= bb; 
+	  c1 += mpqs_disp; 
+	  c1 %= (u32_t)p;
+      c2 = cc + (p - fb[2*i+1]); 
+	  c2 *= bb; 
+	  c2 += mpqs_disp;
+	  c2 %= (u32_t)p;
+      
+	  fbs[2*i]  =(u16_t)c1; 
+	  fbs[2*i+1]=(u16_t)c2;
     }
 
-    mpqs_2B=2*mpqs_B;
-    mpqs_A_inv_64=mpqs_inv_64(mpqs_A);
-#if 0
-    mpz_set_sll(mpqs_help,mpqs_B);
-    mpz_mul(mpqs_help,mpqs_help,mpqs_help);
-    mpz_sub(mpqs_help,mpqs_help,mpqs_kN);
-    mpz_set_sll(mpqs_dummy,mpqs_A);
-    mpz_fdiv_qr(mpqs_help,mpqs_dummy,mpqs_help,mpqs_dummy);
-    if (mpz_sgn(mpqs_dummy)) {
-      mpz_out_str(stdout,10,mpqs_help); printf("\n");
-      mpz_out_str(stdout,10,mpqs_dummy); printf("\n");
-      complain("mpqs_next_pol\n");
-    }
-    mpz_get_sll(&mpqs_C,mpqs_help);
-#else
-    mpqs_C=mpqs_B*mpqs_B;
-    mpqs_C-=mpqs_kN_64;
-    mpqs_C*=mpqs_A_inv_64;
-#endif
+    mpqs_2B = 2 * mpqs_B;
+    mpqs_A_inv_64 = mpqs_inv_64(mpqs_A);
+    mpqs_C = (mpqs_B * mpqs_B - mpqs_kN_64) * mpqs_A_inv_64; /* C = (B^2 - kN) / A */
 
+	// ***
     for (i=0; i<mpqs_nAdiv_total; i++)
-      if (!mpqs_Adiv_active[i]) {
-        p=mpqs_Adiv_all[i];
-        bb=(u32_t)(mpqs_A%(i64_t)p);
-        bb=mpqs_invert(bb,p);
-        bb<<=1; if (bb>=p) bb-=p;
-        for (j=0; j<mpqs_nAdiv; j++) {
-          cc=bb*(u32_t)(mpqs_Bi[j]%(i64_t)p); cc%=(u32_t)p;
-          mpqs_Adiv_SI_add[j][i]=(u16_t)cc;
+	{
+      if (!mpqs_Adiv_active[i]) 
+	  {
+        p = mpqs_Adiv_all[i];
+        bb = (u32_t)(mpqs_A % (i64_t)p);
+        bb = mpqs_invert(bb, p);
+        bb <<= 1;
+
+		if (bb >= p) 
+			bb -= p;
+
+        for (j = 0; j < mpqs_nAdiv; j++) 
+		{
+          cc = bb * (u32_t)(mpqs_Bi[j] % (i64_t)p); 
+		  cc %= (u32_t)p;
+          mpqs_Adiv_SI_add[j][i] = (u16_t)cc;
         }
-        if (bb&1) bb+=p;
-        bb>>=1;  /* now bb=1/A mod p */
-        cc=p-(u32_t)(mpqs_B%(i64_t)p);  /* mpqs_B>0 */
-        c1=cc+mpqs_Adiv_all_sqrt[i]; c1*=bb; c1+=mpqs_disp; c1%=(u32_t)p;
-        c2=cc+(p-mpqs_Adiv_all_sqrt[i]); c2*=bb; c2+=mpqs_disp; c2%=(u32_t)p;
-        if (c1<c2) {
-          mpqs_Adiv_start1[i]=(u16_t)c1; mpqs_Adiv_start2[i]=(u16_t)c2;
-        } else {
-          mpqs_Adiv_start1[i]=(u16_t)c2; mpqs_Adiv_start2[i]=(u16_t)c1;
+
+        if (bb & 1) 
+			bb += p;
+
+        bb >>= 1;  /* now bb = 1/A mod p */
+
+        cc = p - (u32_t)(mpqs_B % (i64_t)p);  /* mpqs_B > 0 */
+        c1 = cc + mpqs_Adiv_all_sqrt[i]; 
+		c1 *= bb; 
+		c1 += mpqs_disp; 
+		c1 %= (u32_t)p;
+        c2 = cc + (p - mpqs_Adiv_all_sqrt[i]); 
+		c2 *= bb; 
+		c2 += mpqs_disp; 
+		c2 %= (u32_t)p;
+        
+		if (c1 < c2) 
+		{
+          mpqs_Adiv_start1[i] = (u16_t)c1; 
+		  mpqs_Adiv_start2[i] = (u16_t)c2;
+        } 
+		else 
+		{
+          mpqs_Adiv_start1[i] = (u16_t)c2; 
+		  mpqs_Adiv_start2[i] = (u16_t)c1;
         }
-      } else {
-        p=mpqs_Adiv_all[i];
-        sh=(i16_t)(mpqs_2B%(i64_t)p);
-        if (sh>0) bb=(u32_t)sh; else bb=(u32_t)((i16_t)p+sh);
-        bb=(u32_t)mpqs_invert(bb,p);
-        sh=(i16_t)(mpqs_C%(i64_t)p); sh=-sh;
-        if (sh>0) cc=(u32_t)sh; else cc=(u32_t)((i16_t)p+sh);
-        cc*=bb; cc%=(u32_t)p;  /* now p|2*B*cc+C */
-        cc+=mpqs_disp; cc%=(u32_t)p;
-        mpqs_Adiv_start1[i]=(u16_t)cc;
+      } 
+	  else 
+	  {
+        p = mpqs_Adiv_all[i];
+        sh = (i16_t)(mpqs_2B % (i64_t)p);
+        
+		if (sh > 0) 
+			bb = (u32_t)sh; 
+		else 
+			bb = (u32_t)((i16_t)p + sh);
+        
+		bb = (u32_t)mpqs_invert(bb, p);
+        sh = (i16_t)(mpqs_C % (i64_t)p); 
+		sh = -sh;
+        
+		if (sh > 0) 
+			cc = (u32_t)sh; 
+		else 
+			cc = (u32_t)((i16_t)p + sh);
+
+        cc *= bb; 
+		cc %= (u32_t)p;  /* now p|(2B * cc + C) */
+        cc += mpqs_disp; 
+		cc %= (u32_t)p;
+        mpqs_Adiv_start1[i] = (u16_t)cc;
       }
-    mpqs_B_index=0;
+	}
+
+    mpqs_B_index = 0;
     return 1;
   }
-  ind=mpqs_B_index; i=0;
-  while (1) {
-    if (ind&1) break;
-    i++; ind>>=1;
+
+  ind = mpqs_B_index; 
+  i = 0;
+  
+  while (1) 
+  {
+    if (ind & 1) 
+		break;
+    
+	i++; 
+	ind >>= 1;
   }
-  ind>>=1; ind++;
-  add=2*mpqs_Bi[i];
-  if (ind&1) {
-    mpqs_B-=add;
-    for (j=1; j<mpqs_nFB; j++) {
-#if 0
-      p=fb[2*j]; s1=fbs[2*j]; s2=fbs[2*j+1];
-      s1+=mpqs_SI_add[i][j]; if (s1>=p) s1-=p;
-      s2+=mpqs_SI_add[i][j]; if (s2>=p) s2-=p;
-/*      if (s1<s2) {*/
-        fbs[2*j]=s1; fbs[2*j+1]=s2;
-/*      } else {
-        fbs[2*j]=s2; fbs[2*j+1]=s1;
-      }*/
-#else
-      p=fb[2*j]; /*s1=fbs[2*j]; s2=fbs[2*j+1];*/
-      aa=mpqs_SI_add[i][j];
+
+  ind >>= 1; 
+  ind++;
+  add = 2 * mpqs_Bi[i];
+  
+  if (ind & 1) 
+  {
+    mpqs_B -= add;
+    
+	for (j = 1; j < mpqs_nFB; j++) 
+	{
+      p = fb[2*j]; 
+/* 
+	  s1 = fbs[2*j];   
+	  s2 = fbs[2*j + 1]; 
+*/
+      aa = mpqs_SI_add[i][j];
 #ifndef GCC_BUG
-      al=(((u32_t)aa)<<16)+(u32_t)aa;
-      ul=(u32_t *)(fbs+2*j);
-      *ul+=al;
+      al = (((u32_t)aa) << 16) + (u32_t)aa;
+      ul = (u32_t *)(fbs + 2*j);
+      *ul += al;
 #else
-      fbs[2*j]+=aa; fbs[2*j+1]+=aa;
+      fbs[2*j] += aa; 
+	  fbs[2*j + 1] += aa;
 #endif
-      if (fbs[2*j]>=p) fbs[2*j]-=p;
-      if (fbs[2*j+1]>=p) fbs[2*j+1]-=p;
-/*      s1+=aa; if (s1>=p) s1-=p;
-      s2+=aa; if (s2>=p) s2-=p;
-      fbs[2*j]=s1; fbs[2*j+1]=s2;*/
-#endif
+      if (fbs[2*j] >= p) 
+		  fbs[2*j] -= p;
+      
+	  if (fbs[2*j + 1] >= p) 
+		  fbs[2*j + 1] -=p;
     }
-  } else {
-    mpqs_B+=add;
-    for (j=1; j<mpqs_nFB; j++) {
-#if 0
-      p=fb[2*j]; s1=fbs[2*j]; s2=fbs[2*j+1];
-      s1+=(p-mpqs_SI_add[i][j]); if (s1>=p) s1-=p;
-      s2+=(p-mpqs_SI_add[i][j]); if (s2>=p) s2-=p;
-/*      if (s1<s2) {*/
-        fbs[2*j]=s1; fbs[2*j+1]=s2;
-/*      } else {
-        fbs[2*j]=s2; fbs[2*j+1]=s1;
-      }*/
-#else
-      p=fb[2*j]; /*s1=fbs[2*j]; s2=fbs[2*j+1];*/
-      aa=p-mpqs_SI_add[i][j];
+  } 
+  else 
+  {
+    mpqs_B += add;
+    for (j = 1; j < mpqs_nFB; j++) 
+	{
+      p = fb[2*j]; /*s1=fbs[2*j]; s2=fbs[2*j+1];*/
+      aa = p - mpqs_SI_add[i][j];
 #ifndef GCC_BUG
-      al=(((u32_t)aa)<<16)+(u32_t)aa;
-      ul=(u32_t *)(fbs+2*j);
-      *ul+=al;
+      al = (((u32_t)aa) << 16) + (u32_t)aa;
+      ul = (u32_t *)(fbs + 2*j);
+      *ul += al;
 #else
-      fbs[2*j]+=aa; fbs[2*j+1]+=aa;
+      fbs[2*j] += aa; 
+	  fbs[2*j+1] += aa;
 #endif
-      if (fbs[2*j]>=p) fbs[2*j]-=p;
-      if (fbs[2*j+1]>=p) fbs[2*j+1]-=p;
-#endif
+      if (fbs[2*j] >= p) 
+		  fbs[2*j] -= p;
+      
+	  if (fbs[2*j+1] >= p) 
+		  fbs[2*j+1] -= p;
     }
   }
-  mpqs_2B=2*mpqs_B;
-#if 0
-  mpz_set_sll(mpqs_help,mpqs_B);
-  mpz_mul(mpqs_help,mpqs_help,mpqs_help);
-  mpz_sub(mpqs_help,mpqs_help,mpqs_kN);
-  mpz_set_sll(mpqs_dummy,mpqs_A);
-#if 0
-  mpz_fdiv_qr(mpqs_help,mpqs_dummy,mpqs_help,mpqs_dummy);
-  if (mpz_sgn(mpqs_dummy)) complain("mpqs_next_pol\n");
-#else
-  mpz_divexact(mpqs_help,mpqs_help,mpqs_dummy);
-#endif
-  mpz_get_sll(&mpqs_C,mpqs_help);
-#else
-  mpqs_C=mpqs_B*mpqs_B;
-  mpqs_C-=mpqs_kN_64;
-  mpqs_C*=mpqs_A_inv_64;
-#endif
-/*printf("pol: %Ld %Ld %Ld \n",mpqs_A,mpqs_B,mpqs_C);*/
+
+  mpqs_2B = 2 * mpqs_B;
+  mpqs_C = (mpqs_B * mpqs_B - mpqs_kN_64) * mpqs_A_inv_64; /* C = (B^2 - kN) / A */
+
+  /* printf("mpqs_next_pol() pol: %Ld %Ld %Ld \n", mpqs_A, mpqs_B, mpqs_C); */
+  
   for (j=0; j<mpqs_nAdiv_total; j++)
-    if (!mpqs_Adiv_active[j]) {
-      p=mpqs_Adiv_all[j];
-      s1=mpqs_Adiv_start1[j]; s2=mpqs_Adiv_start2[j];
-      if (ind&1) {
-        s1+=mpqs_Adiv_SI_add[i][j]; if (s1>=p) s1-=p;
-        s2+=mpqs_Adiv_SI_add[i][j]; if (s2>=p) s2-=p;
-      } else {
-        s1+=(p-mpqs_Adiv_SI_add[i][j]); if (s1>=p) s1-=p;
-        s2+=(p-mpqs_Adiv_SI_add[i][j]); if (s2>=p) s2-=p;
+  {
+    if (!mpqs_Adiv_active[j]) 
+	{
+      p  = mpqs_Adiv_all[j];
+      s1 = mpqs_Adiv_start1[j]; 
+	  s2 = mpqs_Adiv_start2[j];
+      
+	  if (ind & 1) 
+	  {
+        s1 += mpqs_Adiv_SI_add[i][j]; 	
+		s2 += mpqs_Adiv_SI_add[i][j]; 
+      } 
+	  else 
+	  {
+        s1 += (p - mpqs_Adiv_SI_add[i][j]);        
+		s2 += (p - mpqs_Adiv_SI_add[i][j]); 
       }
-      mpqs_Adiv_start1[j]=s1; mpqs_Adiv_start2[j]=s2;
-    } else {
-      p=mpqs_Adiv_all[i];
-      sh=(i16_t)(mpqs_2B%(i64_t)p);
-      if (sh>0) bb=(u32_t)sh; else bb=(u32_t)((i16_t)p+sh);
-      bb=(u32_t)mpqs_invert(bb,p);
-      sh=(i16_t)(mpqs_C%(i64_t)p); sh=-sh;
-      if (sh>0) cc=(u32_t)sh; else cc=(u32_t)((i16_t)p+sh);
-      cc*=bb; cc%=(u32_t)p;  /* now p|2*B*cc+C */
-      cc+=mpqs_disp; cc%=(u32_t)p;
-      mpqs_Adiv_start1[i]=(u16_t)cc;
+
+	  if (s1 >= p) s1 -= p;
+	  if (s2 >= p) s2 -= p;
+
+      mpqs_Adiv_start1[j] = s1; 
+	  mpqs_Adiv_start2[j] = s2;
+    } 
+	else 
+	{
+      p = mpqs_Adiv_all[i];
+      sh = (i16_t)(mpqs_2B % (i64_t)p);
+      
+	  if (sh > 0) 
+		  bb = (u32_t)sh; 
+	  else 
+		  bb = (u32_t)((i16_t)p + sh);
+      
+	  bb = (u32_t)mpqs_invert(bb, p);
+      sh = (i16_t)(mpqs_C % (i64_t)p); 
+	  sh = -sh;
+      
+	  if (sh > 0) 
+		  cc = (u32_t)sh; 
+	  else 
+		  cc = (u32_t)((i16_t)p + sh);
+      
+	  cc *= bb; 
+	  cc %= (u32_t)p;  /* now p|(2B * cc + C) */      
+	  cc += mpqs_disp; 
+	  cc %= (u32_t)p;
+      mpqs_Adiv_start1[i] = (u16_t)cc;
     }
+  }
+
   return 1;
 }
 
@@ -1363,56 +1442,87 @@ static u16_t mpqs_evaluate()
   u16_t **rels, buffer[256];
   long i, nmaxsurv;
 
-  mpqs_nsurvivors=0;
-  nmaxsurv=MPQS_MAX_NRELS-mpqs_nrels;
-  if (MPQS_MAX_NPRELS-mpqs_nprels<nmaxsurv)
-    nmaxsurv=MPQS_MAX_NPRELS-mpqs_nprels;
-  if (MPQS_MAX_NCRELS-mpqs_ncrels<nmaxsurv)
-    nmaxsurv=MPQS_MAX_NCRELS-mpqs_ncrels;
-  if (nmaxsurv<MPQS_MIN_RELBUFFER) return 0;
-  if (nmaxsurv>255) nmaxsurv=255;  /* 1 weniger als buffer-Länge !!! */
-  ulsv=(u32_t *)mpqs_sievearray;
-  ulsvend=ulsv+(mpqs_sievelen>>2);
-  rels=mpqs_rel_buffer;
+  mpqs_nsurvivors = 0;
+  nmaxsurv = MPQS_MAX_NRELS - mpqs_nrels;
+  
+  if ((MPQS_MAX_NPRELS - mpqs_nprels) < nmaxsurv)
+    nmaxsurv = MPQS_MAX_NPRELS - mpqs_nprels;
+  
+  if (MPQS_MAX_NCRELS - mpqs_ncrels < nmaxsurv)
+    nmaxsurv = MPQS_MAX_NCRELS - mpqs_ncrels;
+  
+  if (nmaxsurv < MPQS_MIN_RELBUFFER) 
+	  return 0;
+  
+  if (nmaxsurv > 255) 
+	  nmaxsurv = 255;  /* 1 weniger als buffer-Länge !!! */
+  
+  ulsv = (u32_t *)mpqs_sievearray;
+  ulsvend = ulsv + (mpqs_sievelen >> 2);  
+  rels = mpqs_rel_buffer;
+
 #ifndef ASM_MPQS_EVAL
-  while (ulsv<ulsvend) {
-    h=*ulsv;
-    if (h&0x80808080) {
-      sv=(unsigned char *)ulsv;
-      for (i=0; i<4; i++)
-        if (*sv++&0x80)
-          buffer[mpqs_nsurvivors++]=(u16_t)(sv-mpqs_sievearray-1);
+  while (ulsv < ulsvend) 
+  {
+    h = *ulsv;
+    
+	if (h & 0x80808080) 
+	{
+      sv = (unsigned char *)ulsv;
+      
+	  for (i = 0; i < 4; i++)
+	  {
+        if (*sv++ & 0x80)
+          buffer[mpqs_nsurvivors++] = (u16_t)(sv - mpqs_sievearray - 1);
+	  }
+
       /* CJM: test added here. */
-      if (mpqs_nsurvivors>nmaxsurv-4) {
-        while (ulsv<ulsvend) *ulsv++=0;
+      if (mpqs_nsurvivors > nmaxsurv - 4) 
+	  {
+        while (ulsv<ulsvend) *ulsv++ = 0;
         break;
       }
     }
-    *ulsv++=0;
-    h=*ulsv;
-    if (h&0x80808080) {
-      sv=(unsigned char *)ulsv;
-      for (i=0; i<4; i++)
-        if (*sv++&0x80)
-          buffer[mpqs_nsurvivors++]=(u16_t)(sv-mpqs_sievearray-1);
-      if (mpqs_nsurvivors>nmaxsurv-4) {
-        while (ulsv<ulsvend) *ulsv++=0;
+
+    *ulsv++ = 0;
+    h = *ulsv;
+    
+	if (h & 0x80808080) 
+	{
+      sv = (unsigned char *)ulsv;
+      
+	  for (i = 0; i < 4; i++)
+	  {
+        if (*sv++ & 0x80)
+          buffer[mpqs_nsurvivors++] = (u16_t)(sv - mpqs_sievearray - 1);
+	  }
+
+      if (mpqs_nsurvivors > nmaxsurv - 4) 
+	  {
+        while (ulsv < ulsvend) 
+			*ulsv++ = 0;
+
         break;
       }
     }
-    *ulsv++=0;
+
+    *ulsv++ = 0;
   }
 #else
-  mpqs_nsurvivors=asm_evaluate(ulsv,ulsvend,buffer,nmaxsurv); /*printf("%ld ",mpqs_nsurvivors);*/
+  mpqs_nsurvivors = asm_evaluate(ulsv, ulsvend, buffer, nmaxsurv); 
+  /* printf("%ld ", mpqs_nsurvivors); */
+
 #ifdef MPQS_STAT
   stat_asm_eval++;
 #endif
 #endif
 
-  for (i=0; i<mpqs_nsurvivors; i++) {
-    mpqs_sievearray[buffer[i]]=(unsigned char)(i+1);
-    rels[i][0]=buffer[i];
+  for (i = 0; i < mpqs_nsurvivors; i++) 
+  {
+    mpqs_sievearray[buffer[i]] = (unsigned char)(i + 1);
+    rels[i][0] = buffer[i];
   }
+
   return mpqs_nsurvivors;
 }
 
@@ -1423,41 +1533,61 @@ static inline u16_t mpqs_hash_lp(u32_t lp)
   u32_t lp1;
   u16_t lphash, nh;
 
-  lphash=(u16_t)(lp&0x00ff); lphash>>=1;
-  lp1=lp>>8;
-  nh=mpqs_hash_table[lphash][0];
-  if (nh>=15) { /*printf(".");*/ return MPQS_HASH_OVERFLOW; }
-  for (j=1; j<=nh; j++)
-    if (mpqs_hash_table[lphash][j]==lp1) break;
-  if (j>nh) { /* new lp */
-    mpqs_hash_table[lphash][j]=lp1;
+  lphash = (u16_t)(lp & 0x00ff) >> 1; 
+  lp1 = lp >> 8;
+  nh = mpqs_hash_table[lphash][0];
+  
+  if (nh >= 15) 
+  { 
+	  assert(0);
+	  return MPQS_HASH_OVERFLOW; 
+  }
+
+  for (j = 1; j <= nh; j++)
+  {
+    if (mpqs_hash_table[lphash][j] == lp1) 
+		break;
+  }
+
+  if (j > nh) 
+  { /* new lp */
+    mpqs_hash_table[lphash][j] = lp1;
     mpqs_hash_table[lphash][0]++;
     mpqs_nlp++;
-    mpqs_hash_index[lphash][j]=mpqs_nprels;
-    mpqs_lp[mpqs_nprels]=lp;
+    mpqs_hash_index[lphash][j] = mpqs_nprels;
+    mpqs_lp[mpqs_nprels] = lp;
   }
+
   return mpqs_hash_index[lphash][j];
 }
 
 static inline int mpqs_hash_rel(i64_t axb)
 {
-  long j;
+  u32_t j;
   u32_t hash, hash2, nh;
 
-  hash=(u32_t)(axb&0xffffff);
-  hash2=(u16_t)(hash>>8); hash&=0xff;
-  nh=mpqs_rel_hash_table[hash][0];
-  if (nh>=15) return 1;
-  for (j=1; j<=nh; j++)
-    if (mpqs_rel_hash_table[hash][j]==hash2) return 1;
-  mpqs_rel_hash_table[hash][nh+1]=hash2;
+  hash = (u32_t)(axb & 0xffffff);
+  hash2 = (u16_t)(hash >> 8); 
+  hash &= 0xff;
+  nh = mpqs_rel_hash_table[hash][0];
+  
+  if (nh >= 15) 
+	  return 1;
+  
+  for (j = 1; j <= nh; j++)
+  {
+    if (mpqs_rel_hash_table[hash][j] == hash2) 
+		return 1;
+  }
+
+  mpqs_rel_hash_table[hash][nh + 1] = hash2;
   mpqs_rel_hash_table[hash][0]++;
   return 0;
 }
 
 static int mpqs_decompose()
 {
-  long i, j;
+  u16_t i, j;
   u16_t *fb=mpqs_FB, *fbs=mpqs_FB_start;
   unsigned char *sv, *svend, i1, i2;
   u16_t ind, p, s1, s2, nr, lpi, ii;
@@ -1471,7 +1601,7 @@ static int mpqs_decompose()
   u32_t inv, ls1, ls2;
   u32_t ax, ay, az;
 
-  rels = mpqs_rel_buffer-1;
+  rels = mpqs_rel_buffer - 1;
   
   for (i = 1; i <= mpqs_nsurvivors; i++) 
 	  rels[i][4] = 0;
@@ -1500,14 +1630,14 @@ static int mpqs_decompose()
         if (i1) 
 		{ 
 			nr=rels[i1][4]; 
-			rels[i1][nr+5] = mpqs_nFBk_1+i; 
+			rels[i1][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i1][4]++; 
 		}
         
 		if (i2) 
 		{ 
 			nr=rels[i2][4]; 
-			rels[i2][nr+5] = mpqs_nFBk_1 + i; 
+			rels[i2][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i2][4]++; 
 		}      
 	  }
@@ -1521,14 +1651,14 @@ static int mpqs_decompose()
         if (i1) 
 		{ 
 			nr = rels[i1][4]; 
-			rels[i1][nr+5] = mpqs_nFBk_1 + i; 
+			rels[i1][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i1][4]++; 
 		}        
 		
 		if (i2) 
 		{ 
 			nr = rels[i2][4]; 
-			rels[i2][nr+5] = mpqs_nFBk_1 + i; 
+			rels[i2][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i2][4]++; 
 		}      
 	  }
@@ -1547,14 +1677,14 @@ static int mpqs_decompose()
         if (i1) 
 		{ 
 			nr = rels[i1][4]; 
-			rels[i1][nr+5] = mpqs_nFBk_1 + i; 
+			rels[i1][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i1][4]++; 
 		}
         
 		if (i2) 
 		{ 
 			nr = rels[i2][4]; 
-			rels[i2][nr+5] = mpqs_nFBk_1 + i; 
+			rels[i2][nr + 5] = mpqs_nFBk_1 + i; 
 			rels[i2][4]++; 
 		}
       }
@@ -1569,7 +1699,7 @@ static int mpqs_decompose()
 	  if (i1) 
 	  { 
 		  nr = rels[i1][4]; 
-		  rels[i1][nr+5] = mpqs_nFBk_1 + i; 
+		  rels[i1][nr + 5] = mpqs_nFBk_1 + i; 
 		  rels[i1][4]++; 
 	  }
     }
@@ -1691,11 +1821,11 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
       rels[i][5 + rels[i][4]] = 0; rels[i][4]++;
     }
     
-	while (!(qx&1)) 
+	while (!(qx & 1)) 
 	{
       if (rels[i][4] < MPQS_TD_MAX_NDIV) 
 	  {
-        rels[i][5+rels[i][4]] = mpqs_nFBk_1; 
+        rels[i][5 + rels[i][4]] = mpqs_nFBk_1; 
 		rels[i][4]++;
         qx >>= 1;
       } 
@@ -1734,8 +1864,8 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 
     for (j = 0; j < nr; j++) 
 	{
-      ii = rels[i][5+j];
-      p = mpqs_FB[2*(ii-mpqs_nFBk_1)];
+      ii = rels[i][5 + j];
+      p = mpqs_FB[2*(ii - mpqs_nFBk_1)];
       
 	  while (ulqx % (u32_t)p == 0) 
 	  {
@@ -1761,7 +1891,8 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 		{
           if (rels[i][4] < MPQS_TD_MAX_NDIV) 
 		  {
-            rels[i][5 + rels[i][4]] = 1 + j; rels[i][4]++;
+            rels[i][5 + rels[i][4]] = 1 + j; 
+			rels[i][4]++;
             ulqx /= (u32_t)p;
           } 
 		  else 
@@ -1810,7 +1941,7 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 	  {
         if (mpqs_Adiv_active[j]) 
 		{
-          rels[i][5+nr+ind] = 1 + mpqs_nFB + mpqs_nFBk + j;
+          rels[i][5 + nr + ind] = 1 + mpqs_nFB + mpqs_nFBk + j;
           ind++;
         }
 	  }
@@ -1843,7 +1974,7 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
 	  
 	  if (ulqx <= mpqs_pmax) 
 	  {
-        printf("%d %" PRIu64 " %u ",x,qx,ulqx);
+        printf("%d %" PRIu64 " %u ", x, qx, ulqx);
 		return -1; /* CJM, 11/30/04. */
         complain("dec.2\n");
       }
@@ -1884,7 +2015,7 @@ complain("%Lu %ld, %ld, ",qx,ulqx,nr);
         nr = rels[i][4];
         
 		for (j = 0; j <= nr; j++)
-          mpqs_part_rels[mpqs_nprels][j + 4]=rels[i][j + 4];
+          mpqs_part_rels[mpqs_nprels][j + 4] = rels[i][j + 4];
         
 		mpqs_nprels++;
       }
@@ -1938,345 +2069,509 @@ static u32_t mpqs_gauss_mask[]  =
 
 static void mpqs_matrix_init()
 {
-  long i, j;
+  u32_t i, j;
   u16_t nr, ii, pi;
-  u32_t mask;
-#ifdef PRUNING
-  u16_t mpqs_gauss_wt[300];  /* verbessern !!!! */
 
-  for (i=0; i<mpqs_nsp; i++) 
-	  mpqs_gauss_wt[i]=0;
+#ifdef PRUNING
+  u16_t mpqs_gauss_wt[300];  /* to be improved !!!! */
+  memset(mpqs_gauss_wt, 0, sizeof(mpqs_gauss_wt));
 #endif
 
-  mpqs_gauss_n=mpqs_nrels+mpqs_ncrels;
-  if (mpqs_gauss_n>=MPQS_GAUSS_MAX) return;
-  mpqs_gauss_m=mpqs_nsp;
-  if (mpqs_gauss_m>=mpqs_gauss_n) complain("gauss: no excess\n");
-/* build matrix */
-  mpqs_gauss_n32=(mpqs_gauss_n+31)/32;
-  for (i=1; i<mpqs_gauss_m; i++)
-    mpqs_gauss_row[i]=mpqs_gauss_row[i-1]+mpqs_gauss_n32;
-  for (i=0; i<mpqs_gauss_m; i++)
-    for (j=0; j<mpqs_gauss_n32; j++)
-      mpqs_gauss_row[i][j]=0;
-  for (i=0; i<mpqs_nrels; i++) {
-    nr=mpqs_relations[i][4]; mask=mpqs_gauss_mask[i%32];
-    for (j=0; j<nr; j++) {
-      pi=mpqs_relations[i][5+j];
-      mpqs_gauss_row[pi][i/32]^=mask;
+  mpqs_gauss_n = mpqs_nrels + mpqs_ncrels;
+  
+  if (mpqs_gauss_n >= MPQS_GAUSS_MAX) 
+	  return;
+  
+  mpqs_gauss_m = mpqs_nsp;
+  
+  if (mpqs_gauss_m >= mpqs_gauss_n) 
+	  complain("gauss: no excess\n");
+
+  /* build matrix */
+  mpqs_gauss_n32 = (mpqs_gauss_n + 31)/32;
+  
+  for (i = 1; i < mpqs_gauss_m; i++)
+    mpqs_gauss_row[i] = mpqs_gauss_row[i-1] + mpqs_gauss_n32;
+  
+  for (i = 0; i < mpqs_gauss_m; i++)
+  {
+    for (j = 0; j<mpqs_gauss_n32; j++)
+      mpqs_gauss_row[i][j] = 0;
+  }
+
+  for (i = 0; i < mpqs_nrels; i++) 
+  {
+    u32_t gauss_mask;
+
+    nr = mpqs_relations[i][4]; 
+	gauss_mask = mpqs_gauss_mask[i%32];
+    
+	for (j = 0; j < nr; j++) 
+	{
+      pi = mpqs_relations[i][5 + j];
+      mpqs_gauss_row[pi][i/32] ^= gauss_mask;
+
 #ifdef PRUNING
       mpqs_gauss_wt[pi]++;
 #endif
     }
   }
-  for (i=0; i<mpqs_ncrels; i++) {
-    nr=mpqs_comb_rels[i][8]; nr=(nr&255)+(nr>>8);
-    ii=i+mpqs_nrels; mask=mpqs_gauss_mask[ii%32];
-    for (j=0; j<nr; j++) {
-      pi=mpqs_comb_rels[i][9+j];
-      mpqs_gauss_row[pi][ii/32]^=mask;
+
+  for (i = 0; i < mpqs_ncrels; i++) 
+  {
+    u32_t gauss_mask;
+
+    nr = mpqs_comb_rels[i][8]; 
+	nr = (nr & 255) + (nr >> 8);
+    ii = i + mpqs_nrels; 
+	gauss_mask = mpqs_gauss_mask[ii % 32];
+    
+	for (j = 0; j < nr; j++) 
+	{
+      pi = mpqs_comb_rels[i][9 + j];
+      mpqs_gauss_row[pi][ii/32] ^= gauss_mask;
+
 #ifdef PRUNING
       mpqs_gauss_wt[pi]++;
 #endif
     }
   }
-  for (i=0; i<mpqs_gauss_m; i++) mpqs_gauss_c[i]=-1;
-  mpqs_gauss_k=0;
-  for (i=0; i<mpqs_gauss_n; i++) mpqs_gauss_d[i]=-1;
+
+  for (i = 0; i < mpqs_gauss_m; i++) 
+	  mpqs_gauss_c[i] = -1;
+  
+  mpqs_gauss_k = 0;
+  
+  for (i = 0; i < mpqs_gauss_n; i++) 
+	  mpqs_gauss_d[i] = -1;
 
 #ifdef PRUNING
 /* simple pruning */
 {
   u32_t k, k32;
 
-#if 1
-/*  u32_t anz[5];
-  for (j=0; j<5; j++) anz[j]=0;
-  for (j=0; j<mpqs_gauss_m; j++)
-    if (mpqs_gauss_wt[j]<5) anz[mpqs_gauss_wt[j]]++;
-  printf("| %lu: ",mpqs_gauss_m);
-  for (j=0; j<5; j++) printf("%lu ",anz[j]); printf("| ");
-  for (j=0; j<5; j++) stat_gauss_anz[j]+=anz[j];*/
-
-  for (j=0; j<mpqs_gauss_m; j++)
-    if (mpqs_gauss_wt[j]==1) { /*printf("!");*/
-      k32=0;
-      while (mpqs_gauss_row[j][k32]==0) k32++;
-      for (k=0; k<32; k++)
-        if (mpqs_gauss_row[j][k32]&mpqs_gauss_mask[k]) break;
-      k+=(k32<<5);
-      if (k>=mpqs_gauss_n) 
+  for (j = 0; j < mpqs_gauss_m; j++)
+  {
+    if (mpqs_gauss_wt[j] == 1) 
+	{
+      k32 = 0;
+      
+	  while (mpqs_gauss_row[j][k32] == 0) 
+		  k32++;
+      
+	  for (k = 0; k < 32; k++)
+        if (mpqs_gauss_row[j][k32] & mpqs_gauss_mask[k]) 
+			break;
+      
+	  k += (k32 << 5);
+      
+	  if (k >= mpqs_gauss_n) 
 		  complain("pruning\n");
 
-      mpqs_gauss_d[k]=j; mpqs_gauss_c[j]=k;
-/* No need to clear the k-th column since it will not appear in a solution. */
+      mpqs_gauss_d[k] = j; 
+	  mpqs_gauss_c[j] = k;
+	  /* No need to clear the k-th column since it will not appear in a solution. */
     }
-#else    /* unsinn!!! */
-  for (j=0; j<mpqs_gauss_m; j++)
-    if (mpqs_gauss_wt[j]==1) { /*printf("!");*/
-      mpqs_gauss_m--;
-      for (k=0; k<mpqs_gauss_n32; k++)
-        mpqs_gauss_row[j][k]=mpqs_gauss_row[mpqs_gauss_m][k];
-      mpqs_gauss_wt[j]=mpqs_gauss_wt[mpqs_gauss_m]; break;
-    }
-#endif
+  }
 }
 #endif
 }
-
 
 static int mpqs_matrix()
 {
-  long i, j, l, t, k32;
+  u32_t i, j, l, t, k32;
   u32_t mask;
  
-/* solve matrix */
-  while (mpqs_gauss_k<mpqs_gauss_n) {
+  /* solve matrix */
+  while (mpqs_gauss_k < mpqs_gauss_n) 
+  {
 #ifdef PRUNING
-    if (mpqs_gauss_d[mpqs_gauss_k]>=0) { mpqs_gauss_k++; continue; }
+    assert(mpqs_gauss_k < sizeof(mpqs_gauss_d)/sizeof(mpqs_gauss_d[0]));
+    if (mpqs_gauss_d[mpqs_gauss_k] >= 0) 
+	{ 
+		mpqs_gauss_k++; 
+		continue; 
+	}
 #endif
-    mask=mpqs_gauss_mask[mpqs_gauss_k%32]; k32=mpqs_gauss_k/32;
-    j=0;
-    while ((j<mpqs_gauss_m) && (mpqs_gauss_c[j]>=0 ||
-       ((mpqs_gauss_row[j][k32] & mask)==0))) j++;
-    if (j==mpqs_gauss_m) { mpqs_gauss_d[mpqs_gauss_k]=-1; break; }
-    mpqs_gauss_d[mpqs_gauss_k]=j; mpqs_gauss_c[j]=mpqs_gauss_k;
-    for (t=0; t<j; t++)
+
+    mask = mpqs_gauss_mask[mpqs_gauss_k%32]; 
+	k32 = mpqs_gauss_k / 32;
+    j = 0;
+    
+	while ((j < mpqs_gauss_m) && (mpqs_gauss_c[j] >= 0 ||
+		   ((mpqs_gauss_row[j][k32] & mask) == 0))) 
+		j++;
+    
+	if (j == mpqs_gauss_m) 
+	{ 
+		assert(mpqs_gauss_k < sizeof(mpqs_gauss_d)/sizeof(mpqs_gauss_d[0]));
+		mpqs_gauss_d[mpqs_gauss_k] = -1;
+		break; 
+	}
+    
+	mpqs_gauss_d[mpqs_gauss_k] = j; 
+	mpqs_gauss_c[j] = mpqs_gauss_k;
+    
+	for (t = 0; t < j; t++)
       if (mpqs_gauss_row[t][k32] & mask)
-        for (l=k32; l<mpqs_gauss_n32; l++)
-          mpqs_gauss_row[t][l]^=mpqs_gauss_row[j][l];
-    for (t=j+1; t<mpqs_gauss_m; t++)
+        for (l = k32; l < mpqs_gauss_n32; l++)
+          mpqs_gauss_row[t][l] ^= mpqs_gauss_row[j][l];
+    
+	for (t = j + 1; t < mpqs_gauss_m; t++)
+	{
       if (mpqs_gauss_row[t][k32] & mask)
-        for (l=k32; l<mpqs_gauss_n32; l++)
-          mpqs_gauss_row[t][l]^=mpqs_gauss_row[j][l];
+	  {
+        for (l = k32; l < mpqs_gauss_n32; l++)
+          mpqs_gauss_row[t][l] ^= mpqs_gauss_row[j][l];
+	  }
+	}
+
     mpqs_gauss_k++;
   }
-  if (mpqs_gauss_k>=mpqs_gauss_n) {
+
+  if (mpqs_gauss_k >= mpqs_gauss_n) 
+  {
     return 0;
   }
-  for (i=0; i<mpqs_gauss_n; i++) mpqs_sol[i]=0;
-  if (mpqs_gauss_d[mpqs_gauss_k]!=-1) complain("gauss1\n");
-  for (i=0; i<mpqs_gauss_k; i++)
-    if (mpqs_gauss_d[i]!=-1)
-      if (mpqs_gauss_row[mpqs_gauss_d[i]][k32] & mask)
-        mpqs_sol[i]=1;
-  mpqs_sol[mpqs_gauss_k]=1;
+
+  for (i = 0; i < mpqs_gauss_n; i++) 
+	  mpqs_sol[i] = 0;
+
+  if (mpqs_gauss_d[mpqs_gauss_k] != -1) 
+	  complain("gauss1\n");
+
+  for (i = 0; i < mpqs_gauss_k; i++)
+  {
+    if ((mpqs_gauss_d[i] != -1) && (mpqs_gauss_row[mpqs_gauss_d[i]][k32] & mask))
+        mpqs_sol[i] = 1;
+  }
+
+  mpqs_sol[mpqs_gauss_k] = 1;
   mpqs_gauss_k++;
   return 1;
 }
 
-
 static int mpqs_final()
 {
-  long j, k;
+  u32_t j, k;
   u16_t nr, nr1, nr2;
   u32_t p, prod1, prod2;
   u64_t *up;
   int split;
 
-/*test_rels(); test_combs();*/
-  if (!mpqs_nfactors) {
-    mpqs_nfactors=1;
+  if (!mpqs_nfactors) 
+  {
+    mpqs_nfactors = 1;
     mpz_set(mpqs_factors[0],mpqs_N);
     mpqs_f_status[0]=0;
   }
-  while (mpqs_matrix()) {
+  
+  while (mpqs_matrix()) 
+  {
 #ifdef MPQS_STAT
 stat_mpqs_ntrials++;
 #endif
-    for (j=0; j<mpqs_nsp; j++) mpqs_exp[j]=0;
-    for (j=0; j<mpqs_nrels; j++)
-      if (mpqs_sol[j]) {
-        nr=mpqs_relations[j][4];
-        if (j&1)     /* 'random' distribution of full relations */
-          for (k=0; k<nr; k++) mpqs_exp[mpqs_relations[j][5+k]]--;
+   
+	for (j = 0; j < mpqs_nsp; j++) 
+		mpqs_exp[j] = 0;
+    
+	for (j = 0; j < mpqs_nrels; j++)
+	{
+      if (mpqs_sol[j]) 
+	  {
+        nr = mpqs_relations[j][4];
+        
+		if (j & 1) /* 'random' distribution of full relations */
+          for (k = 0; k < nr; k++) mpqs_exp[mpqs_relations[j][5 + k]]--;
         else
-          for (k=0; k<nr; k++) mpqs_exp[mpqs_relations[j][5+k]]++;
+          for (k = 0; k < nr; k++) mpqs_exp[mpqs_relations[j][5 + k]]++;
       }
-    for (j=0; j<mpqs_ncrels; j++)
-      if (mpqs_sol[mpqs_nrels+j]) {
-        nr=mpqs_comb_rels[j][8];
-        nr1=nr&255; nr2=nr>>8;
-        for (k=0; k<nr1; k++) mpqs_exp[mpqs_comb_rels[j][9+k]]++;
-        for (k=0; k<nr2; k++) mpqs_exp[mpqs_comb_rels[j][9+nr1+k]]--;
+	}
+
+    for (j = 0; j < mpqs_ncrels; j++)
+	{
+      if (mpqs_sol[mpqs_nrels + j]) 
+	  {
+        nr = mpqs_comb_rels[j][8];
+        nr1 = nr & 255; 
+		nr2 = nr >> 8;
+        
+		for (k = 0; k < nr1; k++) 
+			mpqs_exp[mpqs_comb_rels[j][9 + k]]++;
+        
+		for (k = 0; k < nr2; k++) 
+			mpqs_exp[mpqs_comb_rels[j][9 + nr1 + k]]--;
       }
-    for (j=0; j<mpqs_nsp; j++)
-      if (mpqs_exp[j]&1) complain("final.odd\n");
-      else mpqs_exp[j]>>=1;
+	}
 
+    for (j = 0; j < mpqs_nsp; j++)
+	{
+      if (mpqs_exp[j] & 1) 
+		  complain("final.odd\n");
+      else 
+		  mpqs_exp[j] >>= 1;
+	}
 
+    mpz_set_ui(mpqs_sq1,1); 
+    mpz_set_ui(mpqs_sq2,1); 
+	prod1 = 1;
+	prod2 = 1;
 
-    mpz_set_ui(mpqs_sq1,1); prod1=1;
-    mpz_set_ui(mpqs_sq2,1); prod2=1;
-    for (j=1; j<mpqs_nsp; j++)
-      if (mpqs_exp[j]) {
-        if (j<1+mpqs_nFBk) {
-          p=(u32_t)(mpqs_FBk[j-1]);
-        } else if (j<1+mpqs_nFB+mpqs_nFBk) {
-          k=j-mpqs_nFBk-1;
-          p=(u32_t)(mpqs_FB[2*k]);
-        } else {
-          k=j-mpqs_nFB-mpqs_nFBk-1;
-          p=(u32_t)(mpqs_Adiv_all[k]);
+	for (j = 1; j < mpqs_nsp; j++)
+	{
+      if (mpqs_exp[j]) 
+	  {
+        if (j < (u32_t)(1 + mpqs_nFBk)) 
+		{
+          p = (u32_t)(mpqs_FBk[j - 1]);
+        } 
+		else 
+		if (j < (u32_t)(1 + mpqs_nFB + mpqs_nFBk)) 
+		{
+          k = j - mpqs_nFBk - 1;
+          p = (u32_t)(mpqs_FB[2*k]);
+        } 
+		else 
+		{
+          k = j - mpqs_nFB - mpqs_nFBk - 1;
+          p = (u32_t)(mpqs_Adiv_all[k]);
         }
-        if (mpqs_exp[j]>0) {
-          for (k=0; k<mpqs_exp[j]; k++) {
-            prod1*=p;
-            if (prod1&0xfff00000) {  /* p<4096 */
-              mpz_mul_ui(mpqs_sq1,mpqs_sq1,prod1);
-              mpz_mod(mpqs_sq1,mpqs_sq1,mpqs_N);
+
+        if (mpqs_exp[j] > 0) 
+		{
+          for (k = 0; k < (u32_t)mpqs_exp[j]; k++) 
+		  {
+            prod1 *= p;
+            if (prod1 & 0xfff00000) 
+			{  
+			  /* p<4096 */
+              mpz_mul_ui(mpqs_sq1, mpqs_sq1, prod1);
+              mpz_mod(mpqs_sq1, mpqs_sq1, mpqs_N);
 #ifdef MPQS_STAT
 stat_final_mulmod++;
 #endif
-              prod1=1;
+              prod1 = 1;
             }
           }
-        } else {
-          for (k=0; k<-mpqs_exp[j]; k++) {
-            prod2*=p;
-            if (prod2&0xfff00000) {  /* p<4096 */
-              mpz_mul_ui(mpqs_sq2,mpqs_sq2,prod2);
-              mpz_mod(mpqs_sq2,mpqs_sq2,mpqs_N);
+        } 
+		else 
+		{
+          for (k = 0; k < (u32_t)(0 - mpqs_exp[j]); k++) 
+		  {
+            prod2 *= p;
+            if (prod2 & 0xfff00000) 
+			{  
+			  /* p < 4096 */
+              mpz_mul_ui(mpqs_sq2, mpqs_sq2, prod2);
+              mpz_mod(mpqs_sq2, mpqs_sq2, mpqs_N);
 #ifdef MPQS_STAT
 stat_final_mulmod++;
 #endif
-              prod2=1;
+              prod2 = 1;
             }
           }
         }
       }
-    if (prod1>1) {
-      mpz_mul_ui(mpqs_sq1,mpqs_sq1,prod1);
-      mpz_mod(mpqs_sq1,mpqs_sq1,mpqs_N);
+	}
+
+    if (prod1 > 1) 
+	{
+      mpz_mul_ui(mpqs_sq1, mpqs_sq1, prod1);
+      mpz_mod(mpqs_sq1, mpqs_sq1, mpqs_N);
     }
-    if (prod2>1) {
-      mpz_mul_ui(mpqs_sq2,mpqs_sq2,prod2);
-      mpz_mod(mpqs_sq2,mpqs_sq2,mpqs_N);
+    
+	if (prod2 > 1) 
+	{
+      mpz_mul_ui(mpqs_sq2, mpqs_sq2, prod2);
+      mpz_mod(mpqs_sq2, mpqs_sq2, mpqs_N);
     }
 
-    for (j=0; j<mpqs_nrels; j++)
-      if (mpqs_sol[j]) {
-        up=(u64_t *)(mpqs_relations[j]); /*printf("Q: %Lu  ",*up);*/
-        mpz_set_ull(mpqs_gmp_help,*up);
-        if (j&1) {
-          mpz_mul(mpqs_sq1,mpqs_sq1,mpqs_gmp_help);
-          mpz_mod(mpqs_sq1,mpqs_sq1,mpqs_N);
-        } else {
-          mpz_mul(mpqs_sq2,mpqs_sq2,mpqs_gmp_help);
-          mpz_mod(mpqs_sq2,mpqs_sq2,mpqs_N);
+    for (j = 0; j < mpqs_nrels; j++)
+	{
+      if (mpqs_sol[j]) 
+	  {
+        up = (u64_t *)(mpqs_relations[j]); 
+		/* printf("Q: %Lu  ",*up); */
+        mpz_set_ull(mpqs_gmp_help, *up);
+        
+		if (j & 1) 
+		{
+          mpz_mul(mpqs_sq1, mpqs_sq1, mpqs_gmp_help);
+          mpz_mod(mpqs_sq1, mpqs_sq1, mpqs_N);
+        } 
+		else 
+		{
+          mpz_mul(mpqs_sq2, mpqs_sq2, mpqs_gmp_help);
+          mpz_mod(mpqs_sq2, mpqs_sq2, mpqs_N);
         }
       }
+	}
 
-    for (j=0; j<mpqs_ncrels; j++)
-      if (mpqs_sol[mpqs_nrels+j]) {
-        up=(u64_t *)(mpqs_comb_rels[j]); /*printf("Q: %Lu  ",*up);*/
-        mpz_set_ull(mpqs_gmp_help,*up);
-        mpz_mul(mpqs_sq2,mpqs_sq2,mpqs_gmp_help);
-        mpz_mod(mpqs_sq2,mpqs_sq2,mpqs_N);
+    for (j = 0; j < mpqs_ncrels; j++)
+	{
+      if (mpqs_sol[mpqs_nrels+j]) 
+	  {
+        up = (u64_t *)(mpqs_comb_rels[j]); 
+		/* printf("Q: %Lu  ", *up); */
+        mpz_set_ull(mpqs_gmp_help, *up);
+        mpz_mul(mpqs_sq2, mpqs_sq2, mpqs_gmp_help);
+        mpz_mod(mpqs_sq2, mpqs_sq2, mpqs_N);
         up++;
-        mpz_set_ull(mpqs_gmp_help,*up);
-        mpz_mul(mpqs_sq1,mpqs_sq1,mpqs_gmp_help);
-        mpz_mod(mpqs_sq1,mpqs_sq1,mpqs_N);
+        mpz_set_ull(mpqs_gmp_help, *up);
+        mpz_mul(mpqs_sq1, mpqs_sq1, mpqs_gmp_help);
+        mpz_mod(mpqs_sq1, mpqs_sq1, mpqs_N);
       }
+	}
 
-    mpz_add(mpqs_gmp_help,mpqs_sq1,mpqs_sq2);
-    mpz_gcd(mpqs_gmp_help,mpqs_gmp_help,mpqs_N);
-    if (mpz_cmp_ui(mpqs_gmp_help,1)==0) continue;
-    if (mpz_cmp(mpqs_gmp_help,mpqs_N)==0) continue;
+    mpz_add(mpqs_gmp_help, mpqs_sq1, mpqs_sq2);
+    mpz_gcd(mpqs_gmp_help, mpqs_gmp_help, mpqs_N);
+    
+	if (mpz_cmp_ui(mpqs_gmp_help, 1) == 0) 
+		continue;
+    
+	if (mpz_cmp(mpqs_gmp_help, mpqs_N) == 0) 
+		continue;
 
-    for (j=0; j<mpqs_nfactors; j++)
-      if (mpqs_f_status[j]==0) {
-        mpz_gcd(mpqs_sq1,mpqs_gmp_help,mpqs_factors[j]);
-        if (mpz_cmp_ui(mpqs_sq1,1)==0) continue;
-        if (mpz_cmp(mpqs_sq1,mpqs_factors[j])==0) continue;
-        mpz_set(mpqs_factors[mpqs_nfactors],mpqs_sq1);
-        mpz_divexact(mpqs_factors[j],mpqs_factors[j],mpqs_sq1);
-        mpqs_f_status[j]=psp(mpqs_factors[j]);
-        mpqs_f_status[mpqs_nfactors]=psp(mpqs_factors[mpqs_nfactors]);
+    for (j = 0; j < mpqs_nfactors; j++)
+	{
+      if (mpqs_f_status[j] == 0) 
+	  {
+        mpz_gcd(mpqs_sq1, mpqs_gmp_help, mpqs_factors[j]);
+        
+		if (mpz_cmp_ui(mpqs_sq1, 1) == 0)
+			continue;
+        
+		if (mpz_cmp(mpqs_sq1, mpqs_factors[j]) == 0) 
+			continue;
+        
+		mpz_set(mpqs_factors[mpqs_nfactors], mpqs_sq1);
+        mpz_divexact(mpqs_factors[j], mpqs_factors[j], mpqs_sq1);
+        mpqs_f_status[j] = psp(mpqs_factors[j]);
+        mpqs_f_status[mpqs_nfactors] = psp(mpqs_factors[mpqs_nfactors]);
         mpqs_nfactors++;
         break;
       }
+	}
 
-    split=1;
-    for (j=0; j<mpqs_nfactors; j++) if (mpqs_f_status[j]==0) split=0;
-    if (split) return 1;
-    if (mpqs_nfactors>=MPQS_MAX_FACTORS)
+    split = 1;
+    
+	for (j = 0; j < mpqs_nfactors; j++) 
+	{
+		if (mpqs_f_status[j] == 0) 
+			split = 0;
+	}
+
+    if (split) 
+		return 1;
+    
+	if (mpqs_nfactors >= MPQS_MAX_FACTORS)
       complain("final: too many factors\n");
   }
+
   return 0;
 }
 
 static long mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
 {
-  size_t nbits; 
-  long i, err;
   int ev;
+  u32_t i;
+  long err;
 
 #ifdef MPQS_STAT
-  stat_mpqs_nsieves=0; stat_mpqs_nsurvivors=0; stat_mpqs_ntrials=0; stat_mpqs_ndiv=0;
+  stat_mpqs_nsieves = 0; 
+  stat_mpqs_nsurvivors = 0;
+  stat_mpqs_ntrials = 0; 
+  stat_mpqs_ndiv = 0;
 #endif
-  if (!mpqs_isinit) mpqs_init();
 
-  nbits=mpz_sizeinbase(N,2);
-  if (nbits>96) {
+  if (!mpqs_isinit) 
+	  mpqs_init();
+
+  if (mpz_sizeinbase(N, 2) > 96) 
+  {
     fprintf(stderr,"warning: mpqs called with >96 Bit\n");
     return -2;
   }
 
-  mpz_set(mpqs_N,N);
+  mpz_set(mpqs_N, N);
   mpqs_choose_multiplier();
   mpqs_choose_parameter(retry);
   mpqs_generate_FB();
-  if ((err=mpqs_SI_init())<1) {
-    printf("%ld ",err);
+  
+  if ((err = mpqs_SI_init()) < 1) 
+  {
+    printf("%ld ", err);
     fprintf(stderr,"warning: mpqs: error in self-initialization ");
-    mpz_out_str(stderr,10,N); printf("\n");
+    mpz_out_str(stderr, 10, N); 
+	printf("\n");
     return -3;
   }
 
-  while (1) { /*printf("%ld,%ld; ",stat_mpqs_nsieves,mpqs_nrels);*/
-    if (!mpqs_next_pol()) {
-      if (retry) {
+  while (1) 
+  { 
+	/* printf("%ld, %ld; ", stat_mpqs_nsieves, mpqs_nrels); */
+
+    if (!mpqs_next_pol()) 
+	{
+      if (retry) 
+	  {
         fprintf(stderr,"warning: not enough polynomials in mpqs with ");
-        mpz_out_str(stderr,10,N); fprintf(stderr,"\n");
+        mpz_out_str(stderr, 10, N); 
+		fprintf(stderr,"\n");
       }
-      return -4;
+    
+	  return -4;
     }
+
     mpqs_sieve();
+
 #ifdef MPQS_STAT
 stat_mpqs_nsieves++;
 #endif
-    ev=mpqs_evaluate();
+    
+    ev = mpqs_evaluate();
+
 #ifdef MPQS_STAT
-stat_mpqs_nsurvivors+=ev; /*printf("%d %Ld  ",ev,mpqs_C); */
+stat_mpqs_nsurvivors += ev; /* printf("%d %Ld  ", ev, mpqs_C); */
 #endif
 
-if (ev) {
-    { int mpqs_dec_res; /* CJM, 11/30/04. */
+	if (ev) 
+	{
+		{ 
+			int mpqs_dec_res; /* CJM, 11/30/04. */
 
-      if ((mpqs_dec_res = mpqs_decompose()))
-        return -1;
-    }
+			if ((mpqs_dec_res = mpqs_decompose()))
+				return -1;
+		}
 
-      if (mpqs_nsurvivors && (mpqs_excess>MPQS_MIN_EXCESS)) {
+		if (mpqs_nsurvivors && (mpqs_excess > MPQS_MIN_EXCESS)) 
+		{
 
         mpqs_matrix_init();
-        if (mpqs_final()) {
+        if (mpqs_final()) 
+		{
 #ifdef MPQS_STAT
 printf("Stat: %lu %lu %lu %lu %lu %lu %lu \n",stat_mpqs_nsieves,stat_mpqs_nsurvivors,stat_mpqs_ntrials,stat_mpqs_ndiv,mpqs_nrels,mpqs_nprels,mpqs_ncrels);
 #endif
-          for (i=0; i<mpqs_nfactors; i++)
-            if (mpz_sizeinbase(mpqs_factors[i],2)>max_bits) return 0;
-          *factors=mpqs_factors;
+          for (i = 0; i < mpqs_nfactors; i++)
+		  {
+            if (mpz_sizeinbase(mpqs_factors[i], 2) > max_bits) 
+				return 0;
+		  }
+
+          *factors = mpqs_factors;
           return mpqs_nfactors;
         }
       }
     }
-    if (mpqs_nrels>MPQS_MAX_NRELS-MPQS_MIN_RELBUFFER) {
-      fprintf(stderr,"warning: too many relations in mpqs\n");
+
+    if (mpqs_nrels > MPQS_MAX_NRELS - MPQS_MIN_RELBUFFER) 
+	{
+      fprintf(stderr, "warning: too many relations in mpqs\n");
       return -5;
     }
   }
+
   return -1;
 }
 
