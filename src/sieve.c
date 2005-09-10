@@ -233,7 +233,7 @@ int main(int argC, char *args[])
   double          startTime;
   
   fbname[0]=jobfile[0]=0;
-  forceStop=0;
+  clForceStop=0;
   strncpy(Job.fbName, DEFAULT_FB_NAME, MAXFNAMESIZE);
 
   printf(START_MSG, GGNFS_VERSION);

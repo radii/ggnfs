@@ -696,7 +696,6 @@ int isSmooth_rat_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
   }
   maxRFB = FB->rfb[2*(FB->rfb_size-1)];
   for (j=0; j<numRels; j++) {
-    if (forceStop) goto ISSMOOTH_RWI_CLEANUP;
     R[j].p[0] = R[j].p[1] = 1;
     if (mpz_cmp_ui(&norms[j], 1) && (R[j].b>0)) {
       numFactors = factor(p, &norms[j], 1); /* I think the last arg could be a zero also. */
@@ -789,7 +788,6 @@ int isSmooth_alg_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
   }
   maxAFB = FB->afb[2*(FB->afb_size-1)];
   for (j=0; j<numRels; j++) {
-    if (forceStop) goto ISSMOOTH_AWI_CLEANUP;
     R[j].a_p[0] = R[j].a_p[1] = 1;
     if (mpz_cmp_ui(&norms[j], 1) && (R[j].b>0)) {
       numFactors = factor(p, &norms[j], 1); /* I think the last arg could be a zero also. */

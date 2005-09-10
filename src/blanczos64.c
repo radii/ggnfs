@@ -47,14 +47,12 @@
 #endif
 
 #if defined( __GNUC__ )
-    #define	USE_MMX_GCC
-    #define GGNFS_ATT_ASSEMBLER
+    #define GGNFS_x86_32_ATTASM_MMX
 #elif defined( _MSC_VER ) || defined( __MINGW32__ ) || defined ( MINGW32 )
-    #define GGNFS_MSC_ASSEMBLER
-    #define	USE_MMX_MSC
+    #define GGNFS_x86_32_MSCASM_MMX
 #endif
 
-#if defined( USE_MMX_GCC )
+#if defined( GGNFS_x86_32_ATTASM_MMX )
     #if defined(__MINGW32__) || defined(MINGW32)
         void * __cdecl __mingw_aligned_malloc (size_t, size_t);
         void * __cdecl __mingw_aligned_realloc (void*, size_t, size_t);
@@ -71,10 +69,10 @@
                                   "pxor (%1), %%mm0\n" \
                                   "movq %%mm0, (%0)\n" \
                                   : : "r"(_a), "r"(_b) : "memory" ); } 
-#elif defined( USE_MMX_MSC )
-    #define	malloc_aligned64(p,a,n)  (!((p) = (u64*)_aligned_malloc((n) * sizeof(u64), (a))) || ((uintptr_t)(p)%(a)))
+#elif defined( GGNFS_x86_32_MSCASM_MMX )
+    #define malloc_aligned64(p,a,n)  (!((p) = (u64*)_aligned_malloc((n) * sizeof(u64), (a))) || ((uintptr_t)(p)%(a)))
     #define free_aligned64(x)      _aligned_free(x)
-    #define	XEMMS                  __asm	emms
+    #define XEMMS                  __asm	emms
     #define XOR64(_a, _b)          __asm {				\
                                    __asm	mov	 eax,_a		\
                                    __asm	mov	 edx,_b		\
@@ -82,9 +80,9 @@
                                    __asm	pxor mm0,[edx]		\
                                    __asm	movq [eax],mm0	}
 #else
-    #define	malloc_aligned64(p,a,n)	(!((p) = (u64*)malloc((n) * sizeof(u64))) || ((uintptr_t)(p)%(a)))
+    #define malloc_aligned64(p,a,n)	(!((p) = (u64*)malloc((n) * sizeof(u64))) || ((uintptr_t)(p)%(a)))
     #define free_aligned64(x)	        free(x)
-    #define	XEMMS
+    #define XEMMS
     #define XOR64(_a, _b)           { *(_a) ^= *(_b); }
 #endif
 
@@ -229,7 +227,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
     // L2_CACHE_SIZE has to be a power of 2.
     // MULTB64_PAGESIZE is a half of L2 cache size.
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
         #if L2_CACHE_SIZE == 256
             #define MULTB64_PAGEMASK "-16384"
@@ -241,7 +239,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
             #error Unsupported L2_CACHE_SIZE
         #endif
 
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
         #if L2_CACHE_SIZE == 256
@@ -263,7 +261,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     s32 *cIndex = M->cIndex;
     u32 pagestart;
     for (pagestart = 0; pagestart < n; pagestart += MULTB64_PAGESIZE) {
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
         	movl	%0, %%esi			#cEntry		\n\
         	movl	%1, %%edi			#Product	\n\
@@ -331,7 +329,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
         	emms" : : "m"(cEntry), "m"(Product), "m"(cIndex), "m"(x), "m"(n),
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         #define rep1(n)								\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
@@ -415,7 +413,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
         s32 n = M->numCols;
         u32 *cEntry = M->cEntry;
         s32 *cIndex = M->cIndex;
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
         	movl	%0, %%esi			#cEntry		\n\
 	        movl	%1, %%edi			#Product	\n\
@@ -467,7 +465,7 @@ void MultB64(u64 *Product, u64 *x, void *P) {
         	jl	1b						\n\
         	emms" : : "m"(cEntry), "m"(Product), "m"(cIndex), "m"(x), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         #define rep2(n)							\
         	__asm	mov		eax,[esi+edx*4+4*n]	\
@@ -553,7 +551,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
 // L2_CACHE_SIZE has to be a power of 2.
 // MULTB_T64_PAGESIZE is a half of L2 cache size.
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
 
         #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
         #if L2_CACHE_SIZE == 256
@@ -565,7 +563,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         #else
             #error Unsupported L2_CACHE_SIZE!
         #endif
-    #elif defined (GGNFS_MSC_ASSEMBLER)
+    #elif defined (GGNFS_x86_32_MSCASM_MMX)
 
         #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
         #if L2_CACHE_SIZE == 256
@@ -587,7 +585,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         s32 *cIndex = M->cIndex;
         u32 pagestart;
         for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
         	movl	%0, %%esi			#cEntry		\n\
         	movl	%1, %%edi			#x		\n\
@@ -651,7 +649,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	emms" : : "m"(cEntry), "m"(x), "m"(cIndex), "m"(Product), "m"(n),
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         #define rep3(n)								\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
@@ -740,7 +738,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         s32 n = M->numCols;
         u32 *cEntry = M->cEntry;
         s32 *cIndex = M->cIndex;
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
 
             asm volatile("\
         	movl	%0, %%esi			#cEntry		\n\
@@ -789,7 +787,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	jl	1b						\n\
         	emms" : : "m"(cEntry), "m"(x), "m"(cIndex), "m"(Product), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         __asm
 	    {
@@ -1185,7 +1183,7 @@ ALIGNED16(u64 mult_w[2048]);
 
 void multT(u64 *c, u64 *a, u64 *b, s32 n) {
     memset(mult_w, 0, sizeof(u64) * 256 * 8);
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
         	movl	%0, %%esi					\n\
         	movl	%1, %%edi					\n\
@@ -1235,7 +1233,7 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
         	jnz	1b						\n\
         	emms" : : "m"(a), "m"(b), "m"(n) :
                "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
 	    __asm
 	    {
@@ -1293,7 +1291,7 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
   {
     int i;
     for (i = 0; i < 64; i += 8) {
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
                 movq	2040(%0), %%mm0		#r0 = a[255]	255->254	\n\
                 pxor	2032(%0), %%mm0		#r0 ^= a[254]			\n\
@@ -2004,7 +2002,7 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
                 pxor	1536(%0), %%mm0		#r0 ^= a[192]			\n\
                 movq	%%mm0, 56(%1)		#b[7] = r0			\n\
                 emms" : : "r"(mult_w + (i << 5)), "r"(c + i));
-            #elif defined(GGNFS_MSC_ASSEMBLER)
+            #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
             __asm
             {
@@ -2759,7 +2757,7 @@ void multS(u64 *D, int *S)
 }
 
 void mult64x64(u64 *c, u64 *a, u64 *b) {
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
             movl	%0, %%esi			#a		\n\
             movl	%1, %%edx			#b		\n\
@@ -2852,7 +2850,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             jnz	1b						\n\
             emms" : : "m"(a), "m"(b), "m"(c) :
                "%eax", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
         __asm
         {
             mov		esi,[a]
@@ -3015,7 +3013,7 @@ void preMult(u64 *A, u64 *B)
 }
   
 void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
             xorl	%%eax, %%eax					\n\
             xorl	%%ecx, %%ecx					\n\
@@ -3048,7 +3046,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
             addb	$32, %%cl					\n\
             jnc	1b						\n\
             #	emms" : : "r"(b), "r"(mult_w) : "%eax", "%ecx");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
 
         __asm
         {
@@ -3592,7 +3590,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
         #error Unsupported assembler model!        
     #endif
     if (a == c) {
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
         	    movl	%0, %%esi					\n\
         	    movl	%1, %%edi					\n\
@@ -3626,7 +3624,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
                 jnz	1b						\n\
                 emms" : : "m"(a), "m"(c), "m"(n) :
                      "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-        #elif defined(GGNFS_MSC_ASSEMBLER)
+        #elif defined(GGNFS_x86_32_MSCASM_MMX)
         
             __asm
             {
@@ -3666,7 +3664,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
             #error Unsupported assembler model!
         #endif
       } else {
-        #if defined(GGNFS_ATT_ASSEMBLER)
+        #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
                 movl	%0, %%esi					\n\
                 movl	%1, %%edi					\n\
@@ -3700,7 +3698,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
                 jnz	1b						\n\
                 emms" : : "m"(a), "m"(c), "m"(n) :
                      "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-        #elif defined(GGNFS_MSC_ASSEMBLER)
+        #elif defined(GGNFS_x86_32_MSCASM_MMX)
           	__asm
     	    {
                 mov		esi,[a]
@@ -3742,7 +3740,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
 }
     
 void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
-    #if defined(GGNFS_ATT_ASSEMBLER)
+    #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
             xorl	%%eax, %%eax					\n\
             xorl	%%ecx, %%ecx					\n\
@@ -3809,7 +3807,7 @@ void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
             jnz	1b						\n\
             emms" : : "m"(a), "m"(c), "m"(n) :
                "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
-    #elif defined(GGNFS_MSC_ASSEMBLER)
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
         
         __asm
         {

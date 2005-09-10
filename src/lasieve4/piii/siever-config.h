@@ -46,13 +46,21 @@ extern const uint32_t schedule_primebounds[N_PRIMEBOUNDS];
 extern const uint32_t schedule_sizebits[N_PRIMEBOUNDS];
 void siever_init(void);
 
+#if defined (_MSC_VER)
+    #define GGNFS_x86_32_MSCASM_MMX
+#elif defined(__GNUC__) && defined(__x86_64__)
+    #define GGNFS_x86_64_ATTASM_MMX
+#elif defined(__GNUC__) && defined(__i386__)
+    #define GGNFS_x86_32_ATTASM_MMX
+#endif
+
 #if !defined(_MSC_VER)
 #define NAME(_a) asm(_a)
 #else
 #define NAME(_a) 
 #endif
 
-#if defined(_MSC_VER)
+#if defined(GGNFS_x86_32_MSCASM_MMX)
 
 #define inline __inline
 
@@ -150,7 +158,7 @@ l1f:	mov		[res],ecx
 
 #endif
 
-#else
+#elif defined(GGNFS_x86_32_ATTASM_MMX)
 
 /* 32bit.h */
 extern volatile u32_t modulo32 NAME("modulo32");
@@ -210,6 +218,8 @@ static inline u32_t modsub32(u32_t subtrahend,u32_t minuend)
   return res;
 }
 
+#else
+    #error Unsupported assembler model!
 #endif
 
 /* lasched.h */

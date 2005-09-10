@@ -1,3 +1,7 @@
+9/10/05 (asl)
+  * Some small fixes in the sprit of further "config" files.
+  * Removed forceStop from ggnfs.h
+
 9/3/05 (trilliwig)
   * Cleaned up some redundant compiler flags and defines.  In particular,
     -mtune is implied by -march.  Not to mention that in versions of gcc

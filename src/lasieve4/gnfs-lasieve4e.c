@@ -48,6 +48,14 @@
 
 #include "lasieve.h"
 
+#if defined (_MSC_VER)
+    #define GGNFS_x86_32_MSCASM_MMX
+#elif defined(__GNUC__) && defined(__x86_64__)
+    #define GGNFS_x86_64_ATTASM_MMX
+#elif defined(__GNUC__) && defined(__i386__)
+    #define GGNFS_x86_32_ATTASM_MMX
+#endif
+
 #ifdef GGNFS_HOST_GENERIC
 const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,UINT_MAX};
 const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
@@ -548,7 +556,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   x |= x << 16;
   x |= x << 32;
   while (i_o < i_max) {
-#if defined(_MSC_VER)
+#if defined(GGNFS_x86_32_MSCASM_MMX)
   __asm {
 	  mov    	esi,[i_o]
 	  mov    	edi,[i_max]
@@ -570,7 +578,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   l2:     mov		[i_o],esi
 	  emms
   }
-#elif defined(__x86_64__)
+#elif defined(GGNFS_x86_64_ATTASM_MMX)
   asm volatile (
     "movq     (%%rax),%%mm7\n"
     ".align 32\n"
@@ -592,7 +600,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
     "emms":"=S" (i_o):"a"(&x),
     "S"(i_o), "D"(i_max)
   );
-#else
+#elif defined(GGNFS_x86_32_ATTASM_MMX)
   asm volatile (
     "movq     (%%eax),%%mm7\n"
     "1:\n"
@@ -613,6 +621,8 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
     "emms":"=S" (i_o):"a"(&x),
     "S"(i_o), "D"(i_max)
    );
+#else
+    #error Unsupported assembler model!
 #endif
     if (i_o < i_max) {
       uchar *i_max2 = i_o + 32;

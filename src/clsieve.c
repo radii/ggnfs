@@ -25,6 +25,10 @@
 #include <string.h>
 #include "ggnfs.h"
 
+#if defined(__GNUC__) && defined(__i386__)
+   #define GGNFS_x86_32_ATTASM_MMX
+#endif
+
 extern int clForceStop;
 
 /* sieving takes place in L1-cache-size blocks */
@@ -1843,7 +1847,8 @@ void flushCache(update_t *cache, hashtable_t *hash, script_t **mempool)
    * stores if they're available; they help a *lot*   *
    * on the athlon, but they're slower on the K8      *
    ****************************************************/
-#if defined(__GNUC__) && defined(__i386__)
+
+#ifdef GGNFS_x86_32_ATTASM_MMX
   for (i=0; i<(used & ~7); i+=8) {
     asm("movq 0(%1,%2,8), %%mm0 \n\t"
         "movq 8(%1,%2,8), %%mm1 \n\t"

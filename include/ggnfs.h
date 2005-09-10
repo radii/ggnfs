@@ -612,7 +612,6 @@ int createFB(nfs_fb_t *FB, char *ofname);
 
 
 /* clsieve.c */
-static int forceStop;
 int clSieve(nfs_sieve_job_t *J);
 
 /* squfof.c */
