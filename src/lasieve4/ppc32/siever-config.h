@@ -36,6 +36,10 @@ typedef uint32_t ulong;
 #define HAVE_SSIMD
 #endif
 
+#if defined(_WIN64)
+#define ULL_NO_UL
+#endif
+
 /* if.h should follow ULL_NO_UL when it's defined */
 #include "if.h"
 
