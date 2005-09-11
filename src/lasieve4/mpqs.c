@@ -604,7 +604,7 @@ static void mpqs_choose_multiplier()
   if (dn > 7) 
 	  mm = 128;
   else 
-	  mm = (u16_t)(exp(dn*log(2)));                 /* mm = e^(100.9 - log2(N)) */
+	  mm = (u16_t)(exp(dn*log(2.)));                 /* mm = e^(100.9 - log2(N)) */
   
   /*
    * STEN:
@@ -1162,8 +1162,7 @@ static int mpqs_next_pol()
     mpqs_A_inv_64 = mpqs_inv_64(mpqs_A);
     mpqs_C = (mpqs_B * mpqs_B - mpqs_kN_64) * mpqs_A_inv_64; /* C = (B^2 - kN) / A */
 
-	// ***
-    for (i=0; i<mpqs_nAdiv_total; i++)
+    for (i = 0; i < mpqs_nAdiv_total; i++)
 	{
       if (!mpqs_Adiv_active[i]) 
 	  {
@@ -2538,11 +2537,26 @@ static long mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
   if (!mpqs_isinit) 
 	  mpqs_init();
 
+  /*
+   *  STEN: we are not able to factor numbers larger than 64 bits in size due
+   *        to the current design (mpqs_kN_64 variable is used and is defined 
+   *        as u64_t. mpqs_kN_64 = k * N mod 2^64 as a result we are only able 
+   *        to factor ~58-64 bit numbers.
+   *
+   *        TO DO: eliminate mpqs_kN_64 variable.
+   */
+  if (mpz_sizeinbase(N, 2) > 64)
+  {
+	  fprintf(stderr,"warning: mpqs called with number >64 bits in size.\n");
+	  return -2;
+  }
+/*
   if (mpz_sizeinbase(N, 2) > 96) 
   {
     fprintf(stderr,"warning: mpqs called with >96 Bit\n");
     return -2;
   }
+*/
 
   mpz_set(mpqs_N, N);
   mpqs_choose_multiplier();
