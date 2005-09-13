@@ -27,6 +27,14 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <memory.h>
 #include <gmp.h>
 
+#if defined(ULONGLONG_MAX) && !defined(ULLONG_MAX)
+#    define ULLONG_MAX ULONGLONG_MAX
+#endif
+
+#if defined(LONGLONG_MAX) && !defined(LLONG_MAX)
+#    define LLONG_MAX LONGLONG_MAX
+#endif
+
 #include "lasieve.h"
 
 #ifdef MPQS_STAT
