@@ -336,7 +336,7 @@ static u16_t mpqs_powmod(u16_t a, u16_t e, u16_t p)
   aa = (u32_t)a;
   res = 1;
   
-  while (1, 1) 
+  while (1) 
   {
     if (ex & 1) 
 	{ 
@@ -2580,7 +2580,7 @@ static long mpqs_factor0(mpz_t N, size_t max_bits, mpz_t **factors, u16_t retry)
     return -3;
   }
 
-  while (1, 1) 
+  while (1) 
   { 
 	/* printf("%ld, %ld; ", stat_mpqs_nsieves, mpqs_nrels); */
 
