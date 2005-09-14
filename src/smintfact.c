@@ -109,7 +109,7 @@ int doTrialDiv(s32 *factors, mpz_t n)
    even consider using a faster homebrewed test at some point.
 */
 /********************************************************************/
-int factor(s32 *factors, mpz_t n, int useTrialDivision)
+int factor(u32 *factors, mpz_t n, int useTrialDivision)
 /********************************************************************/
 { int    numFactors=0, res, sorted=1, i, retVal;
   static mpz_t div1, div2, remain;

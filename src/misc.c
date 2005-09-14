@@ -19,6 +19,10 @@
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef _MSC_VER
+#pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

@@ -70,7 +70,7 @@ int asprintf(char**,const char*,...);
    before including stdio.h, but that seems to break things,
    so here we go: 
 */
-ssize_t getline(char**,size_t*,FILE*);
+size_t getline(char**,size_t*,FILE*);
 int asprintf(char **strp, const char *fmt, ...);
 int vasprintf(char **strp, const char *fmt, va_list ap);
 

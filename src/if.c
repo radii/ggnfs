@@ -13,6 +13,10 @@
   02111-1307, USA.
 */
 
+#ifdef _MSC_VER
+#pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
+#endif
+
 #include <time.h>
 
 #if defined (__MINGW32__) || defined (MINGW32)
@@ -396,7 +400,7 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 #ifdef NEED_GETLINE
 #define GETL_INCR 128
 /****************************************************/
-ssize_t getline(char **lineptr, size_t * n, FILE * stream)
+size_t getline(char **lineptr, size_t * n, FILE * stream)
 /****************************************************/
 {
   size_t rv = 0;
@@ -409,7 +413,7 @@ ssize_t getline(char **lineptr, size_t * n, FILE * stream)
   for (;;) {
     int m;
 
-    m = *n - rv;
+    m = (int)(*n - rv);
     if (fgets(*lineptr + rv, m - 1, stream) == NULL)
       break;
     rv = strlen(*lineptr);
@@ -427,7 +431,8 @@ ssize_t getline(char **lineptr, size_t * n, FILE * stream)
 int vasprintf(char **ptr, const char *template, va_list ap)
 /****************************************************/
 {
-  int n, size = 32;
+  int n;
+  size_t size = 32;
 
   while (1) {
     *ptr = xmalloc(size);

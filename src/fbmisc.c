@@ -19,11 +19,17 @@
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef _MSC_VER
+#pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "ggnfs.h"
 
+#define ULL_NO_UL
+#include "if.h"
 
 /* The optimal value for this one is probably different than that in rels.c. */
 /* The reason is that, when we are factoring things via factRel(), we know   */
@@ -74,7 +80,8 @@ void initFB(nfs_fb_t *FB)
 int readPoly(FILE *fp, nfs_fb_t *FB)
 /********************************************************************/
 { char token[128], value[512], thisLine[1024];
-  int  i, cont=1 ,set_y=0, read[]={0,0,0,0,0,0,0};
+  u32_t i; 
+  int cont=1 ,set_y=0, read[]={0,0,0,0,0,0,0};
 
   FB->f->degree = 0;
   for (i=0; i<=6; i++)
@@ -116,12 +123,12 @@ int readPoly(FILE *fp, nfs_fb_t *FB)
       } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '6')) {
         mpz_set_str(&FB->f->coef[token[1]-'0'], value, 10);
         read[token[1]-'0']=1;
-        FB->f->degree = MAX(FB->f->degree, token[1]-'0');
+        FB->f->degree = MAX(FB->f->degree, (unsigned int)(token[1]-'0'));
       } else if ((token[0]=='X') && (token[1] >= '0') && (token[1] <= '6')) {
         /* For (some) compatibility w/ Franke. */
         mpz_set_str(&FB->f->coef[token[1]-'0'], value, 10);
         read[token[1]-'0']=1;
-        FB->f->degree = MAX(FB->f->degree, token[1]-'0');
+        FB->f->degree = MAX(FB->f->degree, (unsigned int)(token[1]-'0'));
       } else if (strncmp(token, "END_POLY",8)==0) {
         cont=0;
       } 
@@ -269,7 +276,7 @@ int isSmooth_rat(s32 a, s32 b, nfs_fb_t *FB)
   mpz_sub(temp, temp2, temp);
   mpz_abs(temp, temp);  
 
-  fbSize = MIN(FB_TRIAL_DIV_FRAC*FB->rfb_size, MAX_TRIAL_DIV_SIZE);
+  fbSize = (s32)(MIN(FB_TRIAL_DIV_FRAC*FB->rfb_size, MAX_TRIAL_DIV_SIZE));
 
 /* Consider doing a mulmod32() here to check first. */
   for (i=0; i<2*fbSize; i+=2) {
@@ -314,9 +321,8 @@ int isSmooth_alg(s32 a, s32 b, nfs_fb_t *FB)
   mpz_abs(temp, temp);
 
   i=0;
-  fbSize = FB_TRIAL_DIV_FRAC*FB->afb_size;
-  fbSize = 2*MIN(FB_TRIAL_DIV_FRAC*FB->afb_size, MAX_TRIAL_DIV_SIZE);
-/* Again: consider adidng a mulmod32() test here! */
+  fbSize = (s32)(2*MIN(FB_TRIAL_DIV_FRAC*FB->afb_size, MAX_TRIAL_DIV_SIZE));
+/* Again: consider adding a mulmod32() test here! */
   while (i<fbSize) {
     while (mpz_fdiv_ui(temp, FB->afb[i])==0)  {
       mpz_div_ui(temp, temp, FB->afb[i]);
@@ -342,18 +348,24 @@ int isSmooth_alg(s32 a, s32 b, nfs_fb_t *FB)
 /************************************************************/
 int generateAFB(nfs_fb_t *FB, int verbose)
 /************************************************************/
-{ s32  i, thisP, zeros[MAXPOLYDEGREE], maxSize;
-  int   numZeros, d = FB->f->degree, cont;
+{ size_t  i; 
+  u32  thisP;
+  s32  zeros[MAXPOLYDEGREE], maxSize;
+  u32  numZeros; 
+  int d = FB->f->degree, cont;
   s32  total;
   char  str[128];    
   mpz_t cd;  
-  s32  size=FB->afb_size, lim=FB->aLim;
+  u32  size=FB->afb_size, lim=FB->aLim;
 
   if (verbose) {
+    printf("Generating AFB with norms upto %" PRIu32 "...\n", lim);
+/*
     if (lim > 0) 
       printf("Generating AFB with norms upto %" PRId32 "...\n", lim);
     else
       printf("Generating AFB of size %" PRId32 "...\n", size);
+*/
   }
   mpz_init_set(cd, &(FB->f->coef[d]));
   if (verbose)
@@ -398,8 +410,10 @@ int generateAFB(nfs_fb_t *FB, int verbose)
     thisP = getNextPrime(thisP);
     if ((lim > 0) && (thisP > lim))
       cont=0;
+/*
     else if ((lim <=0) && (total > size))
       cont=0;
+*/
   }
   if (verbose) printf("\n");
     
@@ -415,7 +429,8 @@ int generateQCB(nfs_fb_t *FB, int size)
 /************************************************************/
 /* There must already be an AFB in 'FB'.                    */
 /************************************************************/
-{ s32 i, j, thisP, zeros[MAXPOLYDEGREE], maxSize;
+{ s32 i, thisP, zeros[MAXPOLYDEGREE], maxSize;
+  u32 j;
   int  numZeros, usedZeros;
   s32 total;
   mpz_poly df;
@@ -529,7 +544,7 @@ int get_g(mpz_poly g, nfs_fb_t *FB)
 /*********************************************************************/
 int loadFB(char *fName, nfs_fb_t *FB)
 /********************************************************************/
-{ s32 size;
+{ size_t size;
   char token[128], value[512], thisLine[1024];
   int  cont=1, t;
   FILE *fp;
@@ -650,13 +665,14 @@ int isSmooth_rat_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
 /**************************************************************/
 /* Parallel version, for (a,b) pairs with the same b.         */
 /**************************************************************/
-{ s32   i, j, fbSize, P, locIndex, b, residue;
+{ s32   i, j, fbSize, locIndex, b, residue;
+  u32   P;
   int    numFactors, numLarge, numGood=0;
   static mpz_t temp2;
   static int initialized=0;
   u32   p[64], maxRFB;
   
-  fbSize = MIN(FB_TRIAL_DIV_FRAC*FB->rfb_size, MAX_TRIAL_DIV_SIZE);
+  fbSize = (s32)(MIN(FB_TRIAL_DIV_FRAC*FB->rfb_size, MAX_TRIAL_DIV_SIZE));
   if (!(initialized)) {
     mpz_init(temp2);
     if (!normsInitialized) {
@@ -675,7 +691,7 @@ int isSmooth_rat_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
   mpz_mul_si(temp2, FB->m, b);
   for (j=0; j<numRels; j++) {
     if (R[j].b>0) {
-      mpz_set_si(&norms[j], R[j].a);
+      mpz_set_sll(&norms[j], R[j].a);
       mpz_sub(&norms[j], &norms[j], temp2);
       mpz_abs(&norms[j], &norms[j]);
       R[j].rFSize = 0;
@@ -729,7 +745,6 @@ int isSmooth_rat_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
     }
     if (R[j].b>0) numGood++;
   }
-ISSMOOTH_RWI_CLEANUP:
   while (j<numRels)
     R[j++].b=0;
   return numGood;
@@ -740,13 +755,14 @@ int isSmooth_alg_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
 /***************************************************************/
 /* Parallel version of above, for (a,b) pairs with the same b. */
 /***************************************************************/
-{ s32   i, j, fbSize, P, r, locIndex, b, residue;
+{ s32   i, j, fbSize, r, locIndex, b, residue;
+  u32  P;
   u32  p[64], maxAFB;
   int    numFactors, numLarge, numGood=0;
   static int initialized=0;
   static mpz_t temp;
   
-  fbSize = MIN(FB_TRIAL_DIV_FRAC*FB->afb_size, MAX_TRIAL_DIV_SIZE);
+  fbSize = (s32)(MIN(FB_TRIAL_DIV_FRAC*FB->afb_size, MAX_TRIAL_DIV_SIZE));
   if (!(initialized)) {
     mpz_init(temp);
     if (!normsInitialized) {
@@ -801,7 +817,7 @@ int isSmooth_alg_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
           else if (P > maxAFB) {
             if (numLarge < FB->maxLPA) {
               R[j].a_p[numLarge] = P;
-              R[j].a_r[numLarge] = mulmod32((P + R[j].a%P)%P, inverseModP(b, P), P);
+              R[j].a_r[numLarge] = mulmod32((P + (s32)(R[j].a%P))%P, inverseModP(b, P), P);
               numLarge++;
             } else R[j].b=0;
           } else {
@@ -809,7 +825,7 @@ int isSmooth_alg_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
             if (b%P==0) {
               r=P; /* prime @ infty. Don't do anything with it - the server will handle it. */
             } else {
-              r = mulmod32( ((P+(R[j].a%P)) )%P, inverseModP(b, P), P);
+              r = mulmod32( ((P+(s32)(R[j].a%P)) )%P, inverseModP(b, P), P);
               locIndex = lookupAFB(P, r, FB);
               if ((FB->afb[2*locIndex]==P) && (FB->afb[2*locIndex+1]==r)) {
                 R[j].aFactors[R[j].aFSize] = locIndex;
@@ -825,7 +841,6 @@ int isSmooth_alg_withInfo_par(relation_t *R, int numRels, nfs_fb_t *FB)
     }
     if (R[j].b>0) numGood++;
   }
-ISSMOOTH_AWI_CLEANUP:
   while (j<numRels)
     R[j++].b=0;
   return numGood;

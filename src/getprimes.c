@@ -112,7 +112,8 @@ u32 getPrevPrime(u32 n)
 
 u32 getMaxP(u32 a, u32 b);
 static unsigned char pDiff[6542];
-static int pDiffInit=0, numDiffs=0;
+static int pDiffInit=0;
+static u32 numDiffs=0;
 /**********************************************/
 const u32 _smallP[] = {
   2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53, 
@@ -125,7 +126,8 @@ void makeDiffs()
 /* between 2 and 2^16.                                     */
 /***********************************************************/
 { unsigned char *S;
-  int i, entry, index;
+  int i, entry;
+  u32 index;
   u32  p, q;
 
   if (pDiffInit) return;
@@ -228,7 +230,7 @@ u32 getMaxP(u32 a, u32 b)
     x = 1.11*(double)(b-a)/log((double)a);
   else 
     x = 1.11*(double)(b)/log((double)b);
-  return x + 25;
+  return (u32)x + 25;
 }
 
 
