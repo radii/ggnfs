@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="gnfs-lasieve4I14e"
+	ProjectGUID="{8BDD382D-64DF-4BBC-BA2F-C9AA904E065C}"
+	Keyword="Win32Proj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;I_bits=14;ASM_MPQS_SIEVER;ASM_MPQS_EVAL;ASM_MPQS_TD"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib ..\ggnfslib\$(OutDir)\ggnfslib.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
+				LinkIncremental="2"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/latsieve14.pdb"
+				SubSystem="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy /b $(OutDir)\$(ProjectName).exe ..\..\..\bin\"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;I_bits=14;ASM_MPQS_SIEVER;ASM_MPQS_EVAL;ASM_MPQS_TD"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="FALSE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib ..\ggnfslib\$(OutDir)\ggnfslib.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="TRUE"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy /b $(OutDir)\$(ProjectName).exe ..\..\..\bin\"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files">
+			<File
+				RelativePath="..\..\..\src\lasieve4\gmp-aux.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\gnfs-lasieve4e.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\input-poly.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\lasieve-prepn.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\mpqs.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\mpz-ull.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\prho.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\primgen32.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\real-poly-aux.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\recurrence6.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\redu2.c">
+			</File>
+			<Filter
+				Name="piii">
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\basemath.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\gcd32.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\lasched.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\medsched.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\montgomery_mul.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\psp.c">
+				</File>
+				<File
+					RelativePath="..\..\..\src\lasieve4\piii\siever-config.c">
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Header Files">
+			<File
+				RelativePath="..\..\..\src\lasieve4\generic\32bit.h">
+			</File>
+			<File
+				RelativePath="..\if.h">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\lasieve.h">
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\siever-config.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="Assembler Files"
+			Filter="">
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\asm_mul128.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\asm_mul64.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\asm_mul96.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\modinv1002.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\mpqs_eval.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\mpqs_sieve.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\mpqs_td.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\ri-aux.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\lasieve4\piii\sieve-from-sched.asm">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;
+"
+						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
