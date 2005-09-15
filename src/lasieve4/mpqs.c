@@ -35,6 +35,16 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #    define LLONG_MAX LONGLONG_MAX
 #endif
 
+/* Temporary fix for the GCC compiler */
+#if !defined (ULLONG_MAX)
+#	define ULLONG_MAX    0xffffffffffffffffULL
+#endif
+
+#if !defined (LLONG_MAX)
+#	define LLONG_MAX     9223372036854775807ULL
+#endif
+/* -- end of temporary fix -- */
+
 #include "lasieve.h"
 
 #ifdef MPQS_STAT
