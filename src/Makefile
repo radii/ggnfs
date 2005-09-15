@@ -34,7 +34,7 @@ export ARCH HOST ALLOPT CFLAGS DEBUGOPT
 
 OBJS=getprimes.o fbmisc.o squfof.o rels.o $(LANCZOS).o poly.o mpz_poly.o \
      mpz_mat.o smintfact.o misc.o ecm4c.o nfmisc.o montgomery_sqrt.o \
-     matstuff.o dickman.o fbgen.o llist.o if.o lasieve4/mpz-ull.c
+     matstuff.o dickman.o fbgen.o llist.o if.o lasieve4/mpz-ull.o
 
 BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
      $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
