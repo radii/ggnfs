@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <limits.h>
 
 #include "lasieve.h"
 
