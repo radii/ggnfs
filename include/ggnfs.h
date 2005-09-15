@@ -213,7 +213,7 @@ typedef _poly_t poly_t[1];
 #define MAXPOLYDEGREE 11
 typedef struct {
   __mpz_struct coef[MAXPOLYDEGREE+1];
-  int degree;
+  unsigned int degree;
 } mpz_poly_t;
 typedef mpz_poly_t mpz_poly[1];
 
@@ -299,16 +299,16 @@ typedef struct {
   double     rfb_lambda; /* Franke's lambda; I'll explain later. */
 
   double     afb_log_base, log_alb;
-  s32       afb_size;   /* algebraic factor base size  */
+  u32       afb_size;   /* algebraic factor base size  */
   double     afb_lambda; /* Franke's lambda; I'll explain later. */
   s32      *afb;        /* algebraic factor base: afb[2k]=p_k, afb[2k+1]=r_k (root of 'f' mod p_k). */
-  s32       aLim;       /* algebraic factor base limit. */
+  u32       aLim;       /* algebraic factor base limit. */
   int       *afb_log;    /* fixed-point log approximations */
   int        afb_log_ff; /* fudge-factor for sieving.   */
   s32       qcb_size;   /* quadratic character base size */
   s32      *qcb;        /* quadratic character base. Formatted same as afb. */
-  s32       maxP_r;     /* Max large (leftover) rational prime */
-  s32       maxP_a;     /* Max large (leftover) algebraic prime size */
+  u32       maxP_r;     /* Max large (leftover) rational prime */
+  u32       maxP_a;     /* Max large (leftover) algebraic prime size */
   int        maxLP;      /* Max # of large rational primes. */
   int        maxLPA;     /* Max # of large algebraic primes. */
   int        MFB_r;      /* Bits in largest value to factor into large primes */
@@ -605,6 +605,7 @@ int createFB(nfs_fb_t *FB, char *ofname);
 		return (s32)(((uint64_t)x*(uint64_t)y)%m);
 	}
 #elif defined( _MSC_VER )
+	extern s32 mulmod32(s32 op1, s32 op2, s32 modulus);
 #else
 	extern s32 mulmod32(s32 op1, s32 op2, s32 modulus) asm("mulmod32");
 #endif
@@ -625,7 +626,7 @@ int latSieve(s32 *candidates, int maxCands, nfs_fb_t *FB,
 /* smintfact.c */
 int   smallIntFactor(u32 *factors, int *numFactors, mpz_t _t);
 int   factor_using_pollard_rho (u32 *factors, int *numFactors, mpz_t n, int a_int);
-int   factor(s32 *factors, mpz_t n, int useTrialDivision);
+int   factor(u32 *factors, mpz_t n, int useTrialDivision);
 
 
 /* fbmisc.c */
