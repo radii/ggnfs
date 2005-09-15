@@ -145,6 +145,9 @@ copy ..\..\..\src\lasieve4\piii\siever-config.h ..\..\..\src\lasieve4\asm
 				RelativePath="..\modinv1002.c">
 			</File>
 			<File
+				RelativePath="..\..\..\src\lasieve4\mpz-ull.c">
+			</File>
+			<File
 				RelativePath="..\..\..\src\mpz_mat.c">
 			</File>
 			<File

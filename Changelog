@@ -1,3 +1,6 @@
+9/15/05 (Brian Gladman)
+  * minor fix for VC7 build files
+
 9/10/05 (asl)
   * Some small fixes in the sprit of further "config" files.
   * Removed forceStop from ggnfs.h
