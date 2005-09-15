@@ -25,8 +25,9 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define ULONG_RI
 #define asm_modinv32 modinv32
 
-#ifdef __ppc__
 #define ULL_NO_UL
+
+#ifdef __ppc__
 typedef uint32_t ulong;
 #define GGNFS_BIGENDIAN
 #define GNFS_CS32
@@ -34,10 +35,6 @@ typedef uint32_t ulong;
 
 #if defined(__x86_64__) && !defined(_WIN64)
 #define HAVE_SSIMD
-#endif
-
-#if defined(_WIN64)
-#define ULL_NO_UL
 #endif
 
 /* if.h should follow ULL_NO_UL when it's defined */
