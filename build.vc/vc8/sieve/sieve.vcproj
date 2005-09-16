@@ -6,7 +6,6 @@
 	ProjectGUID="{0B29F448-FD43-4C93-A7D4-7B305150F444}"
 	RootNamespace="sieve"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -369,6 +368,10 @@
 			>
 			<File
 				RelativePath="..\..\..\src\clsieve.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\makefb.c"
 				>
 			</File>
 			<File
