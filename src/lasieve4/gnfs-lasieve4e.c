@@ -117,7 +117,7 @@ u32_t process_no;
 char *sysload_cmd;
 double sieveStartTime;
 
-int rho_factor(i32_t *factors, mpz_t n);
+int rho_factor(unsigned long *factors, mpz_t n);
 
 /****************************************************/
 static int tdcand_cmp(const void *x, const void *y)
@@ -2503,7 +2503,7 @@ int lasieve()
                             break;
                           }
                           for (i = 0; i < nf; i++)
-                            mpz_set(large_primes[s1][i], mf[i]);
+			    mpz_set(large_primes[s1][i], mf[i]);
                           nlp[s1] = nf;
                           continue;
 #endif
@@ -2515,7 +2515,7 @@ int lasieve()
 #endif
 #define TRY_RHO_ON_FAILURES
 #ifdef TRY_RHO_ON_FAILURES
-                        { i32_t small_factors[10];
+                        { unsigned long small_factors[10];
 
                           nf = rho_factor(small_factors, large_factors[s1]);
                           for (i = 0; i < nf; i++) {

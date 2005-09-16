@@ -1,1 +1,1 @@
-#define GGNFS_VERSION "0.77.1-20050903"
+#define GGNFS_VERSION "0.77.1-20050916-nocona"

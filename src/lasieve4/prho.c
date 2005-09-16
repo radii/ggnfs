@@ -120,7 +120,7 @@ int doTrialDiv(long *factors, mpz_t n)
 mpz_t div1, div2, remain;
 
 /********************************************************************/
-int rho_factor(long *factors, mpz_t n)
+int rho_factor(unsigned long *factors, mpz_t n)
 /********************************************************************/
 { int    numFactors=0, res, sorted=1, i, retVal;
   static mpz_t stack[32];

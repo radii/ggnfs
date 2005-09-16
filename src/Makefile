@@ -1,4 +1,4 @@
-ALLOPT=-march=$(ARCH) -ftracer -pipe
+ALLOPT=-march=$(ARCH) -pipe
 INC=-I. -I.. -I../include $(LOCALINC)
 LIBS=-lgmp -lm
 BINDIR=../bin
@@ -26,7 +26,7 @@ endif
 DEBUGOPT=-W -Wall -g -pg
 
 CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions \
-       -fomit-frame-pointer -W -Wall $(ALLOPT)
+       -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
 

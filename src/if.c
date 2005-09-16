@@ -400,7 +400,7 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 #ifdef NEED_GETLINE
 #define GETL_INCR 128
 /****************************************************/
-size_t getline(char **lineptr, size_t * n, FILE * stream)
+ssize_t getline(char **lineptr, size_t * n, FILE * stream)
 /****************************************************/
 {
   size_t rv = 0;

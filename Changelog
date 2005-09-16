@@ -1,3 +1,10 @@
+9/16/05 (trilliwig)
+  * Fixed type mismatch with rho_factor() causing procrels crashes on 64-bit
+    machines.
+  * mpz_poly_t.degree and getline() MUST be signed.  It is a bug if they are
+    unsigned.
+  * Added nocona target for Intel chips with AMD64 support.
+  
 9/15/05 (Brian Gladman)
   * minor fix for VC7 build files
 

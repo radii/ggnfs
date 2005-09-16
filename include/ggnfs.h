@@ -213,7 +213,7 @@ typedef _poly_t poly_t[1];
 #define MAXPOLYDEGREE 11
 typedef struct {
   __mpz_struct coef[MAXPOLYDEGREE+1];
-  unsigned int degree;
+  int degree;
 } mpz_poly_t;
 typedef mpz_poly_t mpz_poly[1];
 

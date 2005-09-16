@@ -63,14 +63,14 @@ int skip_blank_comments(char**,size_t*,FILE*);
 int asprintf(char**,const char*,...);
 #endif
 
-//#ifdef NEED_GETLINE
-//#endif
+#ifdef NEED_GETLINE
+#endif
 
 /* These are supposed to be obtained by #define _GNU_SOURCE
    before including stdio.h, but that seems to break things,
    so here we go: 
 */
-size_t getline(char**,size_t*,FILE*);
+ssize_t getline(char**,size_t*,FILE*);
 int asprintf(char **strp, const char *fmt, ...);
 int vasprintf(char **strp, const char *fmt, va_list ap);
 
