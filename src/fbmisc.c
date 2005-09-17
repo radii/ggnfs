@@ -122,12 +122,12 @@ int readPoly(FILE *fp, nfs_fb_t *FB)
       } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '6')) {
         mpz_set_str(&FB->f->coef[token[1]-'0'], value, 10);
         read[token[1]-'0']=1;
-        FB->f->degree = MAX(FB->f->degree, (unsigned int)(token[1]-'0'));
+        FB->f->degree = MAX(FB->f->degree, (int)(token[1]-'0'));
       } else if ((token[0]=='X') && (token[1] >= '0') && (token[1] <= '6')) {
         /* For (some) compatibility w/ Franke. */
         mpz_set_str(&FB->f->coef[token[1]-'0'], value, 10);
         read[token[1]-'0']=1;
-        FB->f->degree = MAX(FB->f->degree, (unsigned int)(token[1]-'0'));
+        FB->f->degree = MAX(FB->f->degree, (int)(token[1]-'0'));
       } else if (strncmp(token, "END_POLY",8)==0) {
         cont=0;
       } 
@@ -428,8 +428,7 @@ int generateQCB(nfs_fb_t *FB, int size)
 /************************************************************/
 /* There must already be an AFB in 'FB'.                    */
 /************************************************************/
-{ s32 i, thisP, zeros[MAXPOLYDEGREE], maxSize;
-  u32 j;
+{ s32 i, j, thisP, zeros[MAXPOLYDEGREE], maxSize;
   int  numZeros, usedZeros;
   s32 total;
   mpz_poly df;

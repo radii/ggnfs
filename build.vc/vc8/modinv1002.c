@@ -22,6 +22,8 @@
 	%eax and %edx are used in the division.
 */
 
+#include <stdio.h>
+
 volatile extern unsigned long modulo32;
 
 unsigned long asm_modinv32(unsigned long x)

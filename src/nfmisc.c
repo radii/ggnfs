@@ -39,7 +39,8 @@ void getTraceConstants(nf_t *N);
 /****************************************************************/
 int smallestFactor(mpz_fact_t *F)
 /****************************************************************/
-{ int minLoc, i;
+{ int minLoc;
+  unsigned int i;
 
   minLoc = -1;
   for (i=0; i<F->size; i++)
@@ -711,6 +712,7 @@ int getIntegralBasis(nf_t *N, mpz_fact_t *D, int tryHard)
 /* sized primes (probably upto 15 digits or so.)                */
 /****************************************************************/
 { int        retVal, n=N->T->degree, i, j, l, pLoc, m;
+  unsigned int k;
   mpz_fact_t F;
   mpz_t      p, d_Op;
   mpz_mat_t  Op;
@@ -819,8 +821,8 @@ int getIntegralBasis(nf_t *N, mpz_fact_t *D, int tryHard)
   }
   for (i=0; i<m; i++)
     initIdeal(&N->sPrimes[i]);
-  for (i=m=0; i<F.size; i++) { 
-    m += factorPrime(&N->sPrimes[m], &F.factors[i], N);
+  for (k=0, m=0; k<F.size; k++) { 
+    m += factorPrime(&N->sPrimes[m], &F.factors[k], N);
   }
   N->numSPrimes = m;
   /* Some constants used to compute valuations. */

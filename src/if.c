@@ -403,7 +403,7 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 ssize_t getline(char **lineptr, size_t * n, FILE * stream)
 /****************************************************/
 {
-  size_t rv = 0;
+  ssize_t rv = 0;
 
   if (*n == 0) {
     *n = GETL_INCR;
@@ -416,7 +416,7 @@ ssize_t getline(char **lineptr, size_t * n, FILE * stream)
     m = (int)(*n - rv);
     if (fgets(*lineptr + rv, m - 1, stream) == NULL)
       break;
-    rv = strlen(*lineptr);
+    rv = (ssize_t)strlen(*lineptr);
     if (rv == 0 || (*lineptr)[rv - 1] == '\n')
       break;
     *n += GETL_INCR;

@@ -291,7 +291,7 @@ typedef struct {
   mpz_t      disc;     /* not set unless it's needed. */
   mpz_t      cd;
   mpz_t      knownDiv;
-  s32       rfb_size;   /* rational factor base size  */
+  u32       rfb_size;   /* rational factor base size  */
   s32       rLim;       /* rational factor base limit. */
   s32      *rfb;        /* rational factor base: rfb[2k]=p_k, rfb[2k+1] = m (mod p_k). */
   double     rfb_log_base, log_rlb;
@@ -334,7 +334,7 @@ typedef struct {
   mpz_t         unfactored;
   __mpz_struct *factors;
   int          *exponents;
-  int           size;
+  unsigned int  size;
   int           sign;
 } mpz_fact_t;
 
@@ -698,7 +698,7 @@ s32 combParts(llist_t *R, llist_t *P, int maxRelsInFF, s32 minFF);
 /* In the above, the +6 is to count also the: (1 size field) + (a,b fields) + (2 qcb fields) */
 int   factRel(relation_t *R, nf_t *N);
 int   factRelQ(relation_t *R, nf_t *N, s32 FBIndex);
-int   factRels_clsieved(relation_t *R, int numRels, nf_t *N);
+int   factRels_clsieved(relation_t *R, size_t numRels, nf_t *N);
 int   completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv);
 int   relConvertToData(s32 *data, relation_t *R);
 int   dataConvertToRel(relation_t *R, s32 *data);

@@ -19,11 +19,17 @@
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef _MSC_VER
+#pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
+#endif
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <limits.h>
 #include "ggnfs.h"
 
 #define FB_TRIAL_DIV_FRAC 0.35
@@ -70,7 +76,8 @@ s32 lookupRFB(s32 P, nfs_fb_t *FB)
 /* Lookup the given prime in the RFB. Return it's index, if */
 /* found, or -1 otherwise.                                  */
 /************************************************************/
-{ s32   p, k, h, *loc;
+{ s32   p, h, *loc;
+  u32   k;
   static s32 *rfbHash;
   static int   initialized=0;
   
@@ -96,7 +103,8 @@ s32 lookupRFB(s32 P, nfs_fb_t *FB)
 
   loc = (s32 *)bsearch(&p, FB->rfb, FB->rfb_size, 2*sizeof(s32), cmpS32s);
   if (loc != NULL) {
-    k = loc - FB->rfb;
+    assert((loc - FB->rfb) <= INT_MAX);
+    k = (s32)(loc - FB->rfb);
     k /= 2; /* Each entry in the array is actually 2 s32's wide. */
     return k;
   }
@@ -109,7 +117,8 @@ s32 lookupAFB(s32 p, s32 r, nfs_fb_t *FB)
 /* Lookup the given prime in the AFB. Return it's index, if */
 /* found, or -1 otherwise.                                  */
 /************************************************************/
-{ s32 _p, _r, k, h, *loc;
+{ s32 _p, _r, h, *loc;
+  u32 k;
   static s32 *afbHash;
   static int   initialized=0;
 
@@ -137,7 +146,8 @@ s32 lookupAFB(s32 p, s32 r, nfs_fb_t *FB)
   if (FB->afb[2*k] != _p) {
     loc = (s32 *)bsearch(&_p, FB->afb, FB->afb_size, 2*sizeof(s32), cmpS32s);
     if (loc != NULL) {
-      k = loc - FB->afb;
+	  assert((loc - FB->afb) <= INT_MAX);
+      k = (s32)(loc - FB->afb);
       k /= 2; /* Each entry in the array is actually 2 s32's wide. */
       while ((k>0) && (FB->afb[2*(k-1)]==_p))
         k--;
@@ -372,7 +382,8 @@ int readRelList(rel_list *L, char *fname)
 /* maxDataSize fields.                                                       */
 /*****************************************************************************/
 { s32  size, relsRead, sF, relSize;
-  s32  *buf, bufMax, bufSize, bufIndex;
+  s32  *buf, bufMax;
+  size_t bufSize, bufIndex;
   FILE *fp;
 
   L->numRels = 0; L->relIndex[0]=0;
@@ -514,7 +525,8 @@ int factRel(relation_t *R, nf_t *N)
       /* Find this factor in the RFB. */
       loc = (s32 *)bsearch(&pFacts[i], FB->rfb, rfbSize, 2*sizeof(s32), cmpS32s);
       if (loc != NULL) {
-        locIndex = loc - FB->rfb;
+	    assert((loc - FB->rfb) <= INT_MAX);
+        locIndex = (s32)(loc - FB->rfb);
         locIndex /= 2; /* Each entry in the array is actually 2 s32's wide. */
         e=1;
         while ((i<(numpFacts-1)) && (pFacts[i] == pFacts[i+1])) {
@@ -616,7 +628,8 @@ int factRel(relation_t *R, nf_t *N)
     for (i=0; i<numpFacts; i++) {
       /* Find this factor in the AFB. */
       p = pFacts[i];
-      if (p>FB->maxP_a) return -1923;
+	  assert(p > 0);
+      if ((u32)p > FB->maxP_a) return -1923;
       loc = (s32 *)bsearch(&p, FB->afb, afbSize, 2*sizeof(s32), cmpS32s);
       /* There is only one alg. prime with this norm dividing <a-b\alpha>, */
       /* so  the exponent is easy to find:                                 */
@@ -626,10 +639,11 @@ int factRel(relation_t *R, nf_t *N)
       }
       /* Find the corresponding 'r': */
       if (R->b%p==0) r=p; /* prime @ infty. */
-      else r = mulmod32((p+(R->a%p))%p, inverseModP(R->b, p), p);
+      else r = mulmod32((p+(s32)(R->a%p))%p, inverseModP(R->b, p), p);
       if (loc != NULL) {
         /* Find the first AFB element corresponding to this 'p'. */
-        locIndex = loc - FB->afb;
+	    assert((loc - FB->afb) <= INT_MAX);
+        locIndex = (s32)(loc - FB->afb);
         locIndex /= 2;
         while ((locIndex >0) && (FB->afb[2*(locIndex-1)]==p))
           locIndex--;
@@ -765,7 +779,8 @@ int completeRelFact(relation_t *R, nf_t *N)
       if ((u32)pFacts[i] < (u32)maxRFBPrime) {
         loc = (s32 *)bsearch(&pFacts[i], FB->rfb, rfbSize, 2*sizeof(s32), cmpS32s);
         if (loc != NULL) {
-          locIndex = loc - FB->rfb;
+		  assert((loc - FB->rfb) <= INT_MAX);
+          locIndex = (s32)(loc - FB->rfb);
           locIndex /= 2; /* Each entry in the array is actually 2 s32's wide. */
           e=1;
           while ((i<(numpFacts-1)) && (pFacts[i] == pFacts[i+1])) {
@@ -849,10 +864,11 @@ exit(-1);
       }
       /* Find the corresponding 'r': */
       if (R->b%p==0) r=p; /* prime @ infty. */
-      else r = mulmod32((p+(R->a%p))%p, inverseModP(R->b, p), p);
+      else r = mulmod32((p+(s32)(R->a%p))%p, inverseModP(R->b, p), p);
       if (loc != NULL) {
         /* Find the first AFB element corresponding to this 'p'. */
-        locIndex = loc - FB->afb;
+	    assert((loc - FB->afb) <= INT_MAX);
+        locIndex = (s32)(loc - FB->afb);
         locIndex /= 2;
         while ((locIndex >0) && (FB->afb[2*(locIndex-1)]==p))
           locIndex--;
@@ -918,7 +934,7 @@ int cmpRelsAB(const void *X, const void *Y)
 }
 
 /************************************************************************/
-int factRels_clsieved(relation_t *R, int numRels, nf_t *N)
+int factRels_clsieved(relation_t *R, size_t numRels, nf_t *N)
 /************************************************************************/
 /* R[0], ..., R[numRels-1] have (a,b) fields that should be factored.   */
 /* The b's should be all in a fairly narrow range (i.e., perhaps from a */
@@ -927,10 +943,14 @@ int factRels_clsieved(relation_t *R, int numRels, nf_t *N)
 /* out to be useless (not almost-smooth) will have their (a,b) fields   */
 /* set to zero.                                                         */
 /************************************************************************/
-{ int  i, j, sorted=1, relNum, numFact, e, res;
-  s32 a, b, p, r, rCutoff=300, aCutoff=300;
+{ int  sorted=1, e, res;
+  size_t relNum, numFact;
+  unsigned int i, j;
+  s32 b, p, r;
+  s64 a;
+  u32 rCutoff=300, aCutoff=300;
   s32 residue;
-  s32 minA, maxA, minB, maxB;
+  s64 minA, maxA, minB, maxB;
   nfs_fb_t *FB = N->FB;
 
   /* Sort the relations lexicographically ascending with b>a. */
@@ -1016,7 +1036,7 @@ int factRels_clsieved(relation_t *R, int numRels, nf_t *N)
     /* Find the first a >= R[0].a so that (a, R[0].b) is divisible by (p,r). */
     b = R[0].b;
     
-    a = R[0].a + (mulmod32(b, r, p) - R[0].a%p + p)%p;
+    a = R[0].a + (mulmod32(b, r, p) - (s32)(R[0].a%p) + p)%p;
     while (relNum < numRels) {
       if ((R[relNum].a==a) && (R[relNum].b==b))  {
         numFact = R[relNum].rFSize;
@@ -1030,7 +1050,7 @@ int factRels_clsieved(relation_t *R, int numRels, nf_t *N)
         if (relNum < numRels) {
           if (R[relNum].b != b)  { /* Re-adjust a. */
             b = R[relNum].b;
-            a = R[relNum].a + (mulmod32(b, r, p) - R[relNum].a%p + p)%p;
+            a = R[relNum].a + (mulmod32(b, r, p) - (s32)(R[relNum].a%p) + p)%p;
           }
           if (R[relNum].a > a) {
             do {
@@ -1053,14 +1073,14 @@ int factRels_clsieved(relation_t *R, int numRels, nf_t *N)
     /* Find the first a >= R[0].a so that (a, R[0].b) is divisible by (p,r). */
     b = R[0].b;
     
-    a = R[0].a + (mulmod32(b, r, p) - R[0].a%p + p)%p;
+    a = R[0].a + (mulmod32(b, r, p) - (s32)(R[0].a%p) + p)%p;
     while (relNum < numRels) {
       while ((relNum < numRels) && (R[relNum].a != a)) {
         if (R[relNum].a < a) relNum++;
         if (relNum < numRels) {
           if (R[relNum].b != b)  { /* Re-adjust a. */
             b = R[relNum].b;
-            a = R[relNum].a + (mulmod32(b, r, p) - R[relNum].a%p + p)%p;
+            a = R[relNum].a + (mulmod32(b, r, p) - (s32)(R[relNum].a%p) + p)%p;
           }
           if (R[relNum].a > a)
             do {
@@ -1379,7 +1399,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       if ((u32)p> (u32)FB->maxP_a) { fprintf(stderr, "%" PRId32 "\n", p); return -1923; }
       /* Find the corresponding 'r': */
       if (R->b%p==0) r=p; /* prime @ infty. */
-      else r = mulmod32((p+(R->a%p))%p, inverseModP(R->b, p), p);
+      else r = mulmod32((p+(s32)(R->a%p))%p, inverseModP(R->b, p), p);
 
       if ((u32)p < (u32)maxAFBPrime)
         locIndex = lookupAFB(p, r, FB);
@@ -1509,7 +1529,8 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
 /*   potentially a good relation. Nonzero if it's bad for    */
 /*   some reason.                                            */
 /*************************************************************/
-{ int  len=strlen(str), i, j, largeAlg, largeRat, size;
+{ size_t  len=strlen(str), i, j, size;
+  int largeAlg, largeRat;
   char ab[128], rfb[256], afb[256];
   s32 p, r, k;
   s32 maxRFB, maxAFB;
@@ -1565,7 +1586,7 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
   size = strlen(afb);
   while ((j<size) && (sscanf(afb+j,"%" SCNd32, &p)==1)) {
     if (R->b % p) {
-      r = mulmod32(p+(R->a%p), inverseModP(R->b, p), p);
+      r = mulmod32(p+(s32)(R->a%p), inverseModP(R->b, p), p);
       k = lookupAFB(p, r, FB);
 //printf("\n\n(%ld, %ld) : Look up of algebraic factor (%ld, %ld) gave k=%ld\n",
 //        R->a, R->b, p, r, k);

@@ -23,6 +23,7 @@
 #pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
 #endif
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -353,7 +354,8 @@ INLINE int fplog_evalF(s32 a, s32 b, nfs_fb_t *FB)
   }
 
   mpz_evalF(norm, a, b, FB->f);
-  return (mpz_sizeinbase(norm, 2)/(M_LOG2E*FB->log_alb));
+  assert(mpz_sizeinbase(norm, 2)/(M_LOG2E*FB->log_alb) <= (double)INT_MAX);
+  return (int)(mpz_sizeinbase(norm, 2)/(M_LOG2E*FB->log_alb));
 }
 
         
@@ -364,7 +366,8 @@ INLINE int fplog_mpz(mpz_t k, double log_of_base)
 /* Return value: round[ log_2(k)]                     */
 /******************************************************/
 {
-  return mpz_sizeinbase(k, 2)/(M_LOG2E*log_of_base);
+  assert(mpz_sizeinbase(k, 2)/(M_LOG2E*log_of_base) <= (double)INT_MAX);
+  return (int)(mpz_sizeinbase(k, 2)/(M_LOG2E*log_of_base));
 }
 
 /******************************************************/
@@ -428,9 +431,9 @@ void msgLog(char *fName, char *fmt, ...)
 /********************************************/
 void printTmp(char *fmt, ...)
 { char    tmp[4*MAX_MSG_SIZE];
-  static  int lastSize=0;
+  static  size_t lastSize=0;
   va_list ap;
-  int     i;  
+  size_t     i;  
 
   /* Grab the message that was passed: It is VERY IMPORTANT */
   /* to have the va_end(ap) after!                          */
@@ -476,11 +479,12 @@ void mpz_fact_add_factor(mpz_fact_t *F, mpz_t factor, int exponent)
 /* Given a sorted (possibly empty) list of factors, add the */
 /* new factor in sorted order.                              */
 /************************************************************/
-{ int i, loc, c;
+{ int i, loc;
+  int c;
   __mpz_struct *tmpFact;
   int          *tmpExp;
 	
-  for (i=0, loc=F->size; i<F->size; i++) {
+  for (i=0, loc=F->size; (unsigned int)i<F->size; i++) {
     c = mpz_cmp(factor, &F->factors[i]);
     if (c==0) {
       F->exponents[i] += exponent;
@@ -502,11 +506,11 @@ void mpz_fact_add_factor(mpz_fact_t *F, mpz_t factor, int exponent)
   }
   mpz_set(&tmpFact[loc], factor);
   tmpExp[loc] = exponent;
-  for (i=loc+1; i< (F->size+1); i++) {  
+  for (i=loc+1; (unsigned int)i < (F->size+1); i++) {  
     mpz_set(&tmpFact[i], &F->factors[i-1]);
     tmpExp[i] = F->exponents[i-1];
   }
-  for (i=0; i<F->size; i++)
+  for (i=0; (unsigned int)i<F->size; i++)
     mpz_clear(&F->factors[i]);
 #ifdef _OLD  
   if (F->factors != NULL)  
@@ -532,7 +536,7 @@ const int  _numLevels=7;
 const int  _numLevels=1;
 #endif
 const s32 _B1Sizes[]={2000, 5000, 10000, 50000, 250000, 1000000, 3000000};
-const s32 _numCurves[]={50, 150, 200, 400, 600, 1000, 1000};
+const u32 _numCurves[]={50, 150, 200, 400, 600, 1000, 1000};
 
 static int mpz_fact_factorRealWork_rec(mpz_fact_t *F, int doRealWork,
                                        u32 numSmallP, u32 *smallP,
@@ -547,7 +551,8 @@ static int mpz_fact_factorRealWork_rec(mpz_fact_t *F, int doRealWork,
 {
   int        top_e, e, giveUp, retVal, iter, level;
   mpz_t      s;
-  s32        i, B1;
+  s32        B1;
+  u32        i;
   double     B2;
 
   if (doRealWork < 0) return -1;
@@ -668,7 +673,7 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
 { int        e;
   u32        numSmallP, *smallP;
   mpz_t      tmp1, tmp2;
-  s32        i;
+  u32        i;
   FILE       *fp;
   char       str[256], *loc;
   
@@ -771,7 +776,8 @@ int mpz_fact_check(mpz_fact_t *D, int doRealWork)
 /* Return value:  0, D was/is ok.                                */
 /*             <> 0, D is not complete.                          */
 /*****************************************************************/
-{ int        i, e, retVal;
+{ unsigned int i; 
+  int        e, retVal;
   mpz_t      tmp1, tmp2;
   mpz_fact_t Tmp;
 	
@@ -820,7 +826,8 @@ int mpz_fact_removeSF(mpz_fact_t *S, mpz_fact_t *F)
 /* Note: Right now, we do only S <-- F/X, where X is the         */
 /*       maximal squarefree divisor of S.                        */
 /*****************************************************************/
-{ int   i, j, e, twoLoc=-1;
+{ unsigned int   i;
+  int j, e, twoLoc=-1;
 
   mpz_fact_clear(S);
   mpz_fact_init(S);
