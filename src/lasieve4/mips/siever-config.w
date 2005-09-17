@@ -13,7 +13,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 @(siever-config.h@>=
 #define L1_BITS 15
 #define ULONG_RI
-#define ULL_NO_UL
 
 #define PREINVERT
 #define modinv32 asm_modinv32

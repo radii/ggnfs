@@ -25,8 +25,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define ULONG_RI
 #define asm_modinv32 modinv32
 
-#define ULL_NO_UL
-
 #ifdef __ppc__
 typedef uint32_t ulong;
 #define GGNFS_BIGENDIAN
@@ -37,7 +35,6 @@ typedef uint32_t ulong;
 #define HAVE_SSIMD
 #endif
 
-/* if.h should follow ULL_NO_UL when it's defined */
 #include "if.h"
 
 #define PREINVERT

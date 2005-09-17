@@ -19,7 +19,6 @@
 
 #include "lasieve.h"
 
-#ifdef ULL_NO_UL
 static unsigned long have_init = 0;
 static mpz_t auxz, auxz2;
 
@@ -37,10 +36,8 @@ void mpz_ull_init()
   mpz_init(auxz2);
   have_init = 1;
 }
-#endif
 
 #define BITS_PER_ULONG (sizeof(unsigned long)*CHAR_BIT)
-#ifdef ULL_NO_UL
 /****************************************************/
 void mpz_set_ull(mpz_t targ, uint64_t src)
 /****************************************************/
@@ -52,9 +49,7 @@ void mpz_set_ull(mpz_t targ, uint64_t src)
   mpz_mul_2exp(targ, targ, BITS_PER_ULONG);
   mpz_add_ui(targ, targ, (unsigned long) (src & ULONG_MAX));
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 uint64_t mpz_get_ull(mpz_t src)
 /****************************************************/
@@ -84,9 +79,7 @@ uint64_t mpz_get_ull(mpz_t src)
   }
   return res;
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 int mpz_cmp_ull(mpz_t op1, uint64_t op2)
 /****************************************************/
@@ -94,9 +87,7 @@ int mpz_cmp_ull(mpz_t op1, uint64_t op2)
   mpz_set_ull(auxz, op2);
   return mpz_cmp(op1, auxz);
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 void mpz_mul_ull(mpz_t rop, mpz_t op1, uint64_t op2)
 /****************************************************/
@@ -104,9 +95,7 @@ void mpz_mul_ull(mpz_t rop, mpz_t op1, uint64_t op2)
   mpz_set_ull(auxz, op2);
   mpz_mul(rop, op1, auxz);
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 int64_t mpz_get_sll(mpz_t x)
 /****************************************************/
@@ -117,9 +106,7 @@ int64_t mpz_get_sll(mpz_t x)
   } else
     return mpz_get_ull(x);
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 void mpz_set_sll(mpz_t x, int64_t src)
 /****************************************************/
@@ -130,9 +117,7 @@ void mpz_set_sll(mpz_t x, int64_t src)
   } else
     mpz_set_ull(x, (uint64_t) src);
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 int mpz_fits_uint64_t_p(mpz_t x)
 /****************************************************/
@@ -143,9 +128,7 @@ int mpz_fits_uint64_t_p(mpz_t x)
     return 0;
   return 1;
 }
-#endif
 
-#ifdef ULL_NO_UL
 /****************************************************/
 int mpz_fits_sllong_p(mpz_t x)
 /****************************************************/
@@ -157,4 +140,3 @@ int mpz_fits_sllong_p(mpz_t x)
     return mpz_get_ull(auxz2) <= ULLONG_MAX / 2;
   }
 }
-#endif

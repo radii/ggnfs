@@ -28,7 +28,6 @@
 #include <string.h>
 #include "ggnfs.h"
 
-#define ULL_NO_UL
 #include "if.h"
 
 /* The optimal value for this one is probably different than that in rels.c. */
