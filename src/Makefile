@@ -25,7 +25,7 @@ endif
 
 DEBUGOPT=-W -Wall -g -pg
 
-CFLAGS=-O3 -ffast-math -funroll-loops -finline-functions \
+CFLAGS=-DNDEBUG -O3 -ffast-math -funroll-loops -finline-functions \
        -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
