@@ -18,7 +18,7 @@ POL5_SOURCEFILES = fnmatch.c pol51m0b.c pol51m0n.c pol51opt.c \
 
 BINS=$(BINDIR)/pol51m0b $(BINDIR)/pol51m0n $(BINDIR)/pol51opt
 
-OBJS=../if.o zeit.o fnmatch.o primes.o assess.o roots.o
+OBJS=../if.o zeit.o fnmatch.o primes.o assess.o roots.o ../lasieve4/mpz-ull.o
 OBJS2=
 OBJS3=
 OBJS4=
