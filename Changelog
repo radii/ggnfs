@@ -1,3 +1,6 @@
+9/18/05 (frmky)
+  * Update blanczos-no-mmx.c to include multiplication tests and timing.
+
 9/16/05 (trilliwig)
   * Fixed type mismatch with rho_factor() causing procrels crashes on 64-bit
     machines.

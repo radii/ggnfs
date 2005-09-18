@@ -94,6 +94,85 @@ void seedBlockLanczos(s32 seed)
 { prandseed(seed, 712*seed + 21283, seed^0xF3C91D1A);
 }
 
+
+/**************************************************/
+int testMult(nfs_sparse_mat_t *P)
+/**************************************************/
+/* Test the matrix multiplication routines.       */
+/**************************************************/
+{ u64 *u, *x, *y, *z, t;
+  int  i, fail=0, totalFailures=0;
+  long j, n=P->numCols;
+
+  u = (u64 *)malloc(n*sizeof(u64));
+  x = (u64 *)malloc(n*sizeof(u64));
+  y = (u64 *)malloc(n*sizeof(u64));
+  z = (u64 *)malloc(n*sizeof(u64));
+  if (!(x&&y&&z)) {
+    printf("testMult(): Memory allocation error!\n");
+    exit(-1);
+  }
+  memset(u, 0x00, n*sizeof(u64));
+  memset(x, 0x00, n*sizeof(u64));
+  memset(y, 0x00, n*sizeof(u64));
+  memset(z, 0x00, n*sizeof(u64));
+  for (i=0; i<30; i++) {
+    for (j=0; j<n; j++) {
+      t = prand();
+      t = (t<<32)^prand();
+      u[j]=t;
+      x[j] ^= t;
+    }
+    MultB64(y, u, (void *)P);
+    for (j=0; j<n; j++)
+      z[j] ^= y[j];
+  }
+  MultB64(y, x, (void *)P);
+  for (j=0; j<n; j++) {
+    if (y[j] != z[j]) {
+      printf("product MultB64() failure at column %ld!\n", j);
+      fail=1;
+    }
+  }
+  if (!fail) 
+    printf("First matrix product test passed.\n");
+
+  totalFailures += fail;
+  fail=0;
+  memset(u, 0x00, n*sizeof(u64));
+  memset(x, 0x00, n*sizeof(u64));
+  memset(y, 0x00, n*sizeof(u64));
+  memset(z, 0x00, n*sizeof(u64));
+  for (i=0; i<30; i++) {
+    for (j=0; j<n; j++) {
+      t = prand();
+      t = (t<<32)^prand();
+      u[j]=t;
+      x[j] ^= t;
+    }
+    MultB_T64(y, u, (void *)P);
+    for (j=0; j<n; j++)
+      z[j] ^= y[j];
+  }
+  MultB_T64(y, x, (void *)P);
+  for (j=0; j<n; j++) {
+    if (y[j] != z[j]) {
+      printf("product MultB_T64() failure at column %ld!\n", j);
+      fail=1;
+    }
+  }
+
+  if (!fail) 
+    printf("Second matrix product test passed.\n");
+
+  totalFailures += fail;
+  fail=0;
+
+
+  return totalFailures;
+}
+
+
 void MultB64(u64 *Product, u64 *x, void *P) {
   nfs_sparse_mat_t *M = (nfs_sparse_mat_t *)P;
   memset(Product, 0, M->numCols * sizeof(u64)); 
@@ -277,7 +356,12 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   u64 i, j, m, mask, isZero, r1,r2;
   u32  iterations;
   int  errs=0, numDeps=-1, cont, s;
+  double startTime, now, estTotal;
 
+  if (testMult((nfs_sparse_mat_t *)P)) {
+    printf("Self test reported some errors! Stopping...\n");
+    exit(-1);
+  }
   
   /* Memory allocation: */
   if (!(Y = (u64 *)malloc(n*sizeof(u64))))    errs++;
@@ -290,8 +374,10 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   if (!(tmp2_n = (u64 *)malloc(n*sizeof(u64)))) errs++;
   if (!(tmp3_n = (u64 *)malloc(n*sizeof(u64)))) errs++;
 
-  if (errs)
+  if (errs) {
+    fprintf(stderr, "blanczos(): Memory allocation error!\n");
     goto SHORT_CIRC_STOP;
+  }
   
   /******************************************************************/
   /* Throughout, 'A' means the matrix A := (B^T)B. In fact, all the */
@@ -328,6 +414,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   mult64x64(tmp2, Wi, tmp); /* tmp2 <-- (W0)(tmp) = (W0)(V0^T)(V0). */
   multnx64(X, V0, tmp2, n); /* X <-- V0(tmp2). */
   iterations = 0;
+  startTime = sTime();
   do {
     /* Iteration step. */
     iterations++;
@@ -413,8 +500,10 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
       cont=0;
       m = i;
     }
-    printTmp("Lanczos: Estimate %1.1lf%% complete...",
-              (double)100.0*64.0*iterations/n);  
+    now = sTime();
+    estTotal = ((double)1.02*n/(iterations*64.0))*(now-startTime);
+    printTmp("Lanczos: Estimate %1.1lf%% complete (%1.1lf seconds / %1.1lf seconds)...",
+              (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");
       fprintf(stderr, "Number of iterations is %" PRIu32 ".\n", iterations);
