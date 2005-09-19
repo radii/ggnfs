@@ -22,6 +22,9 @@ endif
 ifeq ($(ARCH),pentium4)
     ALLOPT+= -DL2_CACHE_SIZE=512
 endif
+ifeq ($(ARCH),prescott)
+    ALLOPT+= -DL2_CACHE_SIZE=1024
+endif
 
 DEBUGOPT=-W -Wall -g -pg
 
@@ -73,7 +76,10 @@ bins : $(BINS)
 	$(CC) $(INC) $(CFLAGS) -o $@ -c $*.c
 
 .s.o :
-	$(AS) -o $@ $*.s
+	$(CC) $(CFLAGS) -o $@ -c $*.s
+
+.S.o :
+	$(CC) $(CFLAGS) -o $@ -c $*.S
 
 $(BINDIR)/sieve : sieve.c clsieve.c $(OBJS) makefb.o
 	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ $^ $(LIBS)

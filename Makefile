@@ -1,4 +1,4 @@
-VERSION=0.77.1-20050916
+VERSION=0.77.1-20050918
 THISDIR=branch_0
 
 TOOLSPREFIX=
@@ -15,14 +15,15 @@ AS=$(TOOLSPREFIX)as
 
 export CC CPP AR AS LOCALINC LOCALLIB
 
-.PHONY: choosetarget pentium2 pentium3 pentium4 athlon x86_64 nocona x86_32 \
-        ppc_970 ppc_7450 doc x86common common clean snapshot test
+.PHONY: choosetarget pentium2 pentium3 pentium4 prescott athlon x86_64 nocona \
+        x86_32 ppc_970 ppc_7450 doc x86common common clean snapshot test
 
 choosetarget :
 	@echo "Possible targets are:"
 	@echo "	pentium2              	 Intel Pentium 2 (untested)"
 	@echo "	pentium3              	 Intel Pentium 3"
 	@echo "	pentium4              	 Intel Pentium 4"
+	@echo "	prescott                 Intel Pentium 4 with SSE3"
 	@echo "	pentium-m              	 Intel Pentium M"
 	@echo "	athlon			 AMD Athlon (k7)"
 	@echo "	x86_64                   AMD Opteron/Athlon64 (k8)"
@@ -42,6 +43,9 @@ pentium3 :
 
 pentium4 :
 	@ARCH="pentium4" $(MAKE) x86common
+
+prescott :
+	@ARCH="prescott" $(MAKE) x86common
 
 pentium-m :
 	@ARCH="pentium-m" $(MAKE) x86common
@@ -67,8 +71,8 @@ ppc_7450 :
 doc :
 	$(MAKE) -C doc/ggnfs-doc
 
-EXCLUDE_FILES=*.tar *.fb spairs.out* core msdebug.txt maplesyntax rels.bin* \
-              cols* lpindex* *.pdf rels.bin.* lpindex* *.afb.0 relations.jpg
+EXCLUDE_FILES=*.tar *.fb spairs.out* core msdebug.txt maplesyntax \
+              cols* *.pdf rels.bin.* lpindex* *.afb.0 relations.jpg
 EXCLUDE=$(foreach opt,$(EXCLUDE_FILES),--exclude=$(opt))
 
 x86common :

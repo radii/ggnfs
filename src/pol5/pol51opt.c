@@ -18,6 +18,7 @@
 #define ZEIT
 */
 
+#include <stdio.h>
 #include "ggnfs.h"
 
 #include <math.h>
@@ -27,7 +28,6 @@
 #include <unistd.h>
 #include <sys/timeb.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "gmp.h"
 #include "if.h"
 #include <limits.h>
@@ -64,7 +64,7 @@ mpz_t gmp_N;
 int compress;
 char *input_line=NULL;
 size_t input_line_alloc=0;
-char *basename, *filename_data, *output_name, *m_name;
+char *base_name, *filename_data, *output_name, *m_name;
 FILE *outputfile, *m_file;
 mpz_t gmp_a[6], gmp_b[6], gmp_help1, gmp_help2, gmp_help3, gmp_help4;
 mpz_t gmp_lina[2], gmp_linb[2], gmp_p, gmp_d, gmp_m, gmp_mb;
@@ -76,7 +76,7 @@ double max_norm_1, max_norm_2, min_e, log_max_norm_2;
 double pol_norm;
 int xmin, xmax, ymin, ymax;
 double bound0, bound1, area;
-int p_bound;
+unsigned int p_bound;
 
 /* statistics */
 int64_t lanz0=0, lanz1=0, lanz2=0, lanz3=0, lanz4=0, lanz5=0;
@@ -100,7 +100,7 @@ void get_options(int argc, char **argv)
 {
   char c;
 
-  basename=NULL;
+  base_name=NULL;
   compress=0;
   max_norm_1=1e20; max_norm_2=1e18; min_e=0.;
   p_bound=2000;
@@ -108,7 +108,7 @@ void get_options(int argc, char **argv)
   while ((c=getopt(argc,argv,"A:b:e:F:f:n:N:P:vz")) != (char)(-1)) {
     switch(c) {
     case 'b':
-      basename=optarg;
+      base_name=optarg;
       break;
     case 'A':
       if(sscanf(optarg,"%lf",&area)!=1)
@@ -135,7 +135,7 @@ void get_options(int argc, char **argv)
         complain("Bad argument to -N!\n");
       break;
     case 'P':
-      if(sscanf(optarg,"%d",&p_bound)!=1)
+      if(sscanf(optarg,"%u",&p_bound)!=1)
         complain("Bad argument to -P!\n");
       break;
     case 'v':
@@ -149,8 +149,8 @@ void get_options(int argc, char **argv)
       Schlendrian("");
     }
   }
-  if (basename==NULL) complain("argument '-b basename' is necessary\n");
-  asprintf(&filename_data,"%s.data",basename);
+  if (base_name==NULL) complain("argument '-b base_name' is necessary\n");
+  asprintf(&filename_data,"%s.data",base_name);
   log_max_norm_2=log(max_norm_2);
 }
 
@@ -183,12 +183,12 @@ int find_m_name()
   struct stat statbuf;
   char *tmp_name;
 
-  asprintf(&m_name,"%s.51.m",basename);
+  asprintf(&m_name,"%s.51.m",base_name);
   if (stat(m_name,&statbuf)) {
-    asprintf(&m_name,"%s.51.m.gz",basename);
+    asprintf(&m_name,"%s.51.m.gz",base_name);
     if (stat(m_name,&statbuf)) return 0;
   } else {
-    asprintf(&tmp_name,"%s.51.m.gz",basename);
+    asprintf(&tmp_name,"%s.51.m.gz",base_name);
     if (!stat(tmp_name,&statbuf))
       complain("Both files %s and %s exist.\n",m_name,tmp_name);
     free(tmp_name);
@@ -231,7 +231,7 @@ void open_outputfile()
 
   output_cmd=NULL;
   if (compress!=0) {
-    asprintf(&output_name,"%s.cand.gz",basename);
+    asprintf(&output_name,"%s.cand.gz",base_name);
     asprintf(&output_cmd,"gzip --best --stdout >> %s",output_name);
     if ((outputfile=popen(output_cmd,"w"))==NULL) {
       fprintf(stderr,"%s ",output_name);
@@ -240,7 +240,7 @@ void open_outputfile()
 /*    if (stat(output_name,&statbuf)==0) complain("Output file exists!\n");*/
     free(output_cmd);
   } else {
-    asprintf(&output_name,"%s.cand",basename);
+    asprintf(&output_name,"%s.cand",base_name);
     if ((outputfile=fopen(output_name,"a"))==NULL) {
       fprintf(stderr,"%s ",output_name);
       complain("cannot open file %s",output_name);
@@ -880,7 +880,7 @@ unsigned int *prep_p[NAFF_PRIMES];
 
 void compute_proj_alpha()
 {
-  int i, j, k;
+  unsigned int i, j, k;
   unsigned int p, p2, p3;
   unsigned int w, b3, b4, b5;
   double value, dp, dl;

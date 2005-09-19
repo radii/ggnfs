@@ -107,7 +107,7 @@ static u32_t si_clock[2]={0,0}, s1_clock[2]={0,0};
 static u32_t s2_clock[2]={0,0}, s3_clock[2]={0,0};
 static u32_t tdsi_clock[2]={0,0}, tds1_clock[2]={0,0}, tds2_clock[2]={0,0};
 static u32_t tds3_clock[2]={0,0}, tds4_clock[2]={0,0};
-char  *basename;
+char  *base_name;
 char  *input_line=NULL;
 size_t input_line_alloc=0;
 static u32_t ncand;
@@ -309,7 +309,7 @@ void getFB(int force_aFBcalc)
       if (fbi1[side] < fbis[side])
         fbi1[side] = fbis[side];
     } else {
-      asprintf(&afbname, "%s.afb.%u", basename, side);
+      asprintf(&afbname, "%s.afb.%u", base_name, side);
       if (force_aFBcalc > 0 || (afbfile = fopen(afbname, "rb")) == NULL) {
         u32_t *root_buffer;
         size_t aFB_alloc;
@@ -716,9 +716,9 @@ int lasieve()
           hn = xmalloc(100);
 #if 0
           if (gethostname(hn, 99) == 0)
-            asprintf(&ofn, "%s.%s.last_spq%d", basename, hn, process_no);
+            asprintf(&ofn, "%s.%s.last_spq%d", base_name, hn, process_no);
           else
-            asprintf(&ofn, "%s.unknown_host.last_spq%d", basename,
+            asprintf(&ofn, "%s.unknown_host.last_spq%d", base_name,
                      process_no);
           free(hn);
 #else
@@ -736,7 +736,7 @@ int lasieve()
         else {
           char *cmd;
 
-          asprintf(&cmd, "touch badsched.%s.%u.%u.%u", basename,
+          asprintf(&cmd, "touch badsched.%s.%u.%u.%u", base_name,
                    special_q_side, special_q, r_ptr[root_no]);
           system(cmd);
           free(cmd);
@@ -2814,7 +2814,7 @@ int main(int argc, char **argv)
     special_q_side = NO_SIDE;
     sigma = 0;
     keep_factorbase = 0;
-    basename = NULL;
+    base_name = NULL;
     first_spq = 0;
     sieve_count = 1;
     force_aFBcalc = 0;
@@ -2854,7 +2854,7 @@ int main(int argc, char **argv)
           }
           special_q_side = ALGEBRAIC_SIDE; break;
         case 'b':
-            basename = optarg;
+            base_name = optarg;
           break;
         case 'c':
           NumRead(sieve_count); break;
@@ -2894,18 +2894,18 @@ int main(int argc, char **argv)
 #ifndef I_bits
 #error Must #define I_bits
 #endif
-    if (optind < argc && basename == NULL) {
-      basename = argv[optind];
+    if (optind < argc && base_name == NULL) {
+      base_name = argv[optind];
       optind++;
     }
-    if (basename == NULL)
-      basename = "gnfs";
+    if (base_name == NULL)
+      base_name = "gnfs";
     if (optind < argc)
       fprintf(stderr, "Ignoring %u trailing command line args\n",
               argc - optind);
 
-    if (parseJobFile(basename)) 
-      complain("Bad job file: %s\ngiving up...\n", basename);
+    if (parseJobFile(base_name)) 
+      complain("Bad job file: %s\ngiving up...\n", base_name);
 
     last_spq = first_spq + sieve_count;
     if (last_spq >= INT_MAX / 2) {
@@ -2979,11 +2979,11 @@ int main(int argc, char **argv)
   if (sieve_count != 0) {
     if (g_ofile_name == NULL) {
       if (zip_output == 0) {
-        asprintf(&g_ofile_name, "%s.lasieve-%u.%u-%u", basename,
+        asprintf(&g_ofile_name, "%s.lasieve-%u.%u-%u", base_name,
                  special_q_side, first_spq, last_spq);
       } else {
         asprintf(&g_ofile_name,"gzip --best --stdout > %s.lasieve-%u.%u-%u.gz", 
-                  basename, special_q_side, first_spq, last_spq);
+                  base_name, special_q_side, first_spq, last_spq);
       }
     } else {
       if (strcmp(g_ofile_name, "-") == 0) {

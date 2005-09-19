@@ -158,15 +158,15 @@ void printzeit2(int i1, int i2)
 
 void printzeitall()
 {
-  int i;
+  unsigned int i;
 
   printf("\nZeit: ");
   for (i=0; i<zeitcounteranz; i++)
-    printf("%d: %.3fs  ",i,zeitsum[i]/CLOCKS_PER_SEC);
+    printf("%u: %.3fs  ",i,zeitsum[i]/CLOCKS_PER_SEC);
   printf("\n");
   printf("\nCycles: ");
   for (i=0; i<zeitcounteranz; i++)
-    printf("%d: %" PRIu64 "  ",i,asmzeitcounter[i]);
+    printf("%u: %" PRIu64 "  ",i,asmzeitcounter[i]);
   printf("\n");
 }
 

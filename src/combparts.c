@@ -105,7 +105,7 @@ if (size > P->maxDataSize) {
   printf("Error: P is broken!\n");
 }
   for (i=0; i<size; i++)
-    if ((P->data[i] > N) && (P->data[i] != BAD_LP_INDEX)) 
+    if ((P->data[i] > N) && (P->data[i] != (s32)BAD_LP_INDEX)) 
       N=P->data[i];
   return N;
 }
@@ -170,7 +170,7 @@ int mkLT(llist_t *L, llist_t *P, s32 P0, s32 P1)
       pnum = P->data[j];
       if ((pnum>=P0) && (pnum<=P1)) {
         loc = L->index[pnum-P0];
-        while (L->data[loc] != 0xFFFFFFFF)
+        while (L->data[loc] != (s32)0xFFFFFFFF)
           loc++;
 /* CJM, 4/13/05: Just looking for fishy places where the code could
    be going bad, this looks like a possibility - see if anyone
@@ -228,7 +228,7 @@ int removeLPSingletons(llist_t *R, llist_t *P)
   size = P->index[P->numFields];
   for (i=0; i<size; i++) {
     h = P->data[i];
-    if (h != BAD_LP_INDEX) {
+    if (h != (s32)BAD_LP_INDEX) {
       if (h%2==0) {
         ct = (counter[h/2]&0x0F);
         if (ct < 2)
@@ -248,13 +248,13 @@ int removeLPSingletons(llist_t *R, llist_t *P)
   for (j=0; j<P->numFields; j++) {
     for (i=P->index[j]; i<P->index[j+1]; i++) {
       h = P->data[i];
-      if (h != BAD_LP_INDEX) {
+      if (h != (s32)BAD_LP_INDEX) {
         if (h%2==0) 
           ct = (counter[h/2]&0x0F);
         else
           ct = (counter[h/2]&0xF0)>>4;
       }
-      if ((ct == 1) || (h==BAD_LP_INDEX)) {
+      if ((ct == 1) || (h==(s32)BAD_LP_INDEX)) {
         removeList[numRemove++] = j;
         if (numRemove >= (rLSize-1)) {
           rLSize += 4*32768;

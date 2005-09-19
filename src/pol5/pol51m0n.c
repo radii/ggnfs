@@ -66,7 +66,7 @@ int compress;
 char *input_line=NULL;
 size_t input_line_alloc=0;
 double norm_max, skewness_min, skewness_max, a3_max;
-char *basename, *filename_data, *output_name;
+char *base_name, *filename_data, *output_name;
 FILE *outputfile;
 mpz_t gmp_root;
 mpz_t gmp_Na5, gmp_approx;
@@ -320,7 +320,7 @@ void get_options(int argc, char **argv)
 {
   char c;
 
-  basename=NULL;
+  base_name=NULL;
   compress=0; npr_in_p=7;
   norm_max=1e+20;
   p0_limit=P0_MAX;
@@ -328,7 +328,7 @@ void get_options(int argc, char **argv)
   while ((c=getopt(argc,argv,"b:a:A:l:n:p:vz")) != (char)(-1)) {
     switch(c) {
     case 'b':
-      basename=optarg;
+      base_name=optarg;
       break;
     case 'n':
       if(sscanf(optarg,"%lf",&norm_max)!=1)
@@ -362,8 +362,8 @@ void get_options(int argc, char **argv)
       Schlendrian("");
     }
   }
-  if (basename==NULL) complain("argument '-b basename' is necessary\n");
-  asprintf(&filename_data,"%s.data",basename);
+  if (base_name==NULL) complain("argument '-b base_name' is necessary\n");
+  asprintf(&filename_data,"%s.data",base_name);
   if (npr_in_p<4) complain("npr_in_p (option -p) must be >=4\n");
 }
 
@@ -393,12 +393,12 @@ int find_output_name()
   struct stat statbuf;
   char *tmp_name;
 
-  asprintf(&output_name,"%s.51.m",basename);
+  asprintf(&output_name,"%s.51.m",base_name);
   if (stat(output_name,&statbuf)) {
-    asprintf(&output_name,"%s.51.m.gz",basename);
+    asprintf(&output_name,"%s.51.m.gz",base_name);
     if (stat(output_name,&statbuf)) return 0;
   } else {
-    asprintf(&tmp_name,"%s.51.m.gz",basename);
+    asprintf(&tmp_name,"%s.51.m.gz",base_name);
     if (!stat(tmp_name,&statbuf))
       complain("Both files %s and %s exist.\n",output_name,tmp_name);
     free(tmp_name);
@@ -415,9 +415,9 @@ void open_outputfile()
   exists=find_output_name();
   if (!exists) {
     if (compress) {
-      asprintf(&output_name,"%s.51.m.gz",basename);
+      asprintf(&output_name,"%s.51.m.gz",base_name);
     } else {
-      asprintf(&output_name,"%s.51.m",basename);
+      asprintf(&output_name,"%s.51.m",base_name);
     }
   }
   if (fnmatch("*.gz",output_name,0)) {
@@ -878,7 +878,7 @@ void combine_raw_sort(unsigned int *targ, unsigned int *index, int i0, int i1)
 
 void raw_hash_sort_extend()
 {
-  int i;
+  unsigned int i;
   unsigned int targ, i0, i1, i2, v0, v1, v2, *s;
 
   targ=1<<hashpart_shift;
@@ -940,7 +940,7 @@ void raw_hash_sort_extend()
 
 void raw_hash_sort_init(unsigned int *sort, unsigned int sortlen, unsigned int *data, unsigned int *begin, unsigned int beginlen)
 {
-  int i;
+  unsigned int i;
   unsigned int v, i0, i1, i2, v0, v1, v2;
 
   for (i=0; i<beginlen; i++) { /* search j min. s.th. data[i]+sort[j]>=2^32 */
@@ -964,7 +964,7 @@ void raw_hash_sort_init(unsigned int *sort, unsigned int sortlen, unsigned int *
 
 int raw_hash_sort_1(unsigned int hb)
 {
-  int i, j;
+  unsigned int i, j;
   unsigned int ind, h, hsub, hp;
   unsigned int add, *hash, mask;
   unsigned char *sort;
@@ -1000,7 +1000,7 @@ int raw_hash_sort_1(unsigned int hb)
 
 void raw_hash_sort_2(unsigned int hb)
 {
-  int i, j, k;
+  unsigned int i, j, k;
   unsigned int ind, h, hsub, hp;
   unsigned int add, *hash;
   unsigned char *sort;
@@ -1185,7 +1185,7 @@ void raw_store(int i1, int i2)
 /* also have an asm-function */
 int raw_hash_1()
 {
-  int i, j;
+  unsigned int i, j;
   unsigned int ind, h;
   unsigned int add, *hash;
   unsigned char *sort;
@@ -1208,7 +1208,7 @@ int raw_hash_1()
 
 void raw_hash_2()
 {
-  int i, j, k;
+  unsigned int i, j, k;
   unsigned int ind, h;
   unsigned int add, *hash;
   unsigned char *sort;
@@ -2900,7 +2900,7 @@ void aux_factor_store(unsigned int n, unsigned int r)
 
 unsigned int aux_factor_phi(unsigned int n)  /* n<=2^16 */
 {
-  int i;
+  unsigned int i;
   unsigned int phi, d, p;
 
   if (n>65536) complain("aux_factor_phi\n");

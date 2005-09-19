@@ -40,7 +40,7 @@ static double assess_bound0, assess_bound1, assess_area;
 static double *assess_optima;
 
 static unsigned int assess_primes[NSMALLPRIMES];
-static int assess_prime_bound;
+static unsigned int assess_prime_bound;
 static double assess_alpha_max, assess_rat;
 static unsigned int *assess_mod, *assess_root, *assess_coeffmod;
 static int assess_mod_len, assess_root_len, assess_coeffmod_len;
@@ -582,7 +582,7 @@ void murphy_e(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_co
 
 /* ----------------------------------------------- */
 
-void init_assess(double b0, double b1, double area, int pb)
+void init_assess(double b0, double b1, double area, unsigned int pb)
 {
   int i;
   double dp;

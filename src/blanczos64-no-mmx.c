@@ -502,7 +502,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     }
     now = sTime();
     estTotal = ((double)1.02*n/(iterations*64.0))*(now-startTime);
-    printTmp("Lanczos: Estimate %1.1lf%% complete (%1.1lf seconds / %1.1lf seconds)...",
+    printTmp("Lanczos(genericC): Estimate %1.1lf%% complete (%1.1lf seconds / %1.1lf seconds)...",
               (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");

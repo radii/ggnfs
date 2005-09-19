@@ -768,7 +768,7 @@ double dickman(double x);
 double dickmanStrong(double x, int numTerms);
 
 /* assess.c */
-void init_assess(double b0, double b1, double area, int pb);
+void init_assess(double b0, double b1, double area, unsigned int pb);
 unsigned int invert(unsigned int a, unsigned int p);  /* 0<b<p */
 void murphy_en(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
                double alpha0, double alpha1, double skewness, int nsm);
