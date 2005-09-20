@@ -27,6 +27,9 @@ all: liblasieveI12.a liblasieveI13.a liblasieveI14.a liblasieve.a
 %.o: %.s
 	$(CC) $(CFLAGS) $(INC) -c $^
 
+%.o: %.S
+	$(CC) $(CFLAGS) $(INC) -c $^
+
 liblasieve.a: modinv1002.o gcd32.o ri-aux.o psp.o montgomery_mul.o \
               basemath.o sieve-from-sched.o siever-config.o \
               asm_mul64.o asm_mul96.o asm_mul128.o
