@@ -1,5 +1,8 @@
 9/25/05 (Sten)
   * Initial support for Win64 target (see VC8 solution files).
+  * removed ASM_MPQS_SIEVER;ASM_MPQS_EVAL;ASM_MPQS_TD definitions from the
+    VC8 projects properties for ggnfs-lasieve projects (currently asm-optimized
+    versions do not work for some reason).
 
 9/24/05 (trilliwig)
   * Ensure prand() returns a 32-bit quantity.
