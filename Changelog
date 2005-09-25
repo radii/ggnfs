@@ -1,3 +1,6 @@
+9/25/05 (Sten)
+  * Initial support for Win64 target (see VC8 solution files).
+
 9/24/05 (trilliwig)
   * Ensure prand() returns a 32-bit quantity.
   * Added a -test mode to matsolve.  This will go into an infinite loop
