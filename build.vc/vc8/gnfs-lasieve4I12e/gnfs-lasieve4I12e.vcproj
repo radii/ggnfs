@@ -6,7 +6,6 @@
 	ProjectGUID="{4C204C23-29AA-4987-977C-ECD1F6C399DD}"
 	RootNamespace="gnfs-lasieve4I12e"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
