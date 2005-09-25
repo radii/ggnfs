@@ -1,7 +1,7 @@
 
 	extern _mpqs_FB_log
 
-%if 1
+%if 0
 
 	section .bss
 
