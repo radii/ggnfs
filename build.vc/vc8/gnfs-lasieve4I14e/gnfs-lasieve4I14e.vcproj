@@ -218,6 +218,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;I_bits=14;"
 				RuntimeLibrary="0"
