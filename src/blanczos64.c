@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include "prand.h"
 #include "ggnfs.h"
+#include "prand.h"
 
 /*************************************************************/ 
 /* Implementation of the Block Lanczos algorithm for finding */
@@ -149,7 +149,7 @@ int testMult(nfs_sparse_mat_t *P)
   x = (u64 *)malloc(n*sizeof(u64));
   y = (u64 *)malloc(n*sizeof(u64));
   z = (u64 *)malloc(n*sizeof(u64));
-  if (!(x&&y&&z)) {
+  if (!(u&&x&&y&&z)) {
     printf("testMult(): Memory allocation error!\n");
     exit(-1);
   }
@@ -172,6 +172,8 @@ int testMult(nfs_sparse_mat_t *P)
   for (j=0; j<n; j++) {
     if (y[j] != z[j]) {
       printf("product MultB64() failure at column %ld!\n", j);
+      printf(" y[j] = 0x%" PRIX64 ",\n", y[j]);
+      printf(" z[j] = 0x%" PRIX64 ".\n", z[j]);
       fail=1;
     }
   }
@@ -199,6 +201,8 @@ int testMult(nfs_sparse_mat_t *P)
   for (j=0; j<n; j++) {
     if (y[j] != z[j]) {
       printf("product MultB_T64() failure at column %ld!\n", j);
+      printf(" y[j] = 0x%" PRIX64 ",\n", y[j]);
+      printf(" z[j] = 0x%" PRIX64 ".\n", z[j]);
       fail=1;
     }
   }
@@ -209,7 +213,7 @@ int testMult(nfs_sparse_mat_t *P)
   totalFailures += fail;
   fail=0;
 
-
+  free(u); free(x); free(y); free(z);
   return totalFailures;
 }
 
@@ -862,7 +866,8 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 
 /**********************************************************************/
 int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB, 
-                  MAT_MULT_FUNC_PTR64 MultB_T, void *P, s32 n)
+		   MAT_MULT_FUNC_PTR64 MultB_T, void *P, s32 n,
+		   long testMode)
 /**********************************************************************/
 { u64 *Y=NULL, *X=NULL, *Vi=NULL, *Vi_1=NULL, *Vi_2=NULL, *tmp_n=NULL, *tmp2_n=NULL;
   u64 *V0=NULL, *tmp3_n=NULL, *Z=NULL, *AZ=NULL;
@@ -884,11 +889,21 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   int  errs=0, numDeps=-1, cont, s;
   double startTime, now, estTotal;
 
-  if (testMult((nfs_sparse_mat_t *)P)) {
-    printf("Self test reported some errors! Stopping...\n");
-    exit(-1);
+  if (testMode) {
+    printf("Testing multiply routines...\n");
+    j = 0;
+    for(i=1; ; i++) {
+      j += testMult((nfs_sparse_mat_t *)P);
+      if (!(i%10))
+	printf("***Iteration %" PRIu64 ": %" PRIu64 " multiply failures.***\n",
+	       i, j);
+    }
+  } else {
+    if (testMult((nfs_sparse_mat_t *)P)) {
+      printf("Self test reported some errors! Stopping...\n");
+      exit(-1);
+    }
   }
-
   /* Memory allocation: */
   if (malloc_aligned64(Y, 16, n)) errs++;
   if (malloc_aligned64(X, 16, n)) errs++;
@@ -1027,7 +1042,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     }
     now = sTime();
     estTotal = ((double)1.02*n/(iterations*64.0))*(now-startTime);
-    printTmp("Lanczos: Estimate %1.1lf%% complete (%1.1lf seconds / %1.1lf seconds)...",
+    printTmp("Lanczos(SIMD): Estimate %1.1lf%% complete (%1.1lf secs / %1.1lf secs)...",
               (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");

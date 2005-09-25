@@ -1071,7 +1071,7 @@ int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor,
 
 
 /***************************************************/
-int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps)
+int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, long testMode)
 /***************************************************/
 { double blstart, blstop, difficulty;
   int    res;
@@ -1081,10 +1081,11 @@ int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps)
   difficulty = (M->numCols/64.0)*(M->cIndex[M->numCols] + M->numCols*M->numDenseBlocks);
   difficulty /= 1000000.0;
   printf("Matrix difficulty is about %1.2lf\n", difficulty);
-  printf("Doing block Lanczos...\n");
+  if (!testMode) printf("Doing block Lanczos...\n");
   blstart = sTime();
   tmpDeps = (u64 *)malloc(M->numCols*sizeof(u64));
-  res = blockLanczos64(tmpDeps, MultB64, MultB_T64, (void *)M, M->numCols);
+  res = blockLanczos64(tmpDeps, MultB64, MultB_T64, (void *)M, M->numCols,
+		       testMode);
   blstop = sTime();
   printf("Returned %d. Block Lanczos took %1.2lf seconds.\n", res, blstop-blstart);
   msgLog("", "BLanczosTime: %1.1lf", blstop-blstart);

@@ -27,10 +27,10 @@
 
 
 
-static unsigned long _rstate1=1, _rstate2=2, _rct=0;
+static u32 _rstate1=1, _rstate2=2, _rct=0;
 
 #define _RPADSIZE 1249
-static unsigned long _RPAD[] = {
+static u32 _RPAD[] = {
  0xe403be9e,0xb42f11af,0xa52fdb10,0xe297f65e,0xfc5bb24b,0x3d436dfb,0x7abbdefb,0x8c5869c0,
  0xbff8ce7b,0x82ca16cb,0x487fa533,0xc559aaa8,0x446eb6d0,0x98b207cb,0x1121bfd2,0x88395d72,
  0xe733a2e0,0x2bd54254,0xd62826b3,0xe486d27b,0x8354cfe0,0x2aa5db43,0x072c0379,0x639b6495,
@@ -206,7 +206,7 @@ static unsigned long _RPAD[] = {
 
 /* This is the MWC, concatenated with a random pad of length 1249, */
 /* to (slightly) increase the period.                              */
-#define prand() (MRAND(_rstate1, _rstate2) ^ _RPAD[_rct++ % _RPADSIZE])
+#define prand() ((u32)(MRAND(_rstate1, _rstate2) ^ _RPAD[_rct++ % _RPADSIZE]))
 #define prand_01() ((double)prand()/(double)0xFFFFFFFF)
 
 

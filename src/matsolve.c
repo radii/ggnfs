@@ -41,6 +41,8 @@
 #define USAGE "[OPTIONS]\n"\
 "-v           : verbose.\n"\
 "-seed <int>  : Set the seed for the PRNG.\n"\
+"-test        : Do not solve matrix; use it to test multiply operations.\n"\
+"               This can help expose hardware problems or miscompilations.\n"\
 "--help       : Show this help and quit.\n"
 
 #define START_MSG \
@@ -336,6 +338,7 @@ int main(int argC, char *args[])
 { char       colName[64], depName[64], str[1024];
   double     startTime, stopTime;
   s32       *deps, origC, seed=DEFAULT_SEED;
+  long       testMode=0;
   struct stat fileInfo;
   nfs_sparse_mat_t M;
   llist_t    C;
@@ -356,6 +359,8 @@ int main(int argC, char *args[])
       if ((++i) < argC) {
         seed = atol(args[i]);
       }
+    } else if (strcmp(args[i], "-test")==0) {
+      testMode = 1;
     } else if (strcmp(args[i], "--help")==0) {
       printf("USAGE: %s %s\n", args[0], USAGE);
       exit(0);
@@ -413,7 +418,7 @@ int main(int argC, char *args[])
     free(M.cEntry); free(M.cIndex); return -1;
   }
 
-  if (getDependencies(&M, &C, deps) == 0) {
+  if (getDependencies(&M, &C, deps, testMode) == 0) {
     if (!(ifp = fopen("depinf", "rb"))) {
       fprintf(stderr, "Error opening depinf for read!\n");
       exit(-1);

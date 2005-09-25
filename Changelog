@@ -1,3 +1,13 @@
+9/24/05 (trilliwig)
+  * Ensure prand() returns a 32-bit quantity.
+  * Added a -test mode to matsolve.  This will go into an infinite loop
+    testing the MultB64() and MultB_T64() routines with the given matrix.
+    This can help expose hardware errors or miscompilations.
+  * Freed memory used in testMult().
+  * Tweaked the status update message for Block Lanczos so it doesn't
+    overflow the line.
+  * Added dependencies for strip target.
+
 9/18/05 (frmky)
   * Update blanczos-no-mmx.c to include multiplication tests and timing.
   

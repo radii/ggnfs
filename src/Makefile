@@ -115,7 +115,7 @@ latsiever :
 polsel :
 	$(MAKE) -C pol5
 
-strip :
+strip : $(BINS) $(LSBINS)
 ifeq ($(OS),Windows_NT)
 	strip $(BINDIR)/*.exe
 else

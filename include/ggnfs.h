@@ -430,7 +430,7 @@ typedef struct {
 
 
 /* matstuff.c */
-int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps);
+int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, long testMode);
 int writeSparseMat(char *fname, nfs_sparse_mat_t *M);
 int readSparseMat(nfs_sparse_mat_t *M, char *fname);
 int cm_init(llist_t *C, nfs_sparse_mat_t *M);
@@ -729,7 +729,8 @@ void MultB_T32(u32 *Product, u32 *x, void *P);
 
 typedef void (* MAT_MULT_FUNC_PTR64)(u64 *Product, u64 *x, void *P);
 int    blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 LeftMul, 
-                      MAT_MULT_FUNC_PTR64 RightMul, void *P, s32 n);
+                      MAT_MULT_FUNC_PTR64 RightMul, void *P, s32 n,
+		      long testMode);
 void   seedBlockLanczos(s32 seed);
 /* I will do away with these prototypes later. */
 void MultB64(u64 *Product, u64 *x, void *P);
