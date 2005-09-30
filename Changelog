@@ -1,3 +1,6 @@
+9/27/05 (relf)
+  * -fmove-all-movables option removed as not supported by gcc 4.x
+
 9/25/05 (Sten)
   * Initial support for Win64 target (see VC8 solution files).
   * removed ASM_MPQS_SIEVER;ASM_MPQS_EVAL;ASM_MPQS_TD definitions from the
