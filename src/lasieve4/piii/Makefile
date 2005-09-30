@@ -15,7 +15,7 @@ SRCFILES=modinv1002.s gcd32.c ri-aux.s psp.c montgomery_mul.c basemath.c \
          asm_mul64.S asm_mul96.s asm_mul128.s sieve-from-sched.S lasched.c \
          medsched.c Makefile siever-config.c siever-config.h
 
-.SECONDARY: *.s
+.SECONDARY: *.s *.S
 
 .PHONY:	all bup clean
 

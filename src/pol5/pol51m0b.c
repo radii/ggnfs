@@ -27,8 +27,9 @@
 
 /* We need to write a floorl() for Cygwin. In the meantime: */
 /* MinGW may use HAVE_FLOAT64, as long as we compile with -O0 (at least for
-   gcc 3.4) */
-#if defined(__CYGWIN__)
+   gcc 3.4). This needs to be investigated, so, undefined here.
+*/
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 #undef HAVE_FLOAT64
 #endif
 
