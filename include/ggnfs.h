@@ -596,10 +596,6 @@ int createFB(nfs_fb_t *FB, char *ofname);
 	
 /* muldmod32.s */
 #ifdef GGNFS_HOST_GENERIC
-	#ifndef _MSC_VER
-		#include <stdint.h>
-	#endif
-	
 	static inline s32 mulmod32(uint32_t x, uint32_t y, uint32_t m)
 	{
 		return (s32)(((uint64_t)x*(uint64_t)y)%m);

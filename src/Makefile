@@ -46,7 +46,7 @@ LSBINS=latsiever polsel
 
 ifeq ($(HOST),x86)
   LANCZOS=blanczos64
-  OBJS+=modinv1002.o mulmod32.o
+  OBJS+=mulmod32.o lasieve4/asm/modinv1002.o
 else
   LANCZOS=blanczos64-no-mmx
   OBJS+=modinv32.o

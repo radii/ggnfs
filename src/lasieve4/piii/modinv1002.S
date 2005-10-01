@@ -13,7 +13,7 @@
                                                                                                        
                                                                                                        
 	The function we want to write.
-	ulong asm_modinv32(x)
+	uint32_t asm_modinv32(x)
 	Modular inverse of x modulo modulo32
 	and y satisfies 0<y<x.
 

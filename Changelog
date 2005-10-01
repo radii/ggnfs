@@ -1,5 +1,6 @@
 9/27/05 (relf)
   * -fmove-all-movables option removed as not supported by gcc 4.x
+  * minor cleanups
 
 9/25/05 (Sten)
   * Initial support for Win64 target (see VC8 solution files).

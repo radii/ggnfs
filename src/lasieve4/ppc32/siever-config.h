@@ -22,7 +22,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define asm_modinv32 modinv32
 
 #ifdef __ppc__
-typedef uint32_t ulong;
 #define GGNFS_BIGENDIAN
 #define GNFS_CS32
 #endif
