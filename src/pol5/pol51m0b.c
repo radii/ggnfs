@@ -28,8 +28,11 @@
 /* We need to write a floorl() for Cygwin. In the meantime: */
 /* MinGW may use HAVE_FLOAT64, as long as we compile with -O0 (at least for
    gcc 3.4). This needs to be investigated, so, undefined here.
-*/
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+ */
+/* trilliwig (2005/09/06):  Reenabling because disabling it breaks polynomial
+ * finding.  Please do NOT change again without thorough testing!
+ */
+#if defined(__CYGWIN__)
 #undef HAVE_FLOAT64
 #endif
 

@@ -508,7 +508,7 @@ sub runPol5 {
     $cmd="$NICE \"$POL51M0\" -b $pname -v -v -p $npr -n $normmax -a $H -A $HH > $pname.log";
     printf("=> $cmd\n");
     my $res=system($cmd);
-    print "Abnormal return value $res. Continuing...\n" if ($res);
+    die "Abnormal return value $res. Terminating...\n" if ($res);
     $nerr=0;
     open(GR,"$pname.log");
     my @logout=<GR>;
@@ -518,7 +518,7 @@ sub runPol5 {
       $cmd="$NICE \"$POL51OPT\" -b $pname -v -v -n $normmax1 -N $normmax2 -e $murphymax > $pname.log";
       printf("=> $cmd\n");
       $res=system($cmd);
-      print "Abnormal return value $res. Continuing...\n" if ($res);
+      die "Abnormal return value $res. Terminating...\n" if ($res);
       system("\"$CAT\" $pname.51.m >> $projectname.51.m.all");
       open(GR,"<$pname.cand");
       my %polyinf = ();

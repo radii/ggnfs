@@ -24,7 +24,8 @@ OBJS3=
 OBJS4=
 
 ifeq ($(HOST),x86)
-	CFLAGS2+=-DHAVE_FLOAT64 -DHAVE_ASM_INTEL
+# if not using GCC 3.4, you may remove the -O0
+	CFLAGS2+=-O0 -DHAVE_FLOAT64 -DHAVE_ASM_INTEL
 	OBJS2=asm_hash5.o
 	OBJS3=asm_hash5n.o
 	OBJS4=asm_rs.o
