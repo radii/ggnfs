@@ -1,3 +1,24 @@
+9/30/05 (trilliwig)
+  * It makes no sense to disable HAVE_FLOAT64 if HAVE_ASM_INTEL is defined.
+    This causes pol51m0b to miss essential polynomials and causes the abnormal
+    exit messages "lambda-comp" or "ull5a5p-comp".  The only bug that exists
+    with both options enabled is that the compiled binary is completely broken
+    if we allow compiler optimization with GCC 3.4.  This appears to be a bug
+    with GCC 3.4, but disabling HAVE_FLOAT64 for MinGW is NOT a proper
+    workaround because it leaves pol5 compiles broken on 32-bit Linux!  The
+    correct workaround is disabling compiler optimizations for pol5 when
+    GCC 3.4 is used.
+  * Modified factLat.pl so pol5 errors are fatal errors again.
+  * Modified matbuild so errors from checkMat() are not immediately fatal.
+    The code is there to delete problematic rows, but it was never used
+    because matbuild would exit unconditionally.  There is similar code in
+    matsolve, but I think it is better to keep the hair-trigger exit there.
+  * -Os is only beneficial for the lattice siever, and even then only on
+    some machines (it is slower than -O3 on a Prescott).  Changed default
+    CFLAGS to use -O3 and added -Os to CFLAGS in the src/lasieve4 directory.
+    As an aside, using -funroll-loops and -finline-functions with -Os is
+    counterproductive.
+    
 9/27/05 (relf)
   * -fmove-all-movables option removed as not supported by gcc 4.x
   * minor cleanups

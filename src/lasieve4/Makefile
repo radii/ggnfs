@@ -11,6 +11,7 @@
 
 INC=-I.. -I../../include $(LOCALINC)
 LIBFLAGS=-L. $(LOCALLIB)
+CFLAGS+=-Os
 
 BINDIR=../../bin
 FACT=prho.o

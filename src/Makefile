@@ -28,7 +28,7 @@ endif
 
 DEBUGOPT=-W -Wall -g -pg
 
-CFLAGS=-DNDEBUG -Os -ffast-math -funroll-loops -finline-functions \
+CFLAGS=-DNDEBUG -O3 -ffast-math -funroll-loops -finline-functions \
        -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
 #CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
@@ -119,7 +119,7 @@ strip : $(BINS) $(LSBINS)
 ifeq ($(OS),Windows_NT)
 	strip $(BINDIR)/*.exe
 else
-	strip $(BINS)
+	strip $(BINS) ../bin/gnfs-lasieve4I1?e ../bin/pol51*
 endif
 
 clean : lasieve-clean polsel-clean

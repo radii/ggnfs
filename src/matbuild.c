@@ -222,6 +222,7 @@ int checkMat(nfs_sparse_mat_t *M)
       printf("However, the number of bad columns is only %" PRId32 ",\n", numDel);
       printf("so we will delete them and attempt to continue.\n");
     }
+    else warn = 2048;
   }
   free(colHash);
   return warn;
@@ -1169,9 +1170,16 @@ int buildSparseMat(char *colName, double wtFactor)
     free(M.cEntry); free(M.cIndex);
     return 0;
   }
-  if (checkMat(&M)) {
-    printf("checkMat() returned some error! Terminating...\n");
-    exit(-1);
+  
+  {
+    int retval = checkMat(&M);
+    if(retval > 2) {
+      printf("checkMat() returned a fatal error! Terminating...\n");
+      exit (-1);
+    }
+    else if(retval) {
+      printf("checkMat() returned an error! Attempting to continue...\n");
+    }
   }
   /**************************************************************/
   /* This is to map new columns onto old ones, so we can delete */
