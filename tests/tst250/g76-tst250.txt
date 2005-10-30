@@ -4,9 +4,9 @@ N=3675041894739039405533259197211548846143110109152323761665377505538520830273
 Divisors found:
  r1=53169119831396634916152282437374262651 (pp38)
  r2=69119855780815625390997974542224894323 (pp38)
-Version: GGNFS-0.76.4
-Total time: 0.88 hours.
-Scaled time: 0.49 units (timescale=0.553).
+Version: GGNFS-0.77.1-20051006-nocona
+Total time: 0.49 hours.
+Scaled time: 0.70 units (timescale=1.439).
 Factorization parameters were as follows:
 name: tst250
 type: gnfs
@@ -38,27 +38,22 @@ q0: 350000
 Factor base limits: 350000/400000
 Large primes per side: 3
 Large prime bits: 24/24
-Sieved special-q in [350000, 410001)
-Relations: rels:765551, finalFF:98037
-Initial matrix: 64068 x 98037 with sparse part having weight 3134595.
-Pruned matrix : 51685 x 52069 with weight 1253689.
-Total sieving time: 0.79 hours.
-Total relation processing time: 0.04 hours.
-Matrix solve time: 0.04 hours.
+Max factor residue bits: 36/36
+Sieved algebraic special-q in [350000, 400001)
+Primes: RFBsize:29977, AFBsize:34014, largePrimes:740513 encountered
+Relations: rels:702258, finalFF:83493
+Max relations in full relation-set: 28
+Initial matrix: 64068 x 83493 with sparse part having weight 2276547.
+Pruned matrix : 50366 x 50750 with weight 1223893.
+Total sieving time: 0.45 hours.
+Total relation processing time: 0.02 hours.
+Matrix solve time: 0.01 hours.
 Time per square root: 0.01 hours.
 Prototype def-par.txt line would be:
 gnfs,75,4,maxs1,maxskew,goodScore,efrac,j0,j1,eStepSize,maxTime,350000,400000,24,24,36,36,1.7,1.7,10000
-total time: 0.88 hours.
+total time: 0.49 hours.
  --------- CPU info (if available) ----------
-CPU: AMD mobile AMD Athlon(tm) XP2800+ stepping 00
-Memory: 449348k/457664k available (2537k kernel code, 7568k reserved, 649k data, 168k init, 0k highmem)
-Calibrating delay loop... 4210.68 BogoMIPS
-x86info v1.12b.  Dave Jones 2001-2003
-Feedback to <davej@redhat.com>.
-
-Found 1 CPU
---------------------------------------------------------------------------
-Family: 6 Model: 10 Stepping: 0
-CPU Model : Mobile Athlon XP (Barton)
-2.1Ghz processor (estimate).
-
+              Intel(R) Pentium(R) 4 CPU 3.40GHz stepping 03
+Memory: 2055080k/2096640k available (3203k kernel code, 0k reserved, 1799k data, 216k init)
+Calibrating delay using timer specific routine.. 6834.84 BogoMIPS (lpj=13669684)
+Calibrating delay using timer specific routine.. 6824.64 BogoMIPS (lpj=13649290)

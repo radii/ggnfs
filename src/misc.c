@@ -745,10 +745,13 @@ int mpz_fact_factorEasy(mpz_fact_t *F, mpz_t N, int doRealWork)
             mpz_divexact(F->unfactored, F->unfactored, tmp1);
             mpz_mod(tmp2, F->unfactored, tmp1);
           }
-          if (e) mpz_fact_add_factor(F, tmp1, e);
-          if (mpz_cmp_ui(F->unfactored, 1)==0) {
-            msgLog(GGNFS_LOG_NAME, "Discriminant factorization re-read from log file.");
-          }
+          if (e)
+	  {
+	    mpz_fact_add_factor(F, tmp1, e);
+            if (mpz_cmp_ui(F->unfactored, 1)==0) {
+              msgLog(GGNFS_LOG_NAME, "Discriminant factorization re-read from log file.");
+            }
+	  }
         }
       }
     }

@@ -1,3 +1,8 @@
+10/30/05 (trilliwig)
+  * Patched factLat.pl with Bob Backstrom's suggested change.  Updated q0-q1
+    ranges are printed in ggnfs.log.
+  * Minor update in misc.c to correct multiple printings of a status message. 
+
 9/30/05 (trilliwig)
   * It makes no sense to disable HAVE_FLOAT64 if HAVE_ASM_INTEL is defined.
     This causes pol51m0b to miss essential polynomials and causes the abnormal

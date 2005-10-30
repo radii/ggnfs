@@ -955,6 +955,9 @@ sub makeJobFile {
       $qrSize = $q1 -$q0;
     }
     printf "-> makeJobFile(): Adjusted to q0=$q0, q1=$q1.\n";
+    open(OF, ">>$LOGFILE");
+    print OF "-> makeJobFile(): Adjusted to q0=$q0, q1=$q1.\n";
+    close(OF);
     $Q0 = $q0;
     $Q1 = $q1;
     $thisQRSize = $qrSize;
