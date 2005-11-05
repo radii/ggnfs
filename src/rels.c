@@ -1231,7 +1231,10 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       numpFacts += (pFacts[j]>1);
       kk += (pFacts[j]>1);
       if (pFacts[j]==0) pFacts[j]=1;
-      if (mpz_fdiv_ui(temp1, pFacts[j]) != 0) { gmp_printf("temp1=%Zd, pFacts[%d]=%ld\n", temp1, j, pFacts[j]); return -191; }
+      if (mpz_fdiv_ui(temp1, pFacts[j]) != 0) { 
+        gmp_printf("temp1=%Zd, pFacts[%d]=%ld\n", temp1, j, pFacts[j]); 
+	return -191; 
+      }
       mpz_tdiv_q_ui(temp1, temp1, pFacts[j]);
     }
     if (mpz_cmp_ui(temp1, 1)) {
