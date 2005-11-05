@@ -482,15 +482,9 @@ double sTime()
 }
 #endif
 
-
-#ifdef GNFS_CS32
-#define bc_t uint32_t
-#define BC_MASK 0x80808080U
-#else
-#define bc_t uint64_t
-#define BC_MASK 0x8080808080808080ULL
-#endif
-
+typedef unsigned long bc_t;
+#define BC_ONES ((~0UL)/0xFFU)
+#define BC_MASK (BC_ONES*0x80U)
 inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   // align i_o & i_max to 32-byte boundary
   for(;i_o<i_max && ((size_t)i_o & 0x1F);++i_o) {
@@ -511,13 +505,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   if (st1 < 0x80) {
     bc_t bc, *i_oo;
 
-    bc = st1;
-    bc = (bc << 8) | bc;
-    bc = (bc << 16) | bc;
-#ifndef GNFS_CS32
-    bc = (bc << 32) | bc;
-#endif
-    bc = BC_MASK - bc;
+    bc = BC_MASK - (BC_ONES * st1);
     for (i_oo = (bc_t *) i_o; i_oo < (bc_t *) i_max;
 	 i_oo++) {
       bc_t v = *i_oo;

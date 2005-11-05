@@ -21,9 +21,12 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define ULONG_RI
 #define asm_modinv32 modinv32
 
-#ifdef __ppc__
+#if defined(__ppc__) || defined(__ppc64__)
 #define GGNFS_BIGENDIAN
-#define GNFS_CS32
+#endif
+
+#if defined(__ppc__)
+#define ULL_NO_UL
 #endif
 
 #if defined(__x86_64__) && !defined(_WIN64)

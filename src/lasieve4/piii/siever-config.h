@@ -17,6 +17,7 @@
 #include <gmp.h>
 #include <sys/types.h>
 
+#define ULL_NO_UL
 #include "if.h"
 
 #define L1_BITS 14

@@ -1,3 +1,8 @@
+11/04/05 (relf)
+  * __ppc64__ is used together with __ppc__
+  * GNFS_CS32 is removed, bc_t is defined as `unsigned long'
+  * ULL_NO_UL is back, it must be defined whenever 'long long' is different from 'long'
+
 10/30/05 (trilliwig)
   * Patched factLat.pl with Bob Backstrom's suggested change.  Updated q0-q1
     ranges are printed in ggnfs.log.

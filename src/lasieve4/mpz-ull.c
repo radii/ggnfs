@@ -19,11 +19,12 @@
 
 #include "lasieve.h"
 
+#ifdef ULL_NO_UL
 static unsigned long have_init = 0;
 static mpz_t auxz, auxz2;
 
 #ifndef ULLONG_MAX
-	#define ULLONG_MAX 0xffffffffffffffffULL
+	#define ULLONG_MAX (~0ULL)
 #endif
 
 /****************************************************/
@@ -140,3 +141,4 @@ int mpz_fits_sllong_p(mpz_t x)
     return mpz_get_ull(auxz2) <= ULLONG_MAX / 2;
   }
 }
+#endif
