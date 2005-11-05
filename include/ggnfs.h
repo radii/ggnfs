@@ -193,7 +193,7 @@ typedef  int64_t i64_t;
 
 /************************************************/
 typedef struct {
-  char prefix[60];
+  char prefix[1000];
   int  numFiles;
   s32 data1, data2; /* Used for whatever. */
 } multi_file_t;

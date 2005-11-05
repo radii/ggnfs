@@ -521,7 +521,7 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
         /* Append to file and clear. */
         /* It should be possible to do this with one fopen(), but I don't
            know about portability of doing it that way. */
-        sprintf(prelname, ".%s.%d", prelF->prefix, fileno);
+        sprintf(prelname, "%s.%d_", prelF->prefix, fileno);
         if ((ofp = fopen(prelname, "rb"))) {
           rewind(ofp);
           fread(&relsInFile, sizeof(s32), 1, ofp);
@@ -554,7 +554,7 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
     free(RL);
   }
   for (fileno=0; fileno<newFiles; fileno++) {
-    sprintf(prelname, ".%s.%d", prelF->prefix, fileno);
+    sprintf(prelname, "%s.%d_", prelF->prefix, fileno);
     if ((ofp = fopen(prelname, "rb"))) {
       rewind(ofp);
       fread(&relsInFile, sizeof(s32), 1, ofp);
@@ -582,7 +582,7 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
   prelF->numFiles = newFiles;
   for (i=0; i<prelF->numFiles; i++) {
     /* rename the files. */
-    sprintf(fName, ".%s.%d", prelF->prefix, i);
+    sprintf(fName, "%s.%d_", prelF->prefix, i);
     sprintf(newName, "%s.%d", prelF->prefix, i);
     rename(fName, newName);
   }
