@@ -17,7 +17,6 @@
 #include <gmp.h>
 #include <sys/types.h>
 
-#define ULL_NO_UL
 #include "if.h"
 
 #define L1_BITS 14
@@ -29,8 +28,6 @@
 #define HAVE_ASM_GETBC
 #define ASM_SCHEDSIEVE
 #define modinv32 asm_modinv32 
-
-#undef GGNFS_BIGENDIAN
 
 #if 1
 #define N_PRIMEBOUNDS 7

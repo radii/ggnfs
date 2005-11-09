@@ -14,17 +14,17 @@
 #ifndef _IF_H
 #define _IF_H
 
-#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#define NEED_GETLINE
-#define NEED_ASPRINTF
-#endif
-
 #include <gmp.h>
 #include <stdlib.h>
 #include <stdarg.h> 
 #include <stdio.h> 
 
 #include "ggnfs.h"
+
+//#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#define NEED_GETLINE
+#define NEED_ASPRINTF
+//#endif
 
 void*xmalloc(size_t size);
 void*xvalloc(size_t size);
@@ -37,6 +37,7 @@ void adjust_bufsize(void**,size_t*,size_t,size_t,size_t);
 extern int verbose;
 extern FILE*logfile;
 void Schlendrian(char*fmt,...);
+
 #if defined(GGNFS_BIGENDIAN)
 int write_i64(FILE*,int64_t*,size_t);
 int write_u64(FILE*,uint64_t*,size_t);
@@ -56,24 +57,22 @@ int read_u32(FILE*,uint32_t*,size_t);
 #define read_u32(ofile,buffer,count) fread((void*)buffer,sizeof(uint32_t),count,ofile)
 #define read_i32(ofile,buffer,count) fread((void*)buffer,sizeof(int32_t),count,ofile)
 #endif 
+
 int yn_query(char*fmt,...);
 int skip_blank_comments(char**,size_t*,FILE*);
-
-#ifdef NEED_ASPRINTF
-int asprintf(char**,const char*,...);
-#endif
-
-#ifdef NEED_GETLINE
-#endif
 
 /* These are supposed to be obtained by #define _GNU_SOURCE
    before including stdio.h, but that seems to break things,
    so here we go: 
 */
-ssize_t getline(char**,size_t*,FILE*);
-int asprintf(char **strp, const char *fmt, ...);
-int vasprintf(char **strp, const char *fmt, va_list ap);
+#ifdef NEED_ASPRINTF
+int asprintf(char**, const char*, ...);
+int vasprintf(char **, const char *, va_list);
+#endif
 
+#ifdef NEED_GETLINE
+ssize_t getline(char**,size_t*,FILE*);
+#endif
 
 /* gmp-aux.h */
 void adjust_mpz_bufsize(mpz_t**x,size_t*alloc_ptr,size_t size,size_t increment);

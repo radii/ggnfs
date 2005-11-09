@@ -22,6 +22,7 @@
 #ifndef _GGNFS_H
 #define _GGNFS_H
 
+#include "version.h"
 #include <gmp.h>
 
 #if defined (__cplusplus)
@@ -36,11 +37,12 @@ extern "C" {
 #include <math.h>
 
 typedef unsigned char uchar;
-/* *signed* size type */
-typedef long ssize_t;
 
 #if defined (_MSC_VER)
 #include <basetsd.h>
+
+/* *signed* size type */
+typedef long ssize_t;
 
 #if _MSC_VER < 1300 /* VC6 math.h lacks of these defines */
 	#ifndef M_LN2
@@ -115,7 +117,9 @@ typedef long ssize_t;
 #define SCNX64 "I64X"
 
 #else
+
 #include <inttypes.h>
+
 #endif
 
 typedef uint16_t u16_t;
@@ -125,7 +129,15 @@ typedef  int32_t i32_t;
 typedef uint64_t u64_t;
 typedef  int64_t i64_t;
 
-#include "version.h"
+
+#if defined(__ppc__) || defined(__ppc64__)
+#define GGNFS_BIGENDIAN
+#endif
+
+#include <limits.h>
+#if ULLONG_MAX != ULONG_MAX
+#define ULL_NO_UL
+#endif
 
 /* This is just for a procrels hack. */
 #define BAD_LP_INDEX 0xFFFFFFFE

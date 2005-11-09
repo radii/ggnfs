@@ -19,6 +19,7 @@
 #include <stdarg.h> 
 #include <stdio.h> 
 
+#include "ggnfs.h"
 #include "asm/siever-config.h"
 #include "if.h"
 
