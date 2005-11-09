@@ -4,14 +4,8 @@ LIBS=-lgmp -lm
 BINDIR=../bin
 LIBFLAGS=$(LOCALLIB)
 
-DLMALLOC=0
 MATBUILD_TPIE=0
 TPIE_DIR=f:/tmp/nfs/tpie
-
-#Hope, we're running Mingw32 ;)
-ifeq ($(OSTYPE),msys)
-    DLMALLOC=1
-endif
 
 ifeq ($(HOST),generic)
     ALLOPT+= -DGGNFS_HOST_GENERIC
@@ -44,17 +38,18 @@ BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
 
 LSBINS=latsiever polsel
 
+ifeq ($(OSTYPE),msys)
+#Hope, we're running Mingw32 ;)
+    ALLOPT+= -DMALLOC_REPORTING
+    OBJS+= dlmalloc.o
+endif
+
 ifeq ($(HOST),x86)
   LANCZOS=blanczos64
   OBJS+=mulmod32.o lasieve4/asm/modinv1002.o
 else
   LANCZOS=blanczos64-no-mmx
   OBJS+=modinv32.o
-endif
-
-ifeq ($(DLMALLOC),1)
-  ALLOPT+= -DMALLOC_REPORTING
-  OBJS+= dlmalloc.o
 endif
 
 ifeq ($(MATBUILD_TPIE),1)
