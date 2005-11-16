@@ -1743,6 +1743,11 @@ if (-x '/usr/sbin/x86info') {
   print "=>$cmd\n" if($ECHO_CMDLINE);
   system($cmd);
 }
+if (-x '/usr/sbin/system_profiler') {
+   $cmd="/usr/sbin/system_profiler | head -n 12 | tail -n 8 >> $sumName";
+   print "=>$cmd\n" if($ECHO_CMDLINE);
+   system($cmd);
+}
 
 open(STDOUT, ">&", $std); # Restore orig STDOUT
 print "-> Factorization summary written to $sumName.\n";

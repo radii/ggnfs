@@ -1,3 +1,6 @@
+11/16/05 (aSL)
+  * Some factLat.pl changes by Mark Rodenkirch
+
 11/04/05 (relf)
   * __ppc64__ is used together with __ppc__
   * GNFS_CS32 is removed, bc_t is defined as `unsigned long'
