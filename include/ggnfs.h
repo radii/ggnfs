@@ -134,8 +134,8 @@ typedef  int64_t i64_t;
 #define GGNFS_BIGENDIAN
 #endif
 
-#include <limits.h>
-#if ULLONG_MAX != ULONG_MAX
+#if !defined(__x86_64__) && !defined(__ppc64__) && !defined(__alpha__)
+/* #if _WORDSIZE == 32 */
 #define ULL_NO_UL
 #endif
 
@@ -261,8 +261,8 @@ typedef struct {
 
 
 typedef struct {
-  s32  numRels, maxRels, maxDataSize;
-  s32 *relIndex; /* relIndex[i] is the index of the start of relation 'i' in
+  u32  numRels, maxRels, maxDataSize;
+  u32 *relIndex; /* relIndex[i] is the index of the start of relation 'i' in
                      the following array: */
   s32 *relData;  /* This is where all the relation data is held, in a very
                      specific format: see rels.c for the format description.
@@ -716,9 +716,8 @@ int   parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB);
 void  makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB);
 s32  lookupRFB(s32 p, nfs_fb_t *FB);
 s32  lookupAFB(s32 p, s32 r, nfs_fb_t *FB);
-
-
-
+#define readRaw32(w,fp)  fread((w),sizeof(s32),1,(fp))
+#define writeRaw32(fp,w) fwrite((w),sizeof(s32),1,(fp))
 
 /* blanczos.c */
 typedef void (* MAT_MULT_FUNC_PTR32)(u32 *Product, u32 *x, void *P);
