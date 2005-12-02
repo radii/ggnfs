@@ -295,18 +295,6 @@ int dataConvertToRel(relation_t *R, s32 *data)
   return size;
 }
  
-
-void readRawS32(s32 *w, FILE *fp)
-{ 
-  fread(w, sizeof(s32), 1, fp);
-}
-
-void writeRawS32(FILE *fp, s32 *w)
-{ 
-  fwrite(w, sizeof(s32), 1, fp);
-}
-  
-
 /***********************************************/
 int writeRel(FILE *fp, s32 *relData)
 /***********************************************/
@@ -329,7 +317,7 @@ int readRel(relation_t *R, FILE *fp)
 /*****************************************************/
 { s32 data[1024], dataSize=0, sF;
 
-  readRawS32(&sF, fp);
+  readRaw32(&sF, fp);
   if (feof(fp))
     return -1;
   data[0] = sF;
@@ -365,7 +353,7 @@ int writeRelList(char *fname, rel_list *L)
     return -1;
   }
   /* The first 4 bytes give the # of relations in the file. */
-  writeRawS32(fp, &L->numRels);
+  writeRaw32(fp, &L->numRels);
   index = 0;
   for (i=0; i<L->numRels; i++) {
     writeRel(fp, &L->relData[L->relIndex[i]]);
@@ -393,11 +381,11 @@ int readRelList(rel_list *L, char *fname)
   /* The first 4 bytes of the file always give the
      number of relations in the file.
   */
-  readRawS32(&L->numRels, fp);
+  readRaw32(&L->numRels, fp);
   
   printf("\n");
   if (L->numRels > L->maxRels) {
-    fprintf(stderr, "readRelList() Error: File contains %" PRId32 " relations vs. maxRels=%" PRId32 "\n",
+    fprintf(stderr, "readRelList() Error: File contains %" PRIu32 " relations vs. maxRels=%" PRIu32 "\n",
             L->numRels, L->maxRels);
     fclose(fp);
     return -1;

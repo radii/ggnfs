@@ -43,42 +43,17 @@ void mpz_ull_init()
 void mpz_set_ull(mpz_t targ, uint64_t src)
 /****************************************************/
 {
-  mpz_set_ui(targ,
-             (unsigned long) ((src &
-                       ((uint64_t) ULONG_MAX << BITS_PER_ULONG)) >>
-                      BITS_PER_ULONG));
+  mpz_set_ui(targ,(uint32_t)(src>>32));
   mpz_mul_2exp(targ, targ, BITS_PER_ULONG);
-  mpz_add_ui(targ, targ, (unsigned long) (src & ULONG_MAX));
+  mpz_add_ui(targ, targ, (uint32_t)(src&0xFFFFFFFF));
 }
 
 /****************************************************/
 uint64_t mpz_get_ull(mpz_t src)
 /****************************************************/
 {
-  uint64_t res;
-
-  if (sizeof(uint64_t) == 2 * sizeof(unsigned long)) {
-    mpz_fdiv_q_2exp(auxz, src, sizeof(unsigned long) * CHAR_BIT);
-    res = mpz_get_ui(auxz);
-    res <<= sizeof(unsigned long) * CHAR_BIT;
-    res |= mpz_get_ui(src);
-  } else {
-
-    if (sizeof(unsigned long) == sizeof(uint64_t))
-      return mpz_get_ui(src);
-    else {
-      unsigned long i;
-
-      res = mpz_get_ui(src);
-      mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(unsigned long));
-      res |= ((uint64_t) mpz_get_ui(auxz)) << (sizeof(unsigned long) * CHAR_BIT);
-      for (i = 2; i * sizeof(unsigned long) < sizeof(uint64_t); i++) {
-        mpz_fdiv_q_2exp(auxz, src, CHAR_BIT * sizeof(unsigned long));
-        res |= ((uint64_t) mpz_get_ui(auxz)) << (i * sizeof(unsigned long) * CHAR_BIT);
-      }
-    }
-  }
-  return res;
+  mpz_fdiv_q_2exp(auxz, src, BITS_PER_ULONG);
+  return (((uint64_t)mpz_get_ui(auxz)) << BITS_PER_ULONG) | mpz_get_ui(src);
 }
 
 /****************************************************/

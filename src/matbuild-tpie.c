@@ -233,7 +233,8 @@ int checkMat(nfs_sparse_mat_t *M)
 s32 loadMat(nfs_sparse_mat_t *M, char *colName)
 /*********************************************************/
 { FILE  *fp;
-  s32   i, j, k, fileSize, index, nR, r, *rwt, blockWt;
+  s32   i, j, k, index, nR, r, *rwt, blockWt;
+  off_t fileSize;
   struct stat fileInfo;
   column_t     C;
   int    bSize;
@@ -371,7 +372,7 @@ rel_list *getRelList(multi_file_t *prelF, int index)
   }
   RL->maxDataSize = 4096 + fileInfo.st_size/sizeof(s32);
   if ((fp = fopen(fName, "rb"))) {
-    readRawS32(&RL->maxRels, fp);
+    readRaw32(&RL->maxRels, fp);
     fclose(fp);
   }
   RL->maxRels += 5;
@@ -1078,7 +1079,7 @@ int count_prelF(multi_file_t *prelF)
 { int    i, cont;
   struct stat fileInfo;
   char   fName[512];
-  s32   maxSize=0;
+  off_t  maxSize=0;
 
   i=0;
   do {
@@ -1103,7 +1104,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
 /* Allocate 'RL' so it can hold the largest of the    */
 /* processed relation files.                          */
 /******************************************************/
-{ s32 maxSize;
+{ off_t maxSize;
   char prelName[512];
   int  i;
   struct stat fileInfo;

@@ -388,8 +388,8 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
 /* non-special primes we will need.                                  */
 /* Also, identify the special primes and store copies in sPrimes.    */
 /*********************************************************************/
-{ s32       t1Size, maxSize;
-  s32       p1, r1, h1, ct1, i1, i, k;
+{ off_t      t1Size, maxSize;
+  s32        p1, r1, h1, ct1, i1, i, k;
   afb_elt_t  *T1;
   mpz_t      tmp;
   struct     stat fileInfo; 
@@ -463,16 +463,16 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
     while (!(feof(fp)) && (t1Size < maxSize)) {
       r1 = -1;
       if (i < lpF->numFiles) {
-        readRawS32(&h1, fp);
-        readRawS32(&p1, fp);
-        readRawS32(&r1, fp);
-        readRawS32(&i1, fp);
-        readRawS32(&ct1, fp);
+        readRaw32(&h1, fp);
+        readRaw32(&p1, fp);
+        readRaw32(&r1, fp);
+        readRaw32(&i1, fp);
+        readRaw32(&ct1, fp);
       } else {
-        readRawS32(&p1, fp);
-        readRawS32(&r1, fp);
-        readRawS32(&i1, fp);
-        readRawS32(&ct1, fp);
+        readRaw32(&p1, fp);
+        readRaw32(&r1, fp);
+        readRaw32(&i1, fp);
+        readRaw32(&ct1, fp);
       }
       if (r1 >= 0) {
         T1[t1Size].p = p1; T1[t1Size].r = r1;
@@ -482,14 +482,14 @@ int setupPrimes(msqrt_t *M, multi_file_t *lpF)
     fclose(fp);
   }
   if (t1Size >= maxSize) {
-    fprintf(stderr, "setupPrimes() severe error! maxSize=%" PRId32 " exceeded!\n", maxSize);
+    fprintf(stderr, "setupPrimes() severe error! maxSize=%" PRIu64 " exceeded!\n", (u64)maxSize);
     exit(-1);
   
   }
   /* And sort them. */
   qsort(T1, t1Size, sizeof(afb_elt_t), afb_elt_cmp);
 
-  printf("Found %" PRId32 " large primes total.\n", t1Size);
+  printf("Found %" PRIu64 " large primes total.\n", (u64)t1Size);
   /* Finally, the large primes we needed are in T1 and */
   /* there are t1Size of them.                         */
   M->aSize = t1Size + M->FB->afb_size;
@@ -934,7 +934,7 @@ ABexponentSum=0;
   }
   printf("Reading relations from %s...\n", fName);
   R0 = 0;
-  readRawS32(&R1, fp);
+  readRaw32(&R1, fp);
   Rindex = 0; fileNum = 0;
   e=-1;
   /* Throughout this loop: the current file has relations [R0, R1). */
@@ -952,7 +952,7 @@ ABexponentSum=0;
         }
         printf("Reading relations from %s...\n", fName);
         R0 = R1;
-        readRawS32(&R1, fp); R1 += R0;
+        readRaw32(&R1, fp); R1 += R0;
         Rindex = R0;
       }
       if (readRel(&R, fp)==0) {

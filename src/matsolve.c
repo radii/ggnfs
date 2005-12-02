@@ -202,7 +202,8 @@ int checkMat(nfs_sparse_mat_t *M)
 s32 loadMat(nfs_sparse_mat_t *M, char *colName)
 /*********************************************************/
 { FILE  *fp;
-  s32   i, j, k, fileSize, index, nR, r, *rwt, blockWt;
+  s32   i, j, k, index, nR, r, *rwt, blockWt;
+  off_t fileSize;
   struct stat fileInfo;
   column_t     C;
   int    bSize;
@@ -223,8 +224,8 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* Scan the file once to find out how many dense rows there are. */
   rwt = (s32 *)malloc(M->numCols*sizeof(s32));
   if (rwt == NULL) {
-    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%" PRIu32 " bytes)\n",
-            (u32)(M->numCols*sizeof(s32)) );
+    fprintf(stderr, "loadMat(): Memory allocation error for rwt! (%" PRIu64 " bytes)\n",
+            (u64)(M->numCols*sizeof(s32)) );
     exit(-1);
   }
   memset(rwt, 0x00, M->numCols*sizeof(s32));
@@ -282,19 +283,19 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   /* We could do a little better, by discounting for the QCB and sign entries. */
   M->maxDataSize = 256 + fileSize/sizeof(s32);
   if (!(M->cEntry = (s32 *)malloc(M->maxDataSize*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix!\n",
-            (u32)(M->maxDataSize*sizeof(s32)) );
+    fprintf(stderr, "loadMat() Error allocating %" PRIu64 " bytes for the sparse matrix!\n",
+            (u64)(M->maxDataSize*sizeof(s32)) );
     fclose(fp); return -1;
   }
   if (!(M->cIndex = (s32 *)malloc((M->numCols+1)*sizeof(s32)))) {
-    fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the sparse matrix indicies!\n",
-            (u32)((M->numCols+1)*sizeof(s32)) );
+    fprintf(stderr, "loadMat() Error allocating %" PRIu64 " bytes for the sparse matrix indicies!\n",
+            (u64)((M->numCols+1)*sizeof(s32)) );
     free(M->cEntry); fclose(fp); return -1;
   }
   for (i=0; i<M->numDenseBlocks; i++) {
     if (!(M->denseBlocks[i] = (u64 *)calloc((M->numCols+1),sizeof(u64)))) {
-      fprintf(stderr, "loadMat() Error allocating %" PRIu32 " bytes for the QCB entries!\n",
-              (u32)((M->numCols+1)*sizeof(u64)) );
+      fprintf(stderr, "loadMat() Error allocating %" PRIu64 " bytes for the QCB entries!\n",
+              (u64)((M->numCols+1)*sizeof(u64)) );
       free(M->cIndex); free(M->cEntry); fclose(fp); return -1;
     }
   }

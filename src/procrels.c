@@ -154,7 +154,7 @@ int cmp2S32s(const void *a, const void *b);
 
 
 /*********************************************************************/
-rel_list *getRelList(multi_file_t *prelF, int index)
+rel_list *getRelList(multi_file_t *prelF, unsigned int index)
 /*********************************************************************/
 /* Allocate for and read in the specified relation file. Caller is   */
 /* obviously responsible for freeing the memory when done!           */
@@ -166,7 +166,7 @@ rel_list *getRelList(multi_file_t *prelF, int index)
 
   RL = (rel_list *)malloc(sizeof(rel_list));
   RL->maxDataSize = 0;
-  sprintf(fName, "%s.%d", prelF->prefix, index);
+  sprintf(fName, "%s.%u", prelF->prefix, index);
   
   if (stat(fName, &fileInfo)) {
     printf("Could not stat file %s!\n", fName);
@@ -174,7 +174,7 @@ rel_list *getRelList(multi_file_t *prelF, int index)
   }
   RL->maxDataSize = 4096 + fileInfo.st_size/sizeof(s32);
   if ((fp = fopen(fName, "rb"))) {
-    readRawS32(&RL->maxRels, fp);
+    readRaw32(&RL->maxRels, fp);
     fclose(fp);
   }
   RL->maxRels += 5;
@@ -261,7 +261,7 @@ void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs
     /* Now, go through the relations and decide which to keep and which to dump. */
     rfp = fopen(".tmp", "w");
     size = RL->numRels - numRemove;
-    writeRawS32(rfp, &size);
+    writeRaw32(rfp, &size);
     bufIndex=0;
     for (j=0; j<RL->numRels; j++) {
       size = RL->relIndex[j+1] - RL->relIndex[j];
@@ -446,7 +446,7 @@ long countLP(multi_file_t *prelF)
 }
 
 /******************************************************/
-int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
+int set_prelF(multi_file_t *prelF, off_t maxFileSize, int takeAction)
 /******************************************************/
 /* Check to see how many files there are, and whether */
 /* or not this needs to be increased. If so, increase.*/
@@ -456,8 +456,8 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
 { int    i, cont, newFiles;
   struct stat fileInfo;
   char   fName[512], newName[512];
-  s32   maxSize=0, where;
-  s32   k;
+  off_t  maxSize=0;
+  s32    where, k;
   rel_list   *RL;
   s32   bufSize, b, size, relsInFile;
   s64   a;
@@ -479,8 +479,8 @@ int set_prelF(multi_file_t *prelF, s32 maxFileSize, int takeAction)
   } while (cont);
 /* CJM, 129/04 : Consider making this MAX(i, DEFAULT_NUM_FILES); */
   prelF->numFiles = MAX(i, 1);
-  printf("Largest prel file size is %" PRId32 " versus max allowed of %" PRId32 ".\n", 
-          maxSize, maxFileSize);
+  printf("Largest prel file size is %" PRIu64 " versus max allowed of %" PRIu64 ".\n", 
+          (u64)maxSize, (u64)maxFileSize);
   if ((maxSize < maxFileSize)||(takeAction==0))
     return 0;
 
@@ -599,7 +599,7 @@ int allocateRL(multi_file_t *prelF, rel_list *RL)
 /* Allocate 'RL' so it can hold the largest of the    */
 /* processed relation files.                          */
 /******************************************************/
-{ s32 maxSize;
+{ off_t maxSize;
   char prelName[512];
   int  i;
   struct stat fileInfo;
@@ -1397,7 +1397,8 @@ int main(int argC, char *args[])
   int        i, qcbSize = DEFAULT_QCB_SIZE, seed=DEFAULT_SEED, retVal=0, dump=0;
   int        fr=0, maxRelsInFF=MAX_RELS_IN_FF;
   double     startTime, rStart, rStop, pruneFrac=0.0;
-  s32       oldSize, newSize, maxSize, totalRels, numNewRels;
+  off_t      oldSize, newSize, maxSize;
+  s32        totalRels, numNewRels;
   struct stat fileInfo;
   nf_t       N;
   mpz_fact_t D;

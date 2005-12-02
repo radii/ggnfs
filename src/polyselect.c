@@ -1868,7 +1868,7 @@ char *getInputFromFile(char *fName)
 /******************************************************/
 { struct stat fileInfo;
   FILE *fp;
-  s32  size, index;
+  off_t  size;
   char  *input, tmpStr[256];
 
   if (stat(fName, &fileInfo)) {
@@ -1877,11 +1877,10 @@ char *getInputFromFile(char *fName)
   }
   size = 512 + fileInfo.st_size;
   if (!(input = (char *)malloc(size*sizeof(char)))) {
-    fprintf(stderr, "Memory allocation error (%" PRId32 " bytes for file %s).\n",
-            size, fName);
+    fprintf(stderr, "Memory allocation error (%" PRIu64 " bytes for file %s).\n",
+            (u64)size, fName);
     return "";
   }
-  index=0;
   input[0]=0;
   fp = fopen(fName, "r");
   while (!(feof(fp))) {
