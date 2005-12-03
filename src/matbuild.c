@@ -109,7 +109,9 @@ long relsNumLP[8]={0,0,0,0,0,0,0,0};
 s32  delCols[2048], numDel=0;
 
 int cmp2S32s(const void *a, const void *b);
-
+#ifdef GGNFS_TPIE
+s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF);
+#endif
 
 /******************************************************/
 void readColSF(column_t *C, FILE *fp)
@@ -381,7 +383,7 @@ rel_list *getRelList(multi_file_t *prelF, int index)
             (u32)(RL->maxDataSize * sizeof(s32)/1048576) );
     free(RL); return NULL;
   }
-  if (!(RL->relIndex = (s32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
+  if (!(RL->relIndex = (u32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
     fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n", 
             (u32)(RL->maxRels * sizeof(s32)/1048576) );
     free(RL->relData); free(RL);
@@ -405,7 +407,7 @@ void clearRelList(rel_list *RL)
 }
 
 /*********************************************************************/
-int removeEvens(s32 *list, s32 size)
+size_t removeEvens(s32 *list, size_t size)
 /*********************************************************************/
 /* Given a list of integers: list[0], ..., list[size-1], reduce it   */
 /* so it contains only those integers that appeared an odd number    */
@@ -414,63 +416,49 @@ int removeEvens(s32 *list, s32 size)
 /* Return value: The number of elements in the reduced list.         */
 /*********************************************************************/
 /* This is a crappy way to do it, but it's good for now.             */
-{ s32 j, k, unique;
+{ size_t j, k, unique;
 
   if (size <= 1) return size;
   qsort(list, size, sizeof(s32), cmpS32s);
   j=k=unique=0;
   while (j<size) {
-    k=1;
-    while (((j+k)<size) && (list[j] == list[j+k]))
-      k++;
-    if (k&0x01) {
-      /* It occurrs an odd number of times, so keep it. */
+    for (k=1; j+k<size && list[j]==list[j+k]; ++k);
+    if (k&1) /* It occurrs k times and k is odd, so keep it. */
       list[unique++] = list[j];
-    }
     j += k;
   }
   return unique;
 }
 
 /*************************************************/
-s32 sortRMDups(s32 *L, s32 size)
+size_t sortRMDups(s32 *L, size_t size)
 /*************************************************/
 /* Sort an array of s32s and remove duplicates. */
 /*************************************************/
-{ s32 i, unique;
+{ size_t i, unique = 0;
 
   if (size <= 1) return size;
   qsort(L, size, sizeof(s32), cmpS32s);
-  i=1; unique=0;
-  while (i<size) {
-    if (L[i] == L[unique]) i++;
-    else {
-      ++unique;
-      L[unique] = L[i];
-      i++; 
-    }
+  for(i=1;i<size;++i) {
+    if (L[i] != L[unique]) L[++unique] = L[i];
   }
   return unique+1;
 }
 
 /**********************************************************/
-s32 sortRMDups2(s32 *L, s32 size)
+size_t sortRMDups2(s32 *L, size_t size)
 /**********************************************************/
 /* Sort an array of pairs of s32s and remove duplicates. */
 /**********************************************************/
-{ s32 i, unique;
+{ size_t i, unique = 0;
 
   if (size <= 1) return size;
   qsort(L, size, 2*sizeof(s32), cmp2S32s);
-  i=1; unique=0;
-  while (i<size) {
-    if ((L[2*i] == L[2*unique]) && (L[2*i+1]==L[2*unique+1])) 
-      i++;
-    else { 
-      unique++;
+  for(i=1;i<size;++i) {
+    if ( L[2*i]!=L[2*unique] || L[2*i+1]!=L[2*unique+1] ) {
+      ++unique;
       L[2*unique] = L[2*i];
       L[2*unique+1] = L[2*i+1];
-      i++;
     }
   }
   return unique+1;
@@ -521,7 +509,7 @@ llist_t *getLPList(multi_file_t *prelF)
         /* So p is a large rational prime in this relation. */
         if (lRSize + 8 > lRMax) {
           lRMax += LP_LIST_INC_SIZE;
-          lR = lxrealloc(lR, lRMax*sizeof(s32),0);
+          lR = (s32*)lxrealloc(lR, lRMax*sizeof(s32),0);
           if (lR == NULL) {
             printf("getLPList() : Memory allocation error for lR!\n");
             exit(-1); 
@@ -535,7 +523,7 @@ llist_t *getLPList(multi_file_t *prelF)
         /* So (p,r) is a large algebraic prime in this relation. */
         if (lASize + 16 > lAMax) {
           lAMax += LP_LIST_INC_SIZE;
-          lA = lxrealloc(lA, 2*lAMax*sizeof(s32),0);
+          lA = (s32*)lxrealloc(lA, 2*lAMax*sizeof(s32),0);
           if (lA == NULL) {
             printf("getLPList() : Memory allocation error for lA!\n");
             exit(-1); 
@@ -660,7 +648,7 @@ llist_t *getLPList(multi_file_t *prelF)
       for (k=0; k<numLR; k++) {
         p = RL->relData[RL->relIndex[j] + lrpi + k];
         /* So p is a large rational prime in this relation: get it's index. */
-        loc = bsearch(&p, lR, lRSize, sizeof(s32), cmpS32s);
+        loc = (s32*)bsearch(&p, lR, lRSize, sizeof(s32), cmpS32s);
         if (loc==NULL) {
           printf("Warning: Could not find large rational prime %" PRId32 " in lR!\n", p);
           index = BAD_LP_INDEX; /* See the note at top of file. */
@@ -674,7 +662,7 @@ llist_t *getLPList(multi_file_t *prelF)
         r = RL->relData[RL->relIndex[j] + lapi + 2*k + 1];
         /* So (p,r) is a large algebraic prime in this relation. */
         key[0]=p; key[1]=r;
-        loc = bsearch(key, lA, lASize, 2*sizeof(s32), cmp2S32s);
+        loc = (s32*)bsearch(key, lA, lASize, 2*sizeof(s32), cmp2S32s);
         if (loc==NULL) {
           printf("Warning: Could not find large alg prime (%" PRId32 ",%" PRId32 ") in lR!\n",p,r);
           index = BAD_LP_INDEX;
@@ -752,8 +740,11 @@ s32 doRowOps3(llist_t **P, llist_t *R, multi_file_t *prelF, int maxRelsInFF)
   } while ((j<10) && (numLP[j]>0));
   printf("------------------------------\n");
 
-
+#ifdef GGNFS_TPIE
+  numFull = combParts_tpie(R, PL, maxRelsInFF, minFF);
+#else
   numFull = combParts(R, PL, maxRelsInFF, minFF);
+#endif
   return numFull;
 }
 

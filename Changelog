@@ -1,3 +1,7 @@
+12/02/05 (relf)
+  * matbuild-tpie.c merged with matbuild.c
+  * matbuild.c minor cleanups
+
 12/01/05 (relf)
   * file size/offset types changed to off_t
   * ULL_NO_UL is defined for 32-bit platforms

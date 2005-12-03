@@ -90,8 +90,8 @@ $(BINDIR)/matbuild : matbuild.c $(OBJS)
 	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild.c combparts.c \
 	  $(OBJS) $(LIBS)
 
-$(BINDIR)/matbuild-tpie : matbuild-tpie.c $(OBJS)
-	$(CPP) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matbuild-tpie.c \
+$(BINDIR)/matbuild-tpie : matbuild.c $(OBJS)
+	$(CPP) $(INC) $(CFLAGS) $(LIBFLAGS) -DGGNFS_TPIE -o $@ matbuild.c \
 	  experimental/combparts_tpie.cpp experimental/llist_tpie.cpp \
 	  $(OBJS) $(LIBS)
 
