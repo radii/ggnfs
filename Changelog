@@ -1,3 +1,6 @@
+12/12/05 (trilliwig)
+  * Header file fixes for Linux.
+
 12/02/05 (relf)
   * matbuild-tpie.c merged with matbuild.c
   * matbuild.c minor cleanups

@@ -21,10 +21,10 @@
 
 #include "ggnfs.h"
 
-//#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define NEED_GETLINE
 #define NEED_ASPRINTF
-//#endif
+#endif
 
 void*xmalloc(size_t size);
 void*xvalloc(size_t size);

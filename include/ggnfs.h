@@ -42,7 +42,9 @@ typedef unsigned char uchar;
 #include <basetsd.h>
 
 /* *signed* size type */
+#ifndef ssize_t
 typedef long ssize_t;
+#endif
 
 #if _MSC_VER < 1300 /* VC6 math.h lacks of these defines */
 	#ifndef M_LN2

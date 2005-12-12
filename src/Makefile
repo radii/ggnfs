@@ -24,7 +24,7 @@ DEBUGOPT=-W -Wall -g -pg
 
 CFLAGS=-DNDEBUG -O3 -ffast-math -funroll-loops -finline-functions \
        -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
-#CFLAGS=$(DEBUGOPT) $(ALLOPT)
+# CFLAGS=$(DEBUGOPT) $(ALLOPT)
 
 
 export ARCH HOST ALLOPT CFLAGS DEBUGOPT
@@ -38,11 +38,11 @@ BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
 
 LSBINS=latsiever polsel
 
-ifeq ($(OSTYPE),msys)
+#ifeq ($(OSTYPE),msys)
 #Hope, we're running Mingw32 ;)
     ALLOPT+= -DMALLOC_REPORTING
     OBJS+= dlmalloc.o
-endif
+#endif
 
 ifeq ($(HOST),x86)
   LANCZOS=blanczos64
