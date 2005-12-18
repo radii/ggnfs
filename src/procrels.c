@@ -54,8 +54,7 @@
 #endif
 #include "ggnfs.h"
 #include "prand.h"
-
-
+#include "rellist.h"
 
 
 /* I need to figure out what is roughly optimal
@@ -74,9 +73,6 @@
 
 #define MAX_LPMEM_ALLOC 256000000
 #define MAX_SPAIRS_ALLOC 12000000
-
-/* These are in s32's. */
-#define IO_BUFFER_SIZE  2*1024*1024
 
 /* One bit per entry in the (a,b) hash table. Higher means fewer collisions
    (and so, faster processing).
@@ -151,148 +147,6 @@ s32  minFF;
 long relsNumLP[8]={0,0,0,0,0,0,0,0};
 
 int cmp2S32s(const void *a, const void *b);
-
-
-/*********************************************************************/
-rel_list *getRelList(multi_file_t *prelF, unsigned int index)
-/*********************************************************************/
-/* Allocate for and read in the specified relation file. Caller is   */
-/* obviously responsible for freeing the memory when done!           */
-/*********************************************************************/
-{ rel_list *RL;
-  FILE     *fp;
-  char      fName[256];
-  struct stat fileInfo;
-
-  RL = (rel_list *)malloc(sizeof(rel_list));
-  RL->maxDataSize = 0;
-  sprintf(fName, "%s.%u", prelF->prefix, index);
-  
-  if (stat(fName, &fileInfo)) {
-    printf("Could not stat file %s!\n", fName);
-    free(RL); return NULL;
-  }
-  RL->maxDataSize = 4096 + fileInfo.st_size/sizeof(s32);
-  if ((fp = fopen(fName, "rb"))) {
-    readRaw32(&RL->maxRels, fp);
-    fclose(fp);
-  }
-  RL->maxRels += 5;
-  /* Now allocate for the relations. */
-  if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for reading relation list!\n",
-            (u32)(RL->maxDataSize * sizeof(s32)/1048576) );
-    free(RL); return NULL;
-  }
-  if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n", 
-            (u32)(RL->maxRels * sizeof(s32)/1048576) );
-    free(RL->relData); free(RL);
-    return NULL;
-  }
-  RL->numRels = 0;
-  readRelList(RL, fName);
-  return RL;
-}
-
-/*********************************************************************/
-void clearRelList(rel_list *RL)
-/*********************************************************************/
-{
-  if (RL->relData != NULL) 
-    free(RL->relData);
-  if (RL->relIndex != NULL)
-    free(RL->relIndex);
-  RL->relData = RL->relIndex = NULL;
-  RL->maxDataSize = RL->maxRels = 0;
-}
-
-/************************************************************************/
-void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB)
-/************************************************************************/
-/* removeFrac should be a fraction in [0,1). This function will remove  */
-/* the heaviest removeFrac relations from the processed relation files  */
-/* file, appending them in siever-output format to the file appendName. */
-/************************************************************************/
-#define MAX_PR_SIZE 2048
-{ rel_list *RL;
-  int       i, j;
-  long      numBySize[MAX_PR_SIZE], numRemove, t;
-  s32       size;  
-  char      outputStr[1024], str[128];
-  s32       bufMax, bufIndex, *buf;
-  relation_t R;
-  FILE     *afp, *rfp;
-
-  /* Prep the output buffers: */
-  bufMax = IO_BUFFER_SIZE;
-  if (!(buf = (s32 *)malloc(bufMax*sizeof(s32)))) {
-    printf("pruneRelLists() : Memory allocation error for buf!\n");
-    exit(-1);
-  }
-
-  afp = fopen(appendName, "a");
-  for (i=0; i<prelF->numFiles; i++) {
-    printf("Pruning rel file %d/%d...", i+1, prelF->numFiles);
-    fflush(stdout);
-    RL = getRelList(prelF, i);
-    memset(numBySize, 0x00, MAX_PR_SIZE*sizeof(long));
-     
-    for (j=0; j<RL->numRels; j++) {
-      size = RL->relIndex[j+1] - RL->relIndex[j];
-      size = MIN(size, MAX_PR_SIZE);
-      numBySize[size] += 1;
-    }
-    numRemove = (long)((removeFrac*RL->numRels))-1;
-    printf("from %" PRId32 " to %ld relations...",RL->numRels, RL->numRels-numRemove);
-    /* We proceed by modifying numBySize so that it contains the
-       number of relations we will keep with the given size.
-    */
-    t=numRemove;
-    for (j=MAX_PR_SIZE-1; (j>=0) && (t>0); j--) {
-      if (t >= numBySize[j]) {
-        t -= numBySize[j];
-        numBySize[j]=0;
-      } else {
-        numBySize[j] -= t;
-        t=0;
-      }
-    }
-    /* Now, go through the relations and decide which to keep and which to dump. */
-    rfp = fopen(".tmp", "w");
-    size = RL->numRels - numRemove;
-    writeRaw32(rfp, &size);
-    bufIndex=0;
-    for (j=0; j<RL->numRels; j++) {
-      size = RL->relIndex[j+1] - RL->relIndex[j];
-      if (numBySize[size] <= 0) {
-        /* We need to dump and remove this relation. */
-        dataConvertToRel(&R, &RL->relData[RL->relIndex[j]]);
-        makeOutputLine(outputStr, &R, FB);
-        fprintf(afp, "%s\n", outputStr);
-      } else {
-        numBySize[size] -= 1;
-        /* And re-record this relation. */
-        if (bufIndex + 1024 < bufMax) {
-          memcpy(buf+bufIndex, &RL->relData[RL->relIndex[j]], size*sizeof(s32));
-          bufIndex += size;
-        } else {
-          fwrite(buf, sizeof(s32), bufIndex, rfp);
-          bufIndex=0;
-          memcpy(buf+bufIndex, &RL->relData[RL->relIndex[j]], size*sizeof(s32));
-          bufIndex += size;
-        }
-      }
-    }
-    fwrite(buf, sizeof(s32), bufIndex, rfp);
-    fclose(rfp);
-    sprintf(str, "%s.%d", prelF->prefix, i);
-    remove(str);
-    rename(".tmp", str);
-    clearRelList(RL);
-  }
-  free(buf);
-}
 
 /*********************************************************************/
 int removeEvens(s32 *list, s32 size)

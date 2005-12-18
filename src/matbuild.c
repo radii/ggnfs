@@ -33,16 +33,12 @@
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
+
 #include "ggnfs.h"
-
-
-
+#include "rellist.h"
 
 #define MAX_LPMEM_ALLOC 256000000
 #define MAX_SPAIRS_ALLOC 12000000
-
-/* These are in s32's. */
-#define IO_BUFFER_SIZE  2*1024*1024
 
 #define MAX_PBUF_RAM 32000000
 #define DEFAULT_QCB_SIZE 62
@@ -158,8 +154,6 @@ int colsAreEqual(nfs_sparse_mat_t *M, s32 c0, s32 c1)
   }
   return 1; 
 }
-
-
 
 /*********************************************************/
 int checkMat(nfs_sparse_mat_t *M)
@@ -350,61 +344,6 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   free(rwt);
   return M->numRows;
 }    
-
-
-/*********************************************************************/
-rel_list *getRelList(multi_file_t *prelF, int index)
-/*********************************************************************/
-/* Allocate for and read in the specified relation file. Caller is   */
-/* obviously responsible for freeing the memory when done!           */
-/*********************************************************************/
-{ rel_list *RL;
-  FILE     *fp;
-  char      fName[256];
-  struct stat fileInfo;
-
-  RL = (rel_list *)lxmalloc(sizeof(rel_list),1);
-  RL->maxDataSize = 0;
-  sprintf(fName, "%s.%d", prelF->prefix, index);
-  
-  if (stat(fName, &fileInfo)) {
-    printf("Could not stat file %s!\n", fName);
-    free(RL); return NULL;
-  }
-  RL->maxDataSize = 4096 + fileInfo.st_size/sizeof(s32);
-  if ((fp = fopen(fName, "rb"))) {
-    readRaw32(&RL->maxRels, fp);
-    fclose(fp);
-  }
-  RL->maxRels += 5;
-  /* Now allocate for the relations. */
-  if (!(RL->relData = (s32 *)lxmalloc(RL->maxDataSize * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for reading relation list!\n",
-            (u32)(RL->maxDataSize * sizeof(s32)/1048576) );
-    free(RL); return NULL;
-  }
-  if (!(RL->relIndex = (u32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n", 
-            (u32)(RL->maxRels * sizeof(s32)/1048576) );
-    free(RL->relData); free(RL);
-    return NULL;
-  }
-  RL->numRels = 0;
-  readRelList(RL, fName);
-  return RL;
-}
-
-/*********************************************************************/
-void clearRelList(rel_list *RL)
-/*********************************************************************/
-{
-  if (RL->relData != NULL) 
-    free(RL->relData);
-  if (RL->relIndex != NULL)
-    free(RL->relIndex);
-  RL->relData = RL->relIndex = NULL;
-  RL->maxDataSize = RL->maxRels = 0;
-}
 
 /*********************************************************************/
 size_t removeEvens(s32 *list, size_t size)
