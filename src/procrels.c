@@ -55,6 +55,7 @@
 #include "ggnfs.h"
 #include "prand.h"
 #include "rellist.h"
+#include "intutils.h"
 
 
 /* I need to figure out what is roughly optimal
@@ -146,82 +147,6 @@ s32  totalLargePrimes=0;
 s32  minFF;
 long relsNumLP[8]={0,0,0,0,0,0,0,0};
 
-int cmp2S32s(const void *a, const void *b);
-
-/*********************************************************************/
-int removeEvens(s32 *list, s32 size)
-/*********************************************************************/
-/* Given a list of integers: list[0], ..., list[size-1], reduce it   */
-/* so it contains only those integers that appeared an odd number    */
-/* of times. That is, remove the elements that occur an even number  */
-/* of times.                                                         */
-/* Return value: The number of elements in the reduced list.         */
-/*********************************************************************/
-/* This is a crappy way to do it, but it's good for now.             */
-{ s32 j, k, unique;
-
-  if (size <= 1) return size;
-  qsort(list, size, sizeof(s32), cmpS32s);
-  j=k=unique=0;
-  while (j<size) {
-    k=1;
-    while (((j+k)<size) && (list[j] == list[j+k]))
-      k++;
-    if (k&0x01) {
-      /* It occurrs an odd number of times, so keep it. */
-      list[unique++] = list[j];
-    }
-    j += k;
-  }
-  return unique;
-}
-
-/*************************************************/
-s32 sortRMDups(s32 *L, s32 size)
-/*************************************************/
-/* Sort an array of s32s and remove duplicates. */
-/*************************************************/
-{ s32 i, unique;
-
-  if (size <= 1) return size;
-  qsort(L, size, sizeof(s32), cmpS32s);
-  i=1; unique=0;
-  while (i<size) {
-    if (L[i] == L[unique]) i++;
-    else {
-      ++unique;
-      L[unique] = L[i];
-      i++; 
-    }
-  }
-  return unique+1;
-}
-
-/**********************************************************/
-s32 sortRMDups2(s32 *L, s32 size)
-/**********************************************************/
-/* Sort an array of pairs of s32s and remove duplicates. */
-/**********************************************************/
-{ s32 i, unique;
-
-  if (size <= 1) return size;
-  qsort(L, size, 2*sizeof(s32), cmp2S32s);
-  i=1; unique=0;
-  while (i<size) {
-    if ((L[2*i] == L[2*unique]) && (L[2*i+1]==L[2*unique+1])) 
-      i++;
-    else { 
-      unique++;
-      L[2*unique] = L[2*i];
-      L[2*unique+1] = L[2*i+1];
-      i++;
-    }
-  }
-  return unique+1;
-}
-
-
-
 /********************************************************************************/
 long countLP(multi_file_t *prelF)
 /********************************************************************************/
@@ -255,7 +180,7 @@ long countLP(multi_file_t *prelF)
           lRMax += 65536;
           lR = realloc(lR, lRMax*sizeof(s32));
           if (lR == NULL) {
-            printf("getLPList() : Memory allocation error for lR!\n");
+            printf("countLP() : Memory allocation error for lR!\n");
             exit(-1); 
           }
         }
@@ -269,7 +194,7 @@ long countLP(multi_file_t *prelF)
           lAMax += 65536;
           lA = realloc(lA, 2*lAMax*sizeof(s32));
           if (lA == NULL) {
-            printf("getLPList() : Memory allocation error for lA!\n");
+            printf("countLP() : Memory allocation error for lA!\n");
             exit(-1); 
           }
         }
@@ -446,66 +371,6 @@ int set_prelF(multi_file_t *prelF, off_t maxFileSize, int takeAction)
   return 0;
 }
 
-
-/******************************************************/
-int allocateRL(multi_file_t *prelF, rel_list *RL)
-/******************************************************/
-/* Allocate 'RL' so it can hold the largest of the    */
-/* processed relation files.                          */
-/******************************************************/
-{ off_t maxSize;
-  char prelName[512];
-  int  i;
-  struct stat fileInfo;
-
-  maxSize = 0;
-  for (i=0; i<prelF->numFiles; i++) {
-    sprintf(prelName, "%s.%d", prelF->prefix, i);
-    if (stat(prelName, &fileInfo)==0) 
-      maxSize = MAX(maxSize, fileInfo.st_size);
-  }
-
-  RL->numRels = 0;
-  RL->maxDataSize = 1000 + maxSize/sizeof(s32);
-  if (!(RL->relData = (s32 *)malloc(RL->maxDataSize * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for processed relation files!\n",
-            (u32)(RL->maxDataSize * sizeof(s32)/1048576) );
-    fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
-    exit(-1);
-  }
-  /* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
-  RL->maxRels = (u32)RL->maxDataSize/20;
-  if (!(RL->relIndex = (s32 *)malloc(RL->maxRels * sizeof(s32)))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n",
-            (u32)(RL->maxRels * sizeof(s32)/1048756) );
-    free(RL->relData);
-    exit(-1);
-  }
-  return 0;
-}
-
-/******************************************************/
-void clearRL(rel_list *RL)
-{
-  if (RL->relData) free(RL->relData);
-  if (RL->relIndex) free(RL->relIndex);
-  RL->maxDataSize = RL->numRels = 0;
-  RL->relData = RL->relIndex = NULL;
-}
-
-/********************************************/
-int cmp2S32s(const void *a, const void *b)
-/********************************************/
-{ s32 *A = (s32 *)a, *B = (s32 *)b;
-
-  if (A[0] < B[0]) return -1;
-  if (A[0] > B[0]) return 1;
-  if (A[1] < B[1]) return -1;
-  if (A[1] > B[1]) return 1;
-  return 0;
-}
-
-
 /* Notes: Avoiding duplicate (a,b) pairs is actually a much bigger
    problem than it may seem at first. After much toiling over possible
    ways to handle this little predicament, I have arrived at a reasonable
@@ -603,7 +468,7 @@ s32 makeABLookup(multi_file_t *prelF)
   abListSize=0;
   
 
-  allocateRL(prelF, &RL);
+  allocateRelList(prelF, &RL);
 
   memset(abHash0, 0x00, abHashWords*sizeof(s32));
   memset(abHash1, 0x00, abHashWords*sizeof(s32));
@@ -641,7 +506,7 @@ s32 makeABLookup(multi_file_t *prelF)
     }
   }
   printf("\n");
-  clearRL(&RL);
+  clearRelList(&RL);
   /* Sort the list. */
   printf("makeABLookup() : Sorting abList..."); fflush(stdout);
   qsort(abList, abListSize, 2*sizeof(s32), cmp2S32s);
@@ -800,7 +665,7 @@ s32 getABHash(u32 *hash0, u32 *hash1, s32 hashSize, multi_file_t *prelF)
   rel_list RL;
   
 
-  allocateRL(prelF, &RL);
+  allocateRelList(prelF, &RL);
 
   memset(hash0, 0x00, hashSize/32);
   memset(hash1, 0x00, hashSize/32);
@@ -823,7 +688,7 @@ s32 getABHash(u32 *hash0, u32 *hash1, s32 hashSize, multi_file_t *prelF)
     }
   }
   printf("\n");
-  clearRL(&RL);
+  clearRelList(&RL);
   return total;
 }
 

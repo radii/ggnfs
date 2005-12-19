@@ -36,6 +36,7 @@
 
 #include "ggnfs.h"
 #include "rellist.h"
+#include "intutils.h"
 
 #define MAX_LPMEM_ALLOC 256000000
 #define MAX_SPAIRS_ALLOC 12000000
@@ -344,66 +345,6 @@ s32 loadMat(nfs_sparse_mat_t *M, char *colName)
   free(rwt);
   return M->numRows;
 }    
-
-/*********************************************************************/
-size_t removeEvens(s32 *list, size_t size)
-/*********************************************************************/
-/* Given a list of integers: list[0], ..., list[size-1], reduce it   */
-/* so it contains only those integers that appeared an odd number    */
-/* of times. That is, remove the elements that occur an even number  */
-/* of times.                                                         */
-/* Return value: The number of elements in the reduced list.         */
-/*********************************************************************/
-/* This is a crappy way to do it, but it's good for now.             */
-{ size_t j, k, unique;
-
-  if (size <= 1) return size;
-  qsort(list, size, sizeof(s32), cmpS32s);
-  j=k=unique=0;
-  while (j<size) {
-    for (k=1; j+k<size && list[j]==list[j+k]; ++k);
-    if (k&1) /* It occurrs k times and k is odd, so keep it. */
-      list[unique++] = list[j];
-    j += k;
-  }
-  return unique;
-}
-
-/*************************************************/
-size_t sortRMDups(s32 *L, size_t size)
-/*************************************************/
-/* Sort an array of s32s and remove duplicates. */
-/*************************************************/
-{ size_t i, unique = 0;
-
-  if (size <= 1) return size;
-  qsort(L, size, sizeof(s32), cmpS32s);
-  for(i=1;i<size;++i) {
-    if (L[i] != L[unique]) L[++unique] = L[i];
-  }
-  return unique+1;
-}
-
-/**********************************************************/
-size_t sortRMDups2(s32 *L, size_t size)
-/**********************************************************/
-/* Sort an array of pairs of s32s and remove duplicates. */
-/**********************************************************/
-{ size_t i, unique = 0;
-
-  if (size <= 1) return size;
-  qsort(L, size, 2*sizeof(s32), cmp2S32s);
-  for(i=1;i<size;++i) {
-    if ( L[2*i]!=L[2*unique] || L[2*i+1]!=L[2*unique+1] ) {
-      ++unique;
-      L[2*unique] = L[2*i];
-      L[2*unique+1] = L[2*i+1];
-    }
-  }
-  return unique+1;
-}
-
-
 
 #define LP_LIST_INC_SIZE 1048576
 /******************************************************************************/
@@ -1023,65 +964,6 @@ int count_prelF(multi_file_t *prelF)
   } while (cont);
 /* CJM, 129/04 : Consider making this MAX(i, DEFAULT_NUM_FILES); */
   prelF->numFiles = MAX(i, 1);
-  return 0;
-}
-
-
-/******************************************************/
-int allocateRL(multi_file_t *prelF, rel_list *RL)
-/******************************************************/
-/* Allocate 'RL' so it can hold the largest of the    */
-/* processed relation files.                          */
-/******************************************************/
-{ off_t maxSize;
-  char prelName[512];
-  int  i;
-  struct stat fileInfo;
-
-  maxSize = 0;
-  for (i=0; i<prelF->numFiles; i++) {
-    sprintf(prelName, "%s.%d", prelF->prefix, i);
-    if (stat(prelName, &fileInfo)==0) 
-      maxSize = MAX(maxSize, fileInfo.st_size);
-  }
-
-  RL->numRels = 0;
-  RL->maxDataSize = 1000 + maxSize/sizeof(s32);
-  if (!(RL->relData = (s32 *)lxmalloc(RL->maxDataSize * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for processed relation files!\n",
-            (u32)(RL->maxDataSize * sizeof(s32)/1048576) );
-    fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
-    exit(-1);
-  }
-  /* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
-  RL->maxRels = (u32)RL->maxDataSize/20;
-  if (!(RL->relIndex = (s32 *)lxmalloc(RL->maxRels * sizeof(s32),0))) {
-    fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n",
-            (u32)(RL->maxRels * sizeof(s32)/1048756) );
-    free(RL->relData);
-    exit(-1);
-  }
-  return 0;
-}
-
-/******************************************************/
-void clearRL(rel_list *RL)
-{
-  if (RL->relData) free(RL->relData);
-  if (RL->relIndex) free(RL->relIndex);
-  RL->maxDataSize = RL->numRels = 0;
-  RL->relData = RL->relIndex = NULL;
-}
-
-/********************************************/
-int cmp2S32s(const void *a, const void *b)
-/********************************************/
-{ s32 *A = (s32 *)a, *B = (s32 *)b;
-
-  if (A[0] < B[0]) return -1;
-  if (A[0] > B[0]) return 1;
-  if (A[1] < B[1]) return -1;
-  if (A[1] > B[1]) return 1;
   return 0;
 }
 

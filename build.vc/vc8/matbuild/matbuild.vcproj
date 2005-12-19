@@ -6,6 +6,7 @@
 	ProjectGUID="{A9BA6180-15F7-421C-8268-C0A1D3773551}"
 	RootNamespace="matbuild"
 	Keyword="Win32Proj"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -409,6 +410,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\intutils.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\makefb.c"
 				>
 			</File>
@@ -430,6 +435,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\src\intutils.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\src\rellist.h"
 				>

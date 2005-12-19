@@ -27,6 +27,12 @@
 /* These are in s32's. */
 #define IO_BUFFER_SIZE  2*1024*1024
 
+/******************************************************/
+/* Allocate 'RL' so it can hold the largest of the    */
+/* processed relation files.                          */
+/******************************************************/
+int allocateRelList(multi_file_t *prelF, rel_list *RL);
+
 /*********************************************************************/
 /* Allocate for and read in the specified relation file. Caller is   */
 /* obviously responsible for freeing the memory when done!           */

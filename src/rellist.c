@@ -30,6 +30,57 @@
 #pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
 #endif
 
+/******************************************************/
+int allocateRelList(multi_file_t *prelF, rel_list *RL)
+/******************************************************/
+/* Allocate 'RL' so it can hold the largest of the    */
+/* processed relation files.                          */
+/******************************************************/
+{ 
+	off_t maxSize;
+	char prelName[512];
+	int  i;
+	struct stat fileInfo;
+
+	maxSize = 0;
+
+	for (i = 0; i < prelF->numFiles; i++) 
+	{
+	
+		sprintf(prelName, "%s.%d", prelF->prefix, i);
+	
+		if (stat(prelName, &fileInfo) == 0) 
+			maxSize = MAX(maxSize, fileInfo.st_size);
+	}
+
+	RL->numRels = 0;
+	RL->maxDataSize = 1000 + maxSize/sizeof(s32);
+
+	if (!(RL->relData = (s32 *)lxmalloc(RL->maxDataSize * sizeof(s32), 0))) 
+	{
+		fprintf(stderr, "Error allocating %" PRIu32 "MB for processed relation files!\n",
+			(u32)(RL->maxDataSize * sizeof(s32)/1048576) );
+		
+		fprintf(stderr, "Try decreasing DEFAULT_MAX_FILESIZE and re-running.\n");
+		exit(-1);
+	}
+
+	/* Again: it's a safe bet that any relation needs at least 20 s32s, so: */
+	RL->maxRels = (u32)RL->maxDataSize/20;
+
+	if (!(RL->relIndex = (s32 *)lxmalloc(RL->maxRels * sizeof(s32), 0))) 
+	{
+		fprintf(stderr, "Error allocating %" PRIu32 "MB for relation pointers!\n",
+			(u32)(RL->maxRels * sizeof(s32)/1048756) );
+	
+		free(RL->relData);
+		exit(-1);
+	}
+	
+	return 0;
+}
+
+
 /*********************************************************************/
 rel_list *getRelList(multi_file_t *prelF, int index)
 /*********************************************************************/
