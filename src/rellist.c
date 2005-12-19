@@ -31,11 +31,10 @@
 #endif
 
 /******************************************************/
-int allocateRelList(multi_file_t *prelF, rel_list *RL)
-/******************************************************/
 /* Allocate 'RL' so it can hold the largest of the    */
 /* processed relation files.                          */
 /******************************************************/
+int allocateRelList(multi_file_t *prelF, rel_list *RL)
 { 
 	off_t maxSize;
 	char prelName[512];
@@ -80,13 +79,11 @@ int allocateRelList(multi_file_t *prelF, rel_list *RL)
 	return 0;
 }
 
-
-/*********************************************************************/
-rel_list *getRelList(multi_file_t *prelF, int index)
 /*********************************************************************/
 /* Allocate for and read in the specified relation file. Caller is   */
 /* obviously responsible for freeing the memory when done!           */
 /*********************************************************************/
+rel_list *getRelList(multi_file_t *prelF, int index)
 { 
 	rel_list *RL;
 	FILE     *fp;
@@ -137,8 +134,9 @@ rel_list *getRelList(multi_file_t *prelF, int index)
 }
 
 /*********************************************************************/
-void clearRelList(rel_list *RL)
+/* Clear relations list.                                             */
 /*********************************************************************/
+void clearRelList(rel_list *RL)
 {
 	if (RL->relData != NULL) 
 		free(RL->relData);
@@ -151,12 +149,11 @@ void clearRelList(rel_list *RL)
 }
 
 /************************************************************************/
-void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB)
-/************************************************************************/
 /* removeFrac should be a fraction in [0,1). This function will remove  */
 /* the heaviest removeFrac relations from the processed relation files  */
 /* file, appending them in siever-output format to the file appendName. */
 /************************************************************************/
+void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB)
 #define MAX_PR_SIZE 2048
 { 
 	rel_list *RL;
