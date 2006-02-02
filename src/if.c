@@ -17,6 +17,8 @@
 #pragma warning (disable: 4996) /* warning C4996: 'function' was declared deprecated */
 #endif
 
+#include "if.h"
+
 #include <time.h>
 
 #if defined (__MINGW32__) || defined (MINGW32)
@@ -29,14 +31,9 @@
 #include <sys/times.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 #include <gmp.h>
 #include <limits.h>
-#include "if.h"
-
 
 int verbose = 0;
 static size_t used_cols, ncol = 80;
@@ -397,7 +394,7 @@ int read_u32(FILE * ifile, u32_t * buffer, size_t count)
 
 #endif
 
-#ifdef NEED_GETLINE
+#ifdef GGNFS_GNU_MISSING
 #define GETL_INCR 128
 /****************************************************/
 ssize_t getline(char **lineptr, size_t * n, FILE * stream)
@@ -424,9 +421,7 @@ ssize_t getline(char **lineptr, size_t * n, FILE * stream)
   }
   return rv;
 }
-#endif
 
-#ifdef NEED_ASPRINTF
 /****************************************************/
 int vasprintf(char **ptr, const char *template, va_list ap)
 /****************************************************/
@@ -444,9 +439,7 @@ int vasprintf(char **ptr, const char *template, va_list ap)
     free(*ptr);
   }
 }
-#endif
 
-#ifdef NEED_ASPRINTF
 /****************************************************/
 int asprintf(char **ptr, const char *template, ...)
 /****************************************************/

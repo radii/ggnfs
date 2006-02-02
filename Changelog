@@ -1,3 +1,10 @@
+02/02/06 (relf)
+  * NEED_ASPRINTF, NEED_GETLINE are replaced with GGNFS_GNU_MISSING
+  which is now defined in ggnfs.h
+  * fixed all affected headers
+  * WARNING: if GNU extensions are used, <stdio.h> should not be included directly
+  but through ggnfs.h or at least after it
+
 12/12/05 (trilliwig)
   * Header file fixes for Linux.
 

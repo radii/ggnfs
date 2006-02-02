@@ -32,8 +32,15 @@ extern "C" {
 #define _USE_MATH_DEFINES
 #define __STDC_FORMAT_MACROS
 
+#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#define GGNFS_GNU_MISSING
+#else
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <math.h>
 
 typedef unsigned char uchar;

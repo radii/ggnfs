@@ -13,6 +13,8 @@
   02111-1307, USA.
 */
 
+#include "lasieve.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -46,7 +48,6 @@
 #include <signal.h>
 #include <setjmp.h>
 
-#include "lasieve.h"
 
 #if defined (_MSC_VER)
     #define GGNFS_x86_32_MSCASM_MMX

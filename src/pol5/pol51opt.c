@@ -18,7 +18,6 @@
 #define ZEIT
 */
 
-#include <stdio.h>
 #include "ggnfs.h"
 
 #include <math.h>

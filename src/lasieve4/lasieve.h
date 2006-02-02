@@ -14,11 +14,6 @@
 #ifndef _LASIEVE_H
 #define _LASIEVE_H
 
-#include <gmp.h>
-#include <stdlib.h>
-#include <stdarg.h> 
-#include <stdio.h> 
-
 #include "ggnfs.h"
 #include "asm/siever-config.h"
 #include "if.h"

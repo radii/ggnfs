@@ -14,17 +14,7 @@
 #ifndef _IF_H
 #define _IF_H
 
-#include <gmp.h>
-#include <stdlib.h>
-#include <stdarg.h> 
-#include <stdio.h> 
-
 #include "ggnfs.h"
-
-#if defined( __CYGWIN__ ) || defined( _MSC_VER ) || defined(__MINGW32__) || defined (MINGW32) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#define NEED_GETLINE
-#define NEED_ASPRINTF
-#endif
 
 void*xmalloc(size_t size);
 void*xvalloc(size_t size);
@@ -65,12 +55,9 @@ int skip_blank_comments(char**,size_t*,FILE*);
    before including stdio.h, but that seems to break things,
    so here we go: 
 */
-#ifdef NEED_ASPRINTF
+#ifdef GGNFS_GNU_MISSING
 int asprintf(char**, const char*, ...);
 int vasprintf(char **, const char *, va_list);
-#endif
-
-#ifdef NEED_GETLINE
 ssize_t getline(char**,size_t*,FILE*);
 #endif
 

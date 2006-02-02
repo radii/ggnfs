@@ -17,7 +17,6 @@
 #define ZEIT
 */
 
-#include <stdio.h>
 #include "ggnfs.h"
 
 #if defined(HAVE_ASM_INTEL) || defined(HAVE_ASM_ALPHA)
