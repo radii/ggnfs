@@ -1,0 +1,22 @@
+It may very time-consuming to feed a large number of files with relations 
+(e.g., coming from distributed sieving) to `procrels` since
+* `procrels` accepts only one file with new relations per run;
+* it takes long time for `procrels` to read previously processed relations.
+So it seems intractable even to feed 2000 files to `procrels` assuming 
+that each run takes 5 minutes.
+
+`relsort` is a simple pre-processor of files with relations that re-packs 
+them into a smaller number of files.
+
+As an input it takes a prefix of the name of input files and a prefix of 
+the name of output files. The prefixes may include path to the files. 
+Maximum size of the output files is defined by constant `limit` in the 
+sources (currently, it is 2GB).
+
+It outputs to stdout shell script like:
+cat infile1 infile6 ... >outfile1
+cat infile5 infile8 ... >outfile2
+...
+
+Running this script will re-pack large number of input files infile* into a smaller
+number of output files outfile*.

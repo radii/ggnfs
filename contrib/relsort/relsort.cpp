@@ -1,3 +1,16 @@
+/**************************************************************/
+/* relsort.cpp                                                */
+/* Copyleft 2005 by Max Alekseyev                            */
+/**************************************************************/
+/*
+*   It is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*/
+
+
+
 #define _FILE_OFFSET_BITS 64
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE

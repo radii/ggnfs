@@ -1,2 +1,2 @@
 all:
-    g++ -O2 relsort.cpp fnmatch.o glob.o 
+    g++ -O2 relsort.cpp ../glob/fnmatch.o ../glob/glob.o 
