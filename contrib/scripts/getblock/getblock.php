@@ -81,7 +81,7 @@ fwrite( $outf, "Y1: 1188447494830519\n" );
 fwrite( $outf, "Y0: -105022898916743963791871982\n" );
 fwrite( $outf, "# Murphy_E 3.01e-11\n" );
 fwrite( $outf, "rlim: 11000000\n" );
-fwrite( $outf, "alim: 11000000\n" );
+fwrite( $outf, "alim: ". min($cq0,11000000). "\n" );
 fwrite( $outf, "lpbr: 27\n" );
 fwrite( $outf, "lpba: 27\n" );
 fwrite( $outf, "mfbr: 52\n" );

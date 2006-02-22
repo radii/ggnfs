@@ -2653,8 +2653,8 @@ printf("Too large!\n");
     tNow = sTime();
     if (tNow > lastReport + 5.0) {
       lastReport = sTime();
-      fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\n", (unsigned int)yield, (unsigned int)special_q,
-              (tNow - tStart)/yield);
+      fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\r", 
+    	    (unsigned int)yield, (unsigned int)special_q, (tNow - tStart)/yield);
       fflush(stderr);
       { char *ofn;
         FILE *of;
@@ -2668,6 +2668,8 @@ printf("Too large!\n");
       }
     }
   }
+  fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\n", 
+	(unsigned int)yield, (unsigned int)special_q, (sTime() - tStart)/yield);
   free(r_ptr);
   return 0;
 }
