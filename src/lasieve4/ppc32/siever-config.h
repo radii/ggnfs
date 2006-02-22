@@ -21,10 +21,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define ULONG_RI
 #define asm_modinv32 modinv32
 
-#if defined(__x86_64__) && !defined(_WIN64)
-#define HAVE_SSIMD
+#if defined (_MSC_VER)
+    #define GGNFS_x86_32_MSCASM_MMX
+#elif defined(__GNUC__) && defined(__x86_64__)
+    #define GGNFS_x86_64_ATTASM_MMX
+    #define HAVE_SSIMD
+#elif defined(__GNUC__) && defined(__i386__)
+    #define GGNFS_x86_32_ATTASM_MMX
 #endif
-
+	    
 #define PREINVERT
 #define NEED_GETLINE
 #define N_PRIMEBOUNDS 7

@@ -48,15 +48,6 @@
 #include <signal.h>
 #include <setjmp.h>
 
-
-#if defined (_MSC_VER)
-    #define GGNFS_x86_32_MSCASM_MMX
-#elif defined(__GNUC__) && defined(__x86_64__)
-    #define GGNFS_x86_64_ATTASM_MMX
-#elif defined(__GNUC__) && defined(__i386__)
-    #define GGNFS_x86_32_ATTASM_MMX
-#endif
-
 #ifdef GGNFS_HOST_GENERIC
 const u32_t schedule_primebounds[N_PRIMEBOUNDS]={0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,UINT_MAX};
 const u32_t schedule_sizebits[N_PRIMEBOUNDS]={20,21,22,23,24,25,32};
@@ -2653,7 +2644,7 @@ printf("Too large!\n");
     tNow = sTime();
     if (tNow > lastReport + 5.0) {
       lastReport = sTime();
-      fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\r", 
+      fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel)", 
     	    (unsigned int)yield, (unsigned int)special_q, (tNow - tStart)/yield);
       fflush(stderr);
       { char *ofn;
@@ -2668,7 +2659,7 @@ printf("Too large!\n");
       }
     }
   }
-  fprintf(stderr, "total yield: %u, q=%u (%1.5lf sec/rel)\n", 
+  fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel)\n", 
 	(unsigned int)yield, (unsigned int)special_q, (sTime() - tStart)/yield);
   free(r_ptr);
   return 0;
