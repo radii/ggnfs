@@ -919,6 +919,12 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     goto SHORT_CIRC_STOP;
   }
   
+  iterations = matresume(n,Wi,Wi_1,Wi_2,T,T_1,tmp,U_1,tmp2,Si,Si_1,
+                         X,Y,Vi,V0,Vi_1,Vi_2,tmp_n,tmp2_n);
+  if (iterations > 0) {
+    i = iterations;
+    cont = 1;
+  } else {
   /******************************************************************/
   /* Throughout, 'A' means the matrix A := (B^T)B. In fact, all the */
   /* notation is directly from Montgomery's paper, except that I    */
@@ -954,8 +960,17 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   mult64x64(tmp2, Wi, tmp); /* tmp2 <-- (W0)(tmp) = (W0)(V0^T)(V0). */
   multnx64(X, V0, tmp2, n); /* X <-- V0(tmp2). */
   iterations = 0;
+  }
+
   startTime = sTime();
   do {
+    if (save_flag) {
+      save_flag = 0;
+      matsave(iterations,n,Wi,Wi_1,Wi_2,T,T_1,tmp,U_1,tmp2,Si,Si_1,
+              X,Y,Vi,V0,Vi_1,Vi_2,tmp_n,tmp2_n);
+      if (quit_flag)
+        goto SHORT_CIRC_STOP;
+    }
     /* Iteration step. */
     iterations++;
 

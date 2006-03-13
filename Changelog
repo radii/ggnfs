@@ -1,3 +1,10 @@
+03/11/06 (asl)
+  * Ported & tested matrix save\resume routines under mingw32.
+    Maybe this will also work while compiled by Visual C++. ;)
+
+03/10/06 (asl)
+  * Added matrix save\resume routine by G.W. Reynolds.
+
 02/02/06 (relf)
   * NEED_ASPRINTF, NEED_GETLINE are replaced with GGNFS_GNU_MISSING
   which is now defined in ggnfs.h

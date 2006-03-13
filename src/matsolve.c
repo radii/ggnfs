@@ -41,6 +41,7 @@
 #define USAGE "[OPTIONS]\n"\
 "-v           : verbose.\n"\
 "-seed <int>  : Set the seed for the PRNG.\n"\
+"-save <int>  : Interval (in minutes) between save files.\n"\
 "-test        : Do not solve matrix; use it to test multiply operations.\n"\
 "               This can help expose hardware problems or miscompilations.\n"\
 "--help       : Show this help and quit.\n"
@@ -359,6 +360,10 @@ int main(int argC, char *args[])
     } else if (strcmp(args[i], "-seed")==0) {
       if ((++i) < argC) {
         seed = atol(args[i]);
+      }
+    } else if (strcmp(args[i], "-save")==0) {
+      if ((++i) < argC) {
+        matsave_interval = 60 * atoi(args[i]);
       }
     } else if (strcmp(args[i], "-test")==0) {
       testMode = 1;

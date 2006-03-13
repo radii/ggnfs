@@ -831,6 +831,20 @@ unsigned int get_next_prime();
                : "a" (_op1) , "mb" (_op2) , "mc" (_mod) : "%edx");     
 #endif
 
+/* matsave.c */
+extern volatile int save_flag;
+extern volatile int quit_flag;
+extern int matsave_interval;
+
+u32 matresume(s32 n, u64 *Wi, u64 *Wi_1, u64 *Wi_2, u64 *T, u64 *T_1,
+              u64 *tmp, u64 *U_1, u64 *tmp2, int *Si, int *Si_1,
+              u64 *X, u64 *Y, u64 *Vi, u64 *V0, u64 *Vi_1, u64 *Vi_2,
+              u64 *tmp_n, u64 *tmp2_n);
+int matsave(u32 iterations, s32 n, u64 *Wi, u64 *Wi_1, u64 *Wi_2, u64 *T,
+            u64 *T_1, u64 *tmp, u64 *U_1, u64 *tmp2, int *Si, int *Si_1,
+            u64 *X, u64 *Y, u64 *Vi, u64 *V0, u64 *Vi_1, u64 *Vi_2,
+            u64 *tmp_n, u64 *tmp2_n);
+
 #if defined (__cplusplus)
 }
 #endif
