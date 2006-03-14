@@ -30,7 +30,7 @@
 
 #define MAX_IPBSIZE  100
 
-#define DEFAULT_LLLMAX_LOG 201.0*log(10.0)
+#define DEFAULT_LLLMAX_LOG 401.0*log(10.0)
 
 #define MAX_CD_EXTRA_PRIMES 20
 
