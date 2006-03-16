@@ -1,3 +1,7 @@
+03/16/06 (BRG)
+  * Updated VC++ version 8 build project to include matrix save
+    routines and to work with my current VC++ build for GMP 4.1.4
+
 03/11/06 (asl)
   * Ported & tested matrix save\resume routines under mingw32.
     Maybe this will also work while compiled by Visual C++. ;)
@@ -37,7 +41,7 @@
 10/30/05 (trilliwig)
   * Patched factLat.pl with Bob Backstrom's suggested change.  Updated q0-q1
     ranges are printed in ggnfs.log.
-  * Minor update in misc.c to correct multiple printings of a status message. 
+  * Minor update in misc.c to correct multiple printings of a status message.
 
 9/30/05 (trilliwig)
   * It makes no sense to disable HAVE_FLOAT64 if HAVE_ASM_INTEL is defined.
@@ -59,7 +63,7 @@
     CFLAGS to use -O3 and added -Os to CFLAGS in the src/lasieve4 directory.
     As an aside, using -funroll-loops and -finline-functions with -Os is
     counterproductive.
-    
+
 9/27/05 (relf)
   * -fmove-all-movables option removed as not supported by gcc 4.x
   * minor cleanups
@@ -82,7 +86,7 @@
 
 9/18/05 (frmky)
   * Update blanczos-no-mmx.c to include multiplication tests and timing.
-  
+
 9/18/05 (trilliwig)
   * Changed char* variable basename to base_name (conflicts with the
     basename() library function).
@@ -96,7 +100,7 @@
   * mpz_poly_t.degree and getline() MUST be signed.  It is a bug if they are
     unsigned.
   * Added nocona target for Intel chips with AMD64 support.
-  
+
 9/15/05 (Brian Gladman)
   * minor fix for VC7 build files
 
@@ -121,7 +125,7 @@
     the GMP BigInt library is not available to Perl on some systems.
   * Modified factLat.pl to print q0 values to ggnfs.log at beginning of
     lattice sieve runs.
-  * Added Brian Gladman's definitions of ssize_t to the MS portion of ggnfs.h. 
+  * Added Brian Gladman's definitions of ssize_t to the MS portion of ggnfs.h.
 
 8/29/05 (Brian Gladman)
   * added matbuild-tpie to the VC7 and VC8 build projects (could not do

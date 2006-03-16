@@ -814,7 +814,7 @@ bool checkRelSets(LSList&R, LSList& dataList) {
 	return true;
 }
 
-s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF) {
+extern "C" s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF) {
 	MM_manager.ignore_memory_limit();
 
 	LSList P(_P);

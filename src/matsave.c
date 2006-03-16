@@ -49,7 +49,7 @@ volatile int save_flag = 0;
 volatile int quit_flag = 0;
 int matsave_interval = 0;
 
-#ifdef __MINGW32__
+#if defined( _MSC_VER ) || defined( __MINGW32__ )
  #ifndef SIGALRM
   #define SIGALRM 14
  #endif

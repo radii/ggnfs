@@ -28,12 +28,21 @@ MA 02111-1307, USA. */
 
 /* Instantiated by configure. */
 #if ! defined (__GMP_WITHIN_CONFIGURE)
-#define __GMP_BITS_PER_MP_LIMB             32
-#define __GMP_HAVE_HOST_CPU_FAMILY_power   0
-#define __GMP_HAVE_HOST_CPU_FAMILY_powerpc 0
-#define GMP_LIMB_BITS                      32
-#define GMP_NAIL_BITS                      0
+#  if defined( _MSC_VER )
+#    if defined( _WIN64 )
+#        define __GMP_BITS_PER_MP_LIMB    64
+#        define GMP_LIMB_BITS             64
+#        define _LONG_LONG_LIMB
+#    elif defined( _WIN32 )
+#        define __GMP_BITS_PER_MP_LIMB    32
+#        define GMP_LIMB_BITS             32
+#    else
+#        error This is the wrong version of gmp.h
+#    endif
+#  endif
+#  define GMP_NAIL_BITS                      0
 #endif
+
 #define GMP_NUMB_BITS     (GMP_LIMB_BITS - GMP_NAIL_BITS)
 #define GMP_NUMB_MASK     ((~ __GMP_CAST (mp_limb_t, 0)) >> GMP_NAIL_BITS)
 #define GMP_NUMB_MAX      GMP_NUMB_MASK
@@ -52,11 +61,6 @@ MA 02111-1307, USA. */
 #include <stddef.h>    /* for size_t */
 #endif
 #undef __need_size_t
-
-/* Instantiated by configure. */
-#if ! defined (__GMP_WITHIN_CONFIGURE)
-#undef _LONG_LONG_LIMB
-#endif
 
 /* __STDC__ - some ANSI compilers define this only to 0, hence the use of
        "defined" and not "__STDC__-0".  In particular Sun workshop C 5.0

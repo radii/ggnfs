@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="ggnfslib"
 	ProjectGUID="{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}"
 	RootNamespace="ggnfslib"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -17,22 +16,27 @@
 		/>
 	</Platforms>
 	<ToolFiles>
+		<DefaultToolFile
+			FileName="yasm.rules"
+		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="Debug"
-			IntermediateDirectory="Debug"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\src\lasieve4\asm md ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\piii\siever-config.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;..\..\..\include\version.h&quot; (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;&quot;..\..\..\include\version.h&quot;)&#x0D;&#x0A;if not exist &quot;..\..\..\src\lasieve4\asm&quot; md &quot;..\..\..\src\lasieve4\asm&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\piii\siever-config.h&quot; &quot;..\..\..\src\lasieve4\asm\siever-config.h&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="YASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -46,15 +50,18 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
+				AssemblerListingLocation="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -67,8 +74,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\gmp.build.vc8\lib\gmp.lib"
-				OutputFile="$(OutDir)\ggnfslib.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -88,18 +95,20 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="x64\$(ConfigurationName)"
-			IntermediateDirectory="x64\$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\src\lasieve4\asm md ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\ppc32\siever-config.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\ppc32\32bit.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;..\..\..\include\version.h&quot; (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;&quot;..\..\..\include\version.h&quot;)&#x0D;&#x0A;if not exist &quot;..\..\..\src\lasieve4\asm&quot; md &quot;..\..\..\src\lasieve4\asm&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\ppc32\siever-config.h&quot; &quot;..\..\..\src\lasieve4\asm\siever-config.h&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\ppc32\32bit.h&quot; &quot;..\..\..\src\lasieve4\asm\32bit.h&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="YASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -114,15 +123,18 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
+				AssemblerListingLocation="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -135,8 +147,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\gmp.build.vc8\lib\x64\gmp.lib"
-				OutputFile="$(OutDir)\ggnfslib.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -156,18 +168,20 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\src\lasieve4\asm md ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\piii\siever-config.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;..\..\..\include\version.h&quot; (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;&quot;..\..\..\include\version.h&quot;)&#x0D;&#x0A;if not exist &quot;..\..\..\src\lasieve4\asm&quot; md &quot;..\..\..\src\lasieve4\asm&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\piii\siever-config.h&quot; &quot;..\..\..\src\lasieve4\asm\siever-config.h&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="YASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -180,14 +194,18 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;"
+				Optimization="3"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
+				AssemblerListingLocation="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -200,8 +218,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\gmp.build.vc8\lib\gmp.lib"
-				OutputFile="$(OutDir)\ggnfslib.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool
@@ -222,18 +240,20 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="x64\$(ConfigurationName)"
-			IntermediateDirectory="x64\$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\src\lasieve4\asm md ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\ppc32\siever-config.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;copy ..\..\..\src\lasieve4\ppc32\32bit.h ..\..\..\src\lasieve4\asm&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;..\..\..\include\version.h&quot; (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;&quot;..\..\..\include\version.h&quot;)&#x0D;&#x0A;if not exist &quot;..\..\..\src\lasieve4\asm&quot; md &quot;..\..\..\src\lasieve4\asm&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\ppc32\siever-config.h&quot; &quot;..\..\..\src\lasieve4\asm\siever-config.h&quot;&#x0D;&#x0A;call ..\file_copy &quot;..\..\..\src\lasieve4\ppc32\32bit.h&quot; &quot;..\..\..\src\lasieve4\asm\32bit.h&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="YASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -247,14 +267,18 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
+				Optimization="3"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="NDEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
+				AssemblerListingLocation="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -267,8 +291,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\gmp.build.vc8\lib\x64\gmp.lib"
-				OutputFile="$(OutDir)\ggnfslib.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool
@@ -315,10 +339,82 @@
 			<File
 				RelativePath="..\fnmatch.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\getopt.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\src\getprimes.c"
@@ -340,11 +436,31 @@
 				RelativePath="..\modinv1002.c"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|x64"
 					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -353,28 +469,14 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\src\modinv32.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\src\lasieve4\mpz-ull.c"
@@ -415,35 +517,31 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\..\include-extra\config.h"
+				RelativePath="..\..\..\..\include\ggnfs.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\ggnfs.h"
+				RelativePath="..\..\..\..\include-extra\gmp-impl.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include-extra\gmp-impl.h"
+				RelativePath="..\..\..\..\include-extra\gmp-mparam.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include-extra\gmp-mparam.h"
+				RelativePath="..\..\..\..\include-extra\gmp.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include-extra\gmp.h"
+				RelativePath="..\..\..\..\include-extra\longlong.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include-extra\longlong.h"
+				RelativePath="..\..\..\..\include\prand.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\prand.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\version.h"
+				RelativePath="..\..\..\..\include\version.h"
 				>
 			</File>
 		</Filter>
@@ -454,31 +552,11 @@
 				RelativePath="..\mulmod32.asm"
 				>
 				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|x64"
 					ExcludedFromBuild="true"
 					>
 					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"
+						Name="YASM"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -486,9 +564,7 @@
 					ExcludedFromBuild="true"
 					>
 					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="yasm -Xvc -f win32 -o &quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-						Outputs="&quot;$(ProjectDir)\$(IntDir)\$(InputName).obj&quot;"
+						Name="YASM"
 					/>
 				</FileConfiguration>
 			</File>
