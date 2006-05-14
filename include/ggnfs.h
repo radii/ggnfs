@@ -831,19 +831,18 @@ unsigned int get_next_prime();
                : "a" (_op1) , "mb" (_op2) , "mc" (_mod) : "%edx");     
 #endif
 
-/* matsave.c */
-extern volatile int save_flag;
-extern volatile int quit_flag;
-extern int matsave_interval;
 
-u32 matresume(s32 n, u64 *Wi, u64 *Wi_1, u64 *Wi_2, u64 *T, u64 *T_1,
+/* matsave.c */
+extern volatile int matsave_interval;
+
+u32 matresume(s32 n, u64 *Wi, u64 *Wi_1, u64 *Wi_2, u64 *T_1,
               u64 *tmp, u64 *U_1, u64 *tmp2, int *Si, int *Si_1,
-              u64 *X, u64 *Y, u64 *Vi, u64 *V0, u64 *Vi_1, u64 *Vi_2,
-              u64 *tmp_n, u64 *tmp2_n);
-int matsave(u32 iterations, s32 n, u64 *Wi, u64 *Wi_1, u64 *Wi_2, u64 *T,
-            u64 *T_1, u64 *tmp, u64 *U_1, u64 *tmp2, int *Si, int *Si_1,
-            u64 *X, u64 *Y, u64 *Vi, u64 *V0, u64 *Vi_1, u64 *Vi_2,
-            u64 *tmp_n, u64 *tmp2_n);
+              u64 *X, u64 *Y, u64 *Vi, u64 *Vi_1, u64 *Vi_2);
+int matsave(u32 iterations, s32 n, const u64 *Wi, const u64 *Wi_1,
+            const u64 *Wi_2, const u64 *T_1, const u64 *tmp,
+            const u64 *U_1, const u64 *tmp2, const int *Si,
+            const int *Si_1, const u64 *X, const u64 *Y,
+            const u64 *Vi, const u64 *Vi_1, const u64 *Vi_2);
 
 #if defined (__cplusplus)
 }

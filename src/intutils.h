@@ -24,6 +24,10 @@
 #define __INTUTILS_H__
 #include "ggnfs.h"
 
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
 /********************************************/
 /* Compare arrays of two s32 values.        */
 /********************************************/
@@ -47,5 +51,9 @@ s32 sortRMDups(s32 *L, s32 size);
 /* Sort an array of pairs of s32s and remove duplicates. */
 /**********************************************************/
 s32 sortRMDups2(s32 *L, s32 size);
+
+#if defined (__cplusplus)
+};
+#endif
 
 #endif /* __INTUTILS_H__ */

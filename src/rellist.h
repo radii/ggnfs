@@ -24,6 +24,10 @@
 #define __RELLIST_H__
 #include "ggnfs.h"
 
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
 /* These are in s32's. */
 #define IO_BUFFER_SIZE  2*1024*1024
 
@@ -50,5 +54,9 @@ void clearRelList(rel_list *RL);
 /* file, appending them in siever-output format to the file appendName. */
 /************************************************************************/
 void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB);
+
+#if defined (__cplusplus)
+};
+#endif
 
 #endif /* __RELLIST_H__ */

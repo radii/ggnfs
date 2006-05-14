@@ -49,6 +49,10 @@
 #include "fnmatch.h"
 #include <string.h>
 
+#if defined (_MSC_VER) || defined (__MINGW32__) || defined (MINGW32)
+#include "getopt.h"
+#endif
+
 #define  MULTIPLIER            60   /* 2*2*3*5 */
 #define  P0_MAX             46300   /* <=2^15.5 */
 

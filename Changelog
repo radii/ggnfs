@@ -1,3 +1,7 @@
+05/13/06 (asl)
+  * Some compartibility changes.
+  * Merged latest patches by G.W. Reynolds & tested under mingw32.
+
 03/16/06 (BRG)
   * Updated VC++ version 8 build project to include matrix save
     routines and to work with my current VC++ build for GMP 4.1.4

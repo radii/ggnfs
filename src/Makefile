@@ -5,7 +5,7 @@ BINDIR=../bin
 LIBFLAGS=$(LOCALLIB)
 
 MATBUILD_TPIE=0
-TPIE_DIR=f:/tmp/nfs/tpie
+TPIE_DIR=F:/tmp/tpie/tpie_091905
 
 ifeq ($(HOST),generic)
     ALLOPT+= -DGGNFS_HOST_GENERIC
@@ -45,7 +45,11 @@ LSBINS=latsiever polsel
 #endif
 
 ifeq ($(HOST),x86)
-  LANCZOS=blanczos64
+  ifeq ($(ARCH),pentium2)
+    LANCZOS=blanczos64-no-mmx
+  else
+    LANCZOS=blanczos64
+  endif
   OBJS+=mulmod32.o lasieve4/asm/modinv1002.o
 else
   LANCZOS=blanczos64-no-mmx

@@ -22,7 +22,9 @@
 #define L1_BITS 14
 #define ULONG_RI
 #define HAVE_CMOV
+#if __SSE__
 #define HAVE_SSIMD
+#endif
 
 #define PREINVERT
 #define HAVE_ASM_GETBC

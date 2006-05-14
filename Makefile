@@ -1,4 +1,4 @@
-VERSION=0.77.1-20051202
+VERSION=0.77.1-20060513
 THISDIR=branch_0
 
 TOOLSPREFIX=
@@ -20,12 +20,13 @@ export CC CPP AR AS LOCALINC LOCALLIB
 
 choosetarget :
 	@echo "Possible targets are:"
-	@echo "	pentium2              	 Intel Pentium 2 (untested)"
+	@echo "	pentium2              	 Intel Pentium 2"
 	@echo "	pentium3              	 Intel Pentium 3"
 	@echo "	pentium4              	 Intel Pentium 4"
 	@echo "	prescott                 Intel Pentium 4 with SSE3"
 	@echo "	pentium-m              	 Intel Pentium M"
 	@echo "	athlon			 AMD Athlon (k7)"
+	@echo "	athlon-xp		 AMD Athlon XP (k7)"
 	@echo "	x86_64                   AMD Opteron/Athlon64 (k8)"
 	@echo "	nocona                   Intel 64-bit-capable Xeon/Pentium"
 	@echo "	ppc_970             	 PowerPC 970"
@@ -36,7 +37,7 @@ choosetarget :
 	@echo "	clean         		 Clean up"
 
 pentium2 :
-	@ARCH="pentium2" $(MAKE) common
+	@ARCH="pentium2" $(MAKE) x86common
 
 pentium3 :
 	@ARCH="pentium3" $(MAKE) x86common

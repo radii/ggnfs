@@ -352,7 +352,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
                    long testMode)
 /**********************************************************************/
 { u64 *Y=NULL, *X=NULL, *Vi=NULL, *Vi_1=NULL, *Vi_2=NULL, *tmp_n=NULL, *tmp2_n=NULL;
-  u64 *V0=NULL, *tmp3_n=NULL, *Z=NULL, *AZ=NULL;
+  u64 *V0=NULL, *Z=NULL, *AZ=NULL;
   u64 D[64] ALIGNED16, E[64] ALIGNED16, F[64] ALIGNED16, Wi[64] ALIGNED16;
   u64 Wi_1[64] ALIGNED16, Wi_2[64] ALIGNED16, T[64] ALIGNED16, T_1[64] ALIGNED16;
   u64 tmp[64] ALIGNED16;
@@ -361,7 +361,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   u64 i, j, m, mask, isZero, r1,r2;
   u32  iterations;
   int  errs=0, numDeps=-1, cont, s;
-  double startTime, now, estTotal;
+  double startTime, now, estTotal, save_time;
 
   if (testMode) {
     printf("Testing multiply routines...\n");
@@ -388,17 +388,21 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   if (!(Vi_2 = (u64 *)malloc(n*sizeof(u64)))) errs++;
   if (!(tmp_n = (u64 *)malloc(n*sizeof(u64)))) errs++;
   if (!(tmp2_n = (u64 *)malloc(n*sizeof(u64)))) errs++;
-  if (!(tmp3_n = (u64 *)malloc(n*sizeof(u64)))) errs++;
 
   if (errs) {
     fprintf(stderr, "blanczos(): Memory allocation error!\n");
     goto SHORT_CIRC_STOP;
   }
   
-  iterations = matresume(n,Wi,Wi_1,Wi_2,T,T_1,tmp,U_1,tmp2,Si,Si_1,
-                         X,Y,Vi,V0,Vi_1,Vi_2,tmp_n,tmp2_n);
+  iterations = matresume(n,Wi,Wi_1,Wi_2,T_1,tmp,U_1,tmp2,Si,Si_1,
+                         X,Y,Vi,Vi_1,Vi_2);
   if (iterations > 0) {
     i = iterations;
+    MultB(tmp_n, Y, P); 
+    MultB_T(V0, tmp_n, P);
+    MultB(tmp2_n, Vi, P);
+    MultB_T(tmp_n, tmp2_n, P);
+    multT(T, Vi, tmp_n, n);
     cont = 1;
   } else {
   /******************************************************************/
@@ -410,7 +414,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   for (j=0; j<n; j++) {
     r1 = prand(); r2 = prand(); 
     Y[j] = r1^(r2<<32);
-    X[j] = Vi_1[j] = Vi_2[j] = tmp_n[j] = tmp2_n[j] = tmp3_n[j] = 0;
+    X[j] = Vi_1[j] = Vi_2[j] = tmp_n[j] = tmp2_n[j] = 0;
   }
   for (i=0; i<64; i++) {
     Wi[i] = Wi_1[i] = Wi_2[i] = 0;
@@ -439,14 +443,8 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   }
 
   startTime = sTime();
+  save_time = startTime + matsave_interval;
   do {
-    if (save_flag) {
-      save_flag = 0;
-      matsave(iterations,n,Wi,Wi_1,Wi_2,T,T_1,tmp,U_1,tmp2,Si,Si_1,
-              X,Y,Vi,V0,Vi_1,Vi_2,tmp_n,tmp2_n);
-      if (quit_flag)
-        goto SHORT_CIRC_STOP;
-    }
     /* Iteration step. */
     iterations++;
 
@@ -542,6 +540,15 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
       fprintf(stderr, "Terminating...\n");
       exit(-1);
     }
+    if (matsave_interval != 0) {
+      if (matsave_interval < 0 || now > save_time) {
+        matsave(iterations,n,Wi,Wi_1,Wi_2,T_1,tmp,U_1,tmp2,Si,Si_1,
+                X,Y,Vi,Vi_1,Vi_2);
+        if (matsave_interval == -1)
+          goto SHORT_CIRC_STOP;
+        save_time += matsave_interval;
+      }
+    }
   } while (cont);
   printf("\nBlock Lanczos used %" PRIu32 " iterations.\n", iterations);
 
@@ -562,8 +569,8 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   } else {
     printf("After Block Lanczos iteration, Vm is nonzero. Finishing...\n");
     /* We need more memory (for convenience), so free off what we don't need. */
-    free(V0); free(Vi_1); free(Vi_2); free(tmp3_n);
-    V0 = Vi_1 = Vi_2 = tmp3_n = NULL;
+    free(V0); free(Vi_1); free(Vi_2);
+    V0 = Vi_1 = Vi_2 = NULL;
 
     /* Construct Z=[ X+Y | Vi] and compute AZ=[ A(X+Y) | AVi ] */
     /* X <-- X+Y, for convenience.                     */
@@ -672,7 +679,6 @@ SHORT_CIRC_STOP:
   if (Vi_2 != NULL)   free(Vi_2);
   if (tmp_n != NULL)  free(tmp_n);
   if (tmp2_n != NULL) free(tmp2_n);
-  if (tmp3_n != NULL) free(tmp3_n);
   if (Z != NULL)      free(Z);
   if (AZ != NULL)     free(AZ);
   return numDeps;

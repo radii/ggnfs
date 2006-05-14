@@ -47,6 +47,10 @@
 #include <limits.h>
 #include "fnmatch.h"
 #include <string.h>
+#if defined (_MSC_VER) || defined (__MINGW32__) || defined (MINGW32)
+#include "getopt.h"
+#endif
+
 #define START_MESSAGE \
 "----------------------------------------------------\n"\
 "|    pol51m0n GNFS polynomial selection program    |\n"\
