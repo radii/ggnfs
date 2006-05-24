@@ -50,6 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
@@ -74,7 +75,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.1\build.vc8\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
@@ -102,7 +103,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h"
+				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -123,6 +124,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
@@ -147,7 +149,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.1\build.vc8\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
@@ -195,6 +197,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
@@ -218,7 +221,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.1\build.vc8\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>
@@ -247,7 +250,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h"
+				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -268,6 +271,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="NDEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
@@ -291,7 +295,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.1.4\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.1\build.vc8\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>

@@ -1,7 +1,7 @@
 /* Definitions for GNU multiple precision functions.   -*- mode: c -*-
 
 Copyright 1991, 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-2004 Free Software Foundation, Inc.
+2004, 2005 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -17,23 +17,37 @@ License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with the GNU MP Library; see the file COPYING.LIB.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA. */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA. */
 
 #ifndef __GMP_H__
 
 #if defined (__cplusplus)
-#include <iosfwd>   /* for istream, ostream */
+#include <iosfwd>   /* for std::istream, std::ostream, std::string */
 #endif
 
 /* Instantiated by configure. */
 #if ! defined (__GMP_WITHIN_CONFIGURE)
-#define __GMP_BITS_PER_MP_LIMB             32
-#define __GMP_HAVE_HOST_CPU_FAMILY_power   0
-#define __GMP_HAVE_HOST_CPU_FAMILY_powerpc 0
-#define GMP_LIMB_BITS                      32
-#define GMP_NAIL_BITS                      0
+#  if defined( _MSC_VER )
+#    if defined( _WIN64 )
+#        define __GMP_BITS_PER_MP_LIMB    64
+#        define GMP_LIMB_BITS             64
+#        define SIZEOF_MP_LIMB_T           8
+#        define _LONG_LONG_LIMB			   1
+#    elif defined( _WIN32 )
+#        define __GMP_BITS_PER_MP_LIMB    32
+#        define GMP_LIMB_BITS             32
+#        define SIZEOF_MP_LIMB_T           4
+#        ifdef _LONG_LONG_LIMB
+#          undef _LONG_LONG_LIMB
+#        endif
+#    else
+#        error This is the wrong version of gmp.h
+#    endif
+#  endif
+#  define GMP_NAIL_BITS                      0
 #endif
+
 #define GMP_NUMB_BITS     (GMP_LIMB_BITS - GMP_NAIL_BITS)
 #define GMP_NUMB_MASK     ((~ __GMP_CAST (mp_limb_t, 0)) >> GMP_NAIL_BITS)
 #define GMP_NUMB_MAX      GMP_NUMB_MASK
@@ -53,17 +67,17 @@ MA 02111-1307, USA. */
 #endif
 #undef __need_size_t
 
-/* Instantiated by configure. */
-#if ! defined (__GMP_WITHIN_CONFIGURE)
-#undef _LONG_LONG_LIMB
-#endif
-
 /* __STDC__ - some ANSI compilers define this only to 0, hence the use of
        "defined" and not "__STDC__-0".  In particular Sun workshop C 5.0
        sets __STDC__ to 0, but requires "##" for token pasting.
 
    _AIX - gnu ansidecl.h asserts that all known AIX compilers are ANSI but
        don't always define __STDC__.
+
+   __DECC - current versions of DEC C (5.9 for instance) for alpha are ANSI,
+       but don't define __STDC__ in their default mode.  Don't know if old
+       versions might have been K&R, but let's not worry about that unless
+       someone is still using one.
 
    _mips - gnu ansidecl.h says the RISC/OS MIPS compiler is ANSI in SVR4
        mode, but doesn't define __STDC__.
@@ -72,7 +86,11 @@ MA 02111-1307, USA. */
        option is given (in which case it's 1).
 
    _WIN32 - tested for by gnu ansidecl.h, no doubt on the assumption that
-      all w32 compilers are ansi.  */
+      all w32 compilers are ansi.
+
+   Note: This same set of tests is used by gen-psqr.c and
+   demos/expr/expr-impl.h, so if anything needs adding, then be sure to
+   update those too.  */
 
 #if  defined (__STDC__)                                 \
   || defined (__cplusplus)                              \
@@ -127,7 +145,18 @@ MA 02111-1307, USA. */
    variables, the various internals in gmp-impl.h etc can be left unadorned.
    But internals used by the test programs or speed measuring programs
    should have __GMP_DECLSPEC, and certainly constants or variables must
-   have it or the wrong address will be resolved.  */
+   have it or the wrong address will be resolved.
+
+   In gcc __declspec can go at either the start or end of a prototype.
+
+   In Microsoft C __declspec must go at the start, or after the type like
+   void __declspec(...) *foo()".  There's no __dllexport or anything to
+   guard against someone foolish #defining dllexport.  _export used to be
+   available, but no longer.
+
+   In Borland C _export still exists, but needs to go after the type, like
+   "void _export foo();".  Would have to change the __GMP_DECLSPEC syntax to
+   make use of that.  Probably more trouble than it's worth.  */
 
 #if defined (__GNUC__)
 #define __GMP_DECLSPEC_EXPORT  __declspec(__dllexport__)
@@ -173,6 +202,25 @@ typedef long int		mp_limb_signed_t;
 #endif
 #endif
 
+/* For reference, note that the name __mpz_struct gets into C++ mangled
+   function names, which means although the "__" suggests an internal, we
+   must leave this name for binary compatibility.  */
+typedef struct
+{
+  int _mp_alloc;		/* Number of *limbs* allocated and pointed
+				   to by the _mp_d field.  */
+  int _mp_size;			/* abs(_mp_size) is the number of limbs the
+				   last field points to.  If _mp_size is
+				   negative this is a negative number.  */
+  mp_limb_t *_mp_d;		/* Pointer to the limbs.  */
+} __mpz_struct;
+
+#endif /* __GNU_MP__ */
+
+
+typedef __mpz_struct MP_INT;    /* gmp 1 source compatibility */
+typedef __mpz_struct mpz_t[1];
+
 typedef mp_limb_t *		mp_ptr;
 typedef __gmp_const mp_limb_t *	mp_srcptr;
 #if defined (_CRAY) && ! defined (_CRAYMPP)
@@ -188,25 +236,11 @@ typedef long int		mp_exp_t;
 
 typedef struct
 {
-  int _mp_alloc;		/* Number of *limbs* allocated and pointed
-				   to by the _mp_d field.  */
-  int _mp_size;			/* abs(_mp_size) is the number of limbs the
-				   last field points to.  If _mp_size is
-				   negative this is a negative number.  */
-  mp_limb_t *_mp_d;		/* Pointer to the limbs.  */
-} __mpz_struct;
-#endif /* __GNU_MP__ */
-
-typedef __mpz_struct MP_INT;
-typedef __mpz_struct mpz_t[1];
-
-typedef struct
-{
   __mpz_struct _mp_num;
   __mpz_struct _mp_den;
 } __mpq_struct;
 
-typedef __mpq_struct MP_RAT;
+typedef __mpq_struct MP_RAT;    /* gmp 1 source compatibility */
 typedef __mpq_struct mpq_t[1];
 
 typedef struct
@@ -232,21 +266,13 @@ typedef enum
   GMP_RAND_ALG_LC = GMP_RAND_ALG_DEFAULT /* Linear congruential.  */
 } gmp_randalg_t;
 
-/* Linear congruential data struct.  */
-typedef struct {
-  mpz_t _mp_a;			/* Multiplier. */
-  unsigned long int _mp_c;	/* Adder. */
-  mpz_t _mp_m;			/* Modulus (valid only if m2exp == 0).  */
-  unsigned long int _mp_m2exp;	/* If != 0, modulus is 2 ^ m2exp.  */
-} __gmp_randata_lc;
-
 /* Random state struct.  */
 typedef struct
 {
-  mpz_t _mp_seed;		/* Current seed.  */
-  gmp_randalg_t _mp_alg;	/* Algorithm used.  */
-  union {			/* Algorithm specific data.  */
-    __gmp_randata_lc *_mp_lc;	/* Linear congruential.  */
+  mpz_t _mp_seed;	  /* _mp_d member points to state of the generator. */
+  gmp_randalg_t _mp_alg;  /* Currently unused. */
+  union {
+    void *_mp_lc;         /* Pointer to function pointers structure.  */
   } _mp_algdata;
 } __gmp_randstate_struct;
 typedef __gmp_randstate_struct gmp_randstate_t[1];
@@ -276,6 +302,7 @@ typedef __mpq_struct *mpq_ptr;
 #define __GMP_DECLSPEC_XX
 #endif
 
+
 #if __GMP_HAVE_PROTOTYPES
 #define __GMP_PROTO(x) x
 #else
@@ -290,6 +317,8 @@ typedef __mpq_struct *mpq_ptr;
 #endif
 #endif
 
+/* For reference, "defined(EOF)" cannot be used here.  In g++ 2.95.4,
+   <iostream> defines EOF but not FILE.  */
 #if defined (FILE)                                              \
   || defined (H_STDIO)                                          \
   || defined (_H_STDIO)               /* AIX */                 \
@@ -299,9 +328,10 @@ typedef __mpq_struct *mpq_ptr;
   || defined (__STDIO_H__)            /* IRIX */                \
   || defined (_STDIO_INCLUDED)        /* HPUX */                \
   || defined (__dj_include_stdio_h_)  /* DJGPP */               \
-  || defined (_FILE_DEFINED)          /* Microsoft */          \
+  || defined (_FILE_DEFINED)          /* Microsoft */           \
   || defined (__STDIO__)              /* Apple MPW MrC */       \
-  || defined (_MSL_STDIO_H)           /* Metrowerks */
+  || defined (_MSL_STDIO_H)           /* Metrowerks */          \
+  || defined (_STDIO_H_INCLUDED)      /* QNX4 */
 #define _GMP_H_HAVE_FILE 1
 #endif
 
@@ -315,8 +345,9 @@ typedef __mpq_struct *mpq_ptr;
 
 /* The prototypes for gmp_vprintf etc are provided only if va_list is
    available, via an application having included <stdarg.h> or <varargs.h>.
-   Usually va_list is a typedef so can't be tested directly, but va_start is
-   almost certainly a macro, so look for that.
+   Usually va_list is a typedef so can't be tested directly, but C99
+   specifies that va_start is a macro (and it was normally a macro on past
+   systems too), so look for that.
 
    <stdio.h> will define some sort of va_list for vprintf and vfprintf, but
    let's not bother trying to use that since it's not standard and since
@@ -338,8 +369,9 @@ typedef __mpq_struct *mpq_ptr;
 /* "pure" is in gcc 2.96 and up, see "(gcc)Function Attributes".  Basically
    it means a function does nothing but examine its arguments and memory
    (global or via arguments) to generate a return value, but changes nothing
-   and has no side-effects. */
-#if __GMP_GNUC_PREREQ (2,96)
+   and has no side-effects.  __GMP_NO_ATTRIBUTE_CONST_PURE lets
+   tune/common.c etc turn this off when trying to write timing loops.  */
+#if __GMP_GNUC_PREREQ (2,96) && ! defined (__GMP_NO_ATTRIBUTE_CONST_PURE)
 #define __GMP_ATTRIBUTE_PURE   __attribute__ ((__pure__))
 #else
 #define __GMP_ATTRIBUTE_PURE
@@ -396,6 +428,18 @@ typedef __mpq_struct *mpq_ptr;
 #define __GMP_INLINE_PROTOTYPES  1
 #endif
 
+/* DEC C (eg. version 5.9) supports "static __inline foo()", even in -std1
+   strict ANSI mode.  Inlining is done even when not optimizing (ie. -O0
+   mode, which is the default), but an unnecessary local copy of foo is
+   emitted unless -O is used.  "extern __inline" is accepted, but the
+   "extern" appears to be ignored, ie. it becomes a plain global function
+   but which is inlined within its file.  Don't know if all old versions of
+   DEC C supported __inline, but as a start let's do the right thing for
+   current versions.  */
+#ifdef __DECC
+#define __GMP_EXTERN_INLINE  static __inline
+#endif
+
 /* SCO OpenUNIX 8 cc supports "static inline foo()" but not in -Xc strict
    ANSI mode (__STDC__ is 1 in that mode).  Inlining only actually takes
    place under -O.  Without -O "foo" seems to be emitted whether it's used
@@ -442,9 +486,27 @@ typedef __mpq_struct *mpq_ptr;
 #define __GMP_ABS(x)   ((x) >= 0 ? (x) : -(x))
 #define __GMP_MAX(h,i) ((h) > (i) ? (h) : (i))
 
+/* __GMP_USHRT_MAX is not "~ (unsigned short) 0" because short is promoted
+   to int by "~".  */
 #define __GMP_UINT_MAX   (~ (unsigned) 0)
 #define __GMP_ULONG_MAX  (~ (unsigned long) 0)
 #define __GMP_USHRT_MAX  ((unsigned short) ~0)
+
+
+/* __builtin_expect is in gcc 3.0, and not in 2.95. */
+#if __GMP_GNUC_PREREQ (3,0)
+#define __GMP_LIKELY(cond)    __builtin_expect ((cond) != 0, 1)
+#define __GMP_UNLIKELY(cond)  __builtin_expect ((cond) != 0, 0)
+#else
+#define __GMP_LIKELY(cond)    (cond)
+#define __GMP_UNLIKELY(cond)  (cond)
+#endif
+
+#ifdef _CRAY
+#define __GMP_CRAY_Pragma(str)  _Pragma (str)
+#else
+#define __GMP_CRAY_Pragma(str)
+#endif
 
 
 /* Allow direct user access to numerator and denominator of a mpq_t object.  */
@@ -461,6 +523,11 @@ __GMP_DECLSPEC void mp_set_memory_functions __GMP_PROTO ((void *(*) (size_t),
 				      void *(*) (void *, size_t, size_t),
 				      void (*) (void *, size_t))) __GMP_NOTHROW;
 
+#define mp_get_memory_functions __gmp_get_memory_functions
+__GMP_DECLSPEC void mp_get_memory_functions __GMP_PROTO ((void *(**) (size_t),
+                                      void *(**) (void *, size_t, size_t),
+                                      void (**) (void *, size_t))) __GMP_NOTHROW;
+
 #define mp_bits_per_limb __gmp_bits_per_limb
 __GMP_DECLSPEC extern __gmp_const int mp_bits_per_limb;
 
@@ -469,13 +536,6 @@ __GMP_DECLSPEC extern int gmp_errno;
 
 #define gmp_version __gmp_version
 __GMP_DECLSPEC extern __gmp_const char * __gmp_const gmp_version;
-
-/* The following for internal use only.
-   Enhancement: __gmp_allocate_func could have "__attribute__ ((malloc))",
-   but current gcc (3.0) doesn't seem to support that.  */
-__GMP_DECLSPEC extern void * (*__gmp_allocate_func) __GMP_PROTO ((size_t));
-__GMP_DECLSPEC extern void * (*__gmp_reallocate_func) __GMP_PROTO ((void *, size_t, size_t));
-__GMP_DECLSPEC extern void   (*__gmp_free_func) __GMP_PROTO ((void *, size_t));
 
 
 /**************** Random number routines.  ****************/
@@ -487,10 +547,6 @@ __GMP_DECLSPEC void gmp_randinit __GMP_PROTO ((gmp_randstate_t, gmp_randalg_t, .
 #define gmp_randinit_default __gmp_randinit_default
 __GMP_DECLSPEC void gmp_randinit_default __GMP_PROTO ((gmp_randstate_t));
 
-#define gmp_randinit_lc __gmp_randinit_lc
-__GMP_DECLSPEC void gmp_randinit_lc __GMP_PROTO ((gmp_randstate_t,
-                              mpz_srcptr, unsigned long int, mpz_srcptr));
-
 #define gmp_randinit_lc_2exp __gmp_randinit_lc_2exp
 __GMP_DECLSPEC void gmp_randinit_lc_2exp __GMP_PROTO ((gmp_randstate_t,
                                    mpz_srcptr, unsigned long int,
@@ -498,6 +554,12 @@ __GMP_DECLSPEC void gmp_randinit_lc_2exp __GMP_PROTO ((gmp_randstate_t,
 
 #define gmp_randinit_lc_2exp_size __gmp_randinit_lc_2exp_size
 __GMP_DECLSPEC int gmp_randinit_lc_2exp_size __GMP_PROTO ((gmp_randstate_t, unsigned long));
+
+#define gmp_randinit_mt __gmp_randinit_mt
+__GMP_DECLSPEC void gmp_randinit_mt __GMP_PROTO ((gmp_randstate_t));
+
+#define gmp_randinit_set __gmp_randinit_set
+void gmp_randinit_set __GMP_PROTO ((gmp_randstate_t, __gmp_const __gmp_randstate_struct *));
 
 #define gmp_randseed __gmp_randseed
 __GMP_DECLSPEC void gmp_randseed __GMP_PROTO ((gmp_randstate_t, mpz_srcptr));
@@ -508,59 +570,65 @@ __GMP_DECLSPEC void gmp_randseed_ui __GMP_PROTO ((gmp_randstate_t, unsigned long
 #define gmp_randclear __gmp_randclear
 __GMP_DECLSPEC void gmp_randclear __GMP_PROTO ((gmp_randstate_t));
 
+#define gmp_urandomb_ui __gmp_urandomb_ui
+unsigned long gmp_urandomb_ui __GMP_PROTO ((gmp_randstate_t, unsigned long));
+
+#define gmp_urandomm_ui __gmp_urandomm_ui
+unsigned long gmp_urandomm_ui __GMP_PROTO ((gmp_randstate_t, unsigned long));
+
 
 /**************** Formatted output routines.  ****************/
 
 #define gmp_asprintf __gmp_asprintf
-__GMP_DECLSPEC int gmp_asprintf __GMP_PROTO ((char **, const char *, ...));
+__GMP_DECLSPEC int gmp_asprintf __GMP_PROTO ((char **, __gmp_const char *, ...));
 
 #define gmp_fprintf __gmp_fprintf
 #ifdef _GMP_H_HAVE_FILE
-__GMP_DECLSPEC int gmp_fprintf __GMP_PROTO ((FILE *, const char *, ...));
+__GMP_DECLSPEC int gmp_fprintf __GMP_PROTO ((FILE *, __gmp_const char *, ...));
 #endif
 
 #define gmp_obstack_printf __gmp_obstack_printf
 #if defined (_GMP_H_HAVE_OBSTACK)
-__GMP_DECLSPEC int gmp_obstack_printf __GMP_PROTO ((struct obstack *, const char *, ...));
+__GMP_DECLSPEC int gmp_obstack_printf __GMP_PROTO ((struct obstack *, __gmp_const char *, ...));
 #endif
 
 #define gmp_obstack_vprintf __gmp_obstack_vprintf
 #if defined (_GMP_H_HAVE_OBSTACK) && defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_obstack_vprintf __GMP_PROTO ((struct obstack *, const char *, va_list));
+__GMP_DECLSPEC int gmp_obstack_vprintf __GMP_PROTO ((struct obstack *, __gmp_const char *, va_list));
 #endif
 
 #define gmp_printf __gmp_printf
-__GMP_DECLSPEC int gmp_printf __GMP_PROTO ((const char *, ...));
+__GMP_DECLSPEC int gmp_printf __GMP_PROTO ((__gmp_const char *, ...));
 
 #define gmp_snprintf __gmp_snprintf
-__GMP_DECLSPEC int gmp_snprintf __GMP_PROTO ((char *, size_t, const char *, ...));
+__GMP_DECLSPEC int gmp_snprintf __GMP_PROTO ((char *, size_t, __gmp_const char *, ...));
 
 #define gmp_sprintf __gmp_sprintf
-__GMP_DECLSPEC int gmp_sprintf __GMP_PROTO ((char *, const char *, ...));
+__GMP_DECLSPEC int gmp_sprintf __GMP_PROTO ((char *, __gmp_const char *, ...));
 
 #define gmp_vasprintf __gmp_vasprintf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vasprintf __GMP_PROTO ((char **, const char *, va_list));
+__GMP_DECLSPEC int gmp_vasprintf __GMP_PROTO ((char **, __gmp_const char *, va_list));
 #endif
 
 #define gmp_vfprintf __gmp_vfprintf
 #if defined (_GMP_H_HAVE_FILE) && defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vfprintf __GMP_PROTO ((FILE *, const char *, va_list));
+__GMP_DECLSPEC int gmp_vfprintf __GMP_PROTO ((FILE *, __gmp_const char *, va_list));
 #endif
 
 #define gmp_vprintf __gmp_vprintf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vprintf __GMP_PROTO ((const char *, va_list));
+__GMP_DECLSPEC int gmp_vprintf __GMP_PROTO ((__gmp_const char *, va_list));
 #endif
 
 #define gmp_vsnprintf __gmp_vsnprintf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vsnprintf __GMP_PROTO ((char *, size_t, const char *, va_list));
+__GMP_DECLSPEC int gmp_vsnprintf __GMP_PROTO ((char *, size_t, __gmp_const char *, va_list));
 #endif
 
 #define gmp_vsprintf __gmp_vsprintf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vsprintf __GMP_PROTO ((char *, const char *, va_list));
+__GMP_DECLSPEC int gmp_vsprintf __GMP_PROTO ((char *, __gmp_const char *, va_list));
 #endif
 
 
@@ -568,28 +636,28 @@ __GMP_DECLSPEC int gmp_vsprintf __GMP_PROTO ((char *, const char *, va_list));
 
 #define gmp_fscanf __gmp_fscanf
 #ifdef _GMP_H_HAVE_FILE
-__GMP_DECLSPEC int gmp_fscanf __GMP_PROTO ((FILE *, const char *, ...));
+__GMP_DECLSPEC int gmp_fscanf __GMP_PROTO ((FILE *, __gmp_const char *, ...));
 #endif
 
 #define gmp_scanf __gmp_scanf
-__GMP_DECLSPEC int gmp_scanf __GMP_PROTO ((const char *, ...));
+__GMP_DECLSPEC int gmp_scanf __GMP_PROTO ((__gmp_const char *, ...));
 
 #define gmp_sscanf __gmp_sscanf
-__GMP_DECLSPEC int gmp_sscanf __GMP_PROTO ((const char *, const char *, ...));
+__GMP_DECLSPEC int gmp_sscanf __GMP_PROTO ((__gmp_const char *, __gmp_const char *, ...));
 
 #define gmp_vfscanf __gmp_vfscanf
 #if defined (_GMP_H_HAVE_FILE) && defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vfscanf __GMP_PROTO ((FILE *, const char *, va_list));
+__GMP_DECLSPEC int gmp_vfscanf __GMP_PROTO ((FILE *, __gmp_const char *, va_list));
 #endif
 
 #define gmp_vscanf __gmp_vscanf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vscanf __GMP_PROTO ((const char *, va_list));
+__GMP_DECLSPEC int gmp_vscanf __GMP_PROTO ((__gmp_const char *, va_list));
 #endif
 
 #define gmp_vsscanf __gmp_vsscanf
 #if defined (_GMP_H_HAVE_VA_LIST)
-__GMP_DECLSPEC int gmp_vsscanf __GMP_PROTO ((const char *, const char *, va_list));
+__GMP_DECLSPEC int gmp_vsscanf __GMP_PROTO ((__gmp_const char *, __gmp_const char *, va_list));
 #endif
 
 
@@ -684,6 +752,9 @@ __GMP_DECLSPEC int mpz_cmpabs_ui __GMP_PROTO ((mpz_srcptr, unsigned long int)) _
 
 #define mpz_com __gmpz_com
 __GMP_DECLSPEC void mpz_com __GMP_PROTO ((mpz_ptr, mpz_srcptr));
+
+#define mpz_combit __gmpz_combit
+__GMP_DECLSPEC void mpz_combit __GMP_PROTO ((mpz_ptr, unsigned long int));
 
 #define mpz_congruent_p __gmpz_congruent_p
 __GMP_DECLSPEC int mpz_congruent_p __GMP_PROTO ((mpz_srcptr, mpz_srcptr, mpz_srcptr)) __GMP_ATTRIBUTE_PURE;
@@ -810,7 +881,7 @@ __GMP_DECLSPEC mp_limb_t mpz_getlimbn __GMP_PROTO ((mpz_srcptr, mp_size_t)) __GM
 __GMP_DECLSPEC unsigned long int mpz_hamdist __GMP_PROTO ((mpz_srcptr, mpz_srcptr)) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
 
 #define mpz_import __gmpz_import
-__GMP_DECLSPEC void mpz_import __GMP_PROTO ((mpz_ptr, size_t, int, size_t, int, size_t, const void *));
+__GMP_DECLSPEC void mpz_import __GMP_PROTO ((mpz_ptr, size_t, int, size_t, int, size_t, __gmp_const void *));
 
 #define mpz_init __gmpz_init
 __GMP_DECLSPEC void mpz_init __GMP_PROTO ((mpz_ptr));
@@ -886,6 +957,8 @@ __GMP_DECLSPEC int mpz_millerrabin __GMP_PROTO ((mpz_srcptr, int)) __GMP_ATTRIBU
 #define mpz_mod __gmpz_mod
 __GMP_DECLSPEC void mpz_mod __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
 
+#define mpz_mod_ui mpz_fdiv_r_ui /* same as fdiv_r because divisor unsigned */
+
 #define mpz_mul __gmpz_mul
 __GMP_DECLSPEC void mpz_mul __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
 
@@ -955,6 +1028,9 @@ __GMP_DECLSPEC unsigned long int mpz_remove __GMP_PROTO ((mpz_ptr, mpz_srcptr, m
 
 #define mpz_root __gmpz_root
 __GMP_DECLSPEC int mpz_root __GMP_PROTO ((mpz_ptr, mpz_srcptr, unsigned long int));
+
+#define mpz_rootrem __gmpz_rootrem
+__GMP_DECLSPEC void mpz_rootrem __GMP_PROTO ((mpz_ptr,mpz_ptr, mpz_srcptr, unsigned long int));
 
 #define mpz_rrandomb __gmpz_rrandomb
 __GMP_DECLSPEC void mpz_rrandomb __GMP_PROTO ((mpz_ptr, gmp_randstate_t, unsigned long int));
@@ -1159,7 +1235,7 @@ __GMP_DECLSPEC void mpq_set_num __GMP_PROTO ((mpq_ptr, mpz_srcptr));
 __GMP_DECLSPEC void mpq_set_si __GMP_PROTO ((mpq_ptr, signed long int, unsigned long int));
 
 #define mpq_set_str __gmpq_set_str
-__GMP_DECLSPEC int mpq_set_str __GMP_PROTO ((mpq_ptr, const char *, int));
+__GMP_DECLSPEC int mpq_set_str __GMP_PROTO ((mpq_ptr, __gmp_const char *, int));
 
 #define mpq_set_ui __gmpq_set_ui
 __GMP_DECLSPEC void mpq_set_ui __GMP_PROTO ((mpq_ptr, unsigned long int, unsigned long int));
@@ -1587,17 +1663,20 @@ mpz_get_ui (mpz_srcptr __gmp_z) __GMP_NOTHROW
   mp_ptr __gmp_p = __gmp_z->_mp_d;
   mp_size_t __gmp_n = __gmp_z->_mp_size;
   mp_limb_t __gmp_l = __gmp_p[0];
-  if (__GMP_ULONG_MAX <= GMP_NUMB_MASK)
-    return __gmp_l & (-(mp_limb_t) (__gmp_n != 0));
-#if GMP_NAIL_BITS != 0	/* redundant #if, shuts up compiler warnings */
-  else			/* happens for nails, but not if LONG_LONG_LIMB */
-    {			/* assume two limbs are enough to fill an ulong */
-      __gmp_n = __GMP_ABS (__gmp_n);
-      if (__gmp_n <= 1)
-	return __gmp_l & (-(mp_limb_t) (__gmp_n != 0));
-      else
-	return __gmp_l + (__gmp_p[1] << GMP_NUMB_BITS);
-    }
+  /* This is a "#if" rather than a plain "if" so as to avoid gcc warnings
+     about "<< GMP_NUMB_BITS" exceeding the type size, and to avoid Borland
+     C++ 6.0 warnings about condition always true for something like
+     "__GMP_ULONG_MAX < GMP_NUMB_MASK".  */
+#if GMP_NAIL_BITS == 0 || defined (_LONG_LONG_LIMB)
+  /* limb==long and no nails, or limb==longlong, one limb is enough */
+  return (__gmp_n != 0 ? __gmp_l : 0);
+#else
+  /* limb==long and nails, need two limbs when available */
+  __gmp_n = __GMP_ABS (__gmp_n);
+  if (__gmp_n <= 1)
+    return (__gmp_n != 0 ? __gmp_l : 0);
+  else
+    return __gmp_l + (__gmp_p[1] << GMP_NUMB_BITS);
 #endif
 }
 #endif
@@ -1609,10 +1688,10 @@ __GMP_EXTERN_INLINE
 mp_limb_t
 mpz_getlimbn (mpz_srcptr __gmp_z, mp_size_t __gmp_n) __GMP_NOTHROW
 {
-  if (__GMP_ABS (__gmp_z->_mp_size) <= __gmp_n || __gmp_n < 0)
-    return 0;
-  else
-    return __gmp_z->_mp_d[__gmp_n];
+  mp_limb_t  __gmp_result = 0;
+  if (__GMP_LIKELY (__gmp_n >= 0 && __gmp_n < __GMP_ABS (__gmp_z->_mp_size)))
+    __gmp_result = __gmp_z->_mp_d[__gmp_n];
+  return __gmp_result;
 }
 #endif
 
@@ -1633,11 +1712,14 @@ __GMP_EXTERN_INLINE
 int
 mpz_perfect_square_p (mpz_srcptr __gmp_a)
 {
-  mp_size_t __gmp_asize = __gmp_a->_mp_size;
-  if (__gmp_asize <= 0)
-    return (__gmp_asize == 0);  /* zero is a square, negatives are not */
-  else
-    return mpn_perfect_square_p (__gmp_a->_mp_d, __gmp_asize);
+  mp_size_t __gmp_asize;
+  int       __gmp_result;
+
+  __gmp_asize = __gmp_a->_mp_size;
+  __gmp_result = (__gmp_asize >= 0);  /* zero is a square, negatives are not */
+  if (__GMP_LIKELY (__gmp_asize > 0))
+    __gmp_result = mpn_perfect_square_p (__gmp_a->_mp_d, __gmp_asize);
+  return __gmp_result;
 }
 #endif
 
@@ -1648,12 +1730,14 @@ __GMP_EXTERN_INLINE
 unsigned long
 mpz_popcount (mpz_srcptr __gmp_u) __GMP_NOTHROW
 {
-  mp_size_t __gmp_usize = __gmp_u->_mp_size;
+  mp_size_t      __gmp_usize;
+  unsigned long  __gmp_result;
 
-  if (__gmp_usize <= 0)
-    return (__gmp_usize < 0 ? __GMP_ULONG_MAX : 0);
-  else
-    return mpn_popcount (__gmp_u->_mp_d, __gmp_usize);
+  __gmp_usize = __gmp_u->_mp_size;
+  __gmp_result = (__gmp_usize < 0 ? __GMP_ULONG_MAX : 0);
+  if (__GMP_LIKELY (__gmp_usize > 0))
+    __gmp_result =  mpn_popcount (__gmp_u->_mp_d, __gmp_usize);
+  return __gmp_result;
 }
 #endif
 
@@ -1899,44 +1983,6 @@ mpq_neg (mpq_ptr __gmp_w, mpq_srcptr __gmp_u)
   } while (0)
 
 
-/* For power and powerpc we want an inline ldu/stu/bdnz loop for copying.
-   On ppc630 for instance this is optimal since it can sustain only 1 store
-   per cycle.
-
-   gcc 2.95.x (powerpc64 -maix64, or powerpc32) doesn't recognise the "for"
-   loop in the generic code below can become ldu/stu/bdnz.  The do/while
-   here helps it get to that.
-
-   In gcc -mpowerpc64 mode, without -maix64, __size seems to want to be an
-   mp_limb_t to get into the ctr register, and even then the loop is a
-   curious ldu/stu/bdz/b.  But let's not worry about that unless there's a
-   system using this.  An asm block could force what we want if necessary.
-
-   xlc 3.1 already generates ldu/stu/bdnz from the generic C, and does so
-   from this loop too.  */
-
-#if __GMP_HAVE_HOST_CPU_FAMILY_power || __GMP_HAVE_HOST_CPU_FAMILY_powerpc
-#define __GMPN_COPY_INCR(dst, src, size)                        \
-  do {                                                          \
-    /* ASSERT ((size) >= 0); */                                 \
-    /* ASSERT (MPN_SAME_OR_INCR_P (dst, src, size)); */         \
-    if ((size) != 0)                                            \
-      {                                                         \
-        mp_ptr     __gmp_copy_incr_dst = (dst) - 1;             \
-        mp_srcptr  __gmp_copy_incr_src = (src) - 1;             \
-        mp_size_t  __gmp_copy_incr_size = (size);               \
-        do                                                      \
-          *++__gmp_copy_incr_dst = *++__gmp_copy_incr_src;      \
-        while (--__gmp_copy_incr_size != 0);                    \
-      }                                                         \
-  } while (0)
-#define __GMPN_COPY(dst, src, size)                             \
-  do {                                                          \
-    /* ASSERT (MPN_SAME_OR_SEPARATE_P (dst, src, size)); */     \
-    __GMPN_COPY_INCR (dst, src, size);                          \
-  } while (0)
-#endif
-
 #if defined (__GMPN_COPY) && ! defined (__GMPN_COPY_REST)
 #define __GMPN_COPY_REST(dst, src, size, start)                 \
   do {                                                          \
@@ -1957,6 +2003,7 @@ mpq_neg (mpq_ptr __gmp_w, mpq_srcptr __gmp_u)
     /* ASSERT ((start) >= 0); */                                \
     /* ASSERT ((start) <= (size)); */                           \
     /* ASSERT (MPN_SAME_OR_SEPARATE_P (dst, src, size)); */     \
+    __GMP_CRAY_Pragma ("_CRI ivdep");                           \
     for (__gmp_j = (start); __gmp_j < (size); __gmp_j++)        \
       (dst)[__gmp_j] = (src)[__gmp_j];                          \
   } while (0)
@@ -2054,7 +2101,7 @@ mpn_sub_1 (mp_ptr __gmp_dst, mp_srcptr __gmp_src, mp_size_t __gmp_size, mp_limb_
 #define mpz_cmp_si(Z,SI) \
   (__builtin_constant_p (SI) && (SI) == 0 ? mpz_sgn (Z)			\
    : __builtin_constant_p (SI) && (SI) > 0				\
-    ? _mpz_cmp_ui (Z, __GMP_CAST (unsigned long int, SI))               \
+    ? _mpz_cmp_ui (Z, __GMP_CAST (unsigned long int, SI))		\
    : _mpz_cmp_si (Z,SI))
 #define mpq_cmp_ui(Q,NUI,DUI) \
   (__builtin_constant_p (NUI) && (NUI) == 0				\
@@ -2090,11 +2137,11 @@ __GMP_DECLSPEC_XX std::istream& operator>> (std::istream &, mpf_ptr);
 #endif
 
 
-/* Compatibility with GMP 2 and earlier. */
+/* Source-level compatibility with GMP 2 and earlier. */
 #define mpn_divmod(qp,np,nsize,dp,dsize) \
-  mpn_divrem (qp, (mp_size_t) 0, np, nsize, dp, dsize)
+  mpn_divrem (qp, __GMP_CAST (mp_size_t, 0), np, nsize, dp, dsize)
 
-/* Compatibility with GMP 1.  */
+/* Source-level compatibility with GMP 1.  */
 #define mpz_mdiv	mpz_fdiv_q
 #define mpz_mdivmod	mpz_fdiv_qr
 #define mpz_mmod	mpz_fdiv_r
@@ -2109,7 +2156,6 @@ __GMP_DECLSPEC_XX std::istream& operator>> (std::istream &, mpf_ptr);
 #define mpz_divmod	mpz_fdiv_qr
 #define mpz_div_ui	mpz_fdiv_q_ui
 #define mpz_divmod_ui	mpz_fdiv_qr_ui
-#define mpz_mod_ui	mpz_fdiv_r_ui
 #define mpz_div_2exp	mpz_fdiv_q_2exp
 #define mpz_mod_2exp	mpz_fdiv_r_2exp
 
@@ -2119,16 +2165,13 @@ enum
   GMP_ERROR_UNSUPPORTED_ARGUMENT = 1,
   GMP_ERROR_DIVISION_BY_ZERO = 2,
   GMP_ERROR_SQRT_OF_NEGATIVE = 4,
-  GMP_ERROR_INVALID_ARGUMENT = 8,
-  GMP_ERROR_ALLOCATE = 16,
-  GMP_ERROR_BAD_STRING = 32,
-  GMP_ERROR_UNUSED_ERROR
+  GMP_ERROR_INVALID_ARGUMENT = 8
 };
 
 /* Major version number is the value of __GNU_MP__ too, above and in mp.h. */
 #define __GNU_MP_VERSION 4
-#define __GNU_MP_VERSION_MINOR 1
-#define __GNU_MP_VERSION_PATCHLEVEL 3
+#define __GNU_MP_VERSION_MINOR 2
+#define __GNU_MP_VERSION_PATCHLEVEL 0
 
 #define __GMP_H__
 #endif /* __GMP_H__ */

@@ -50,6 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;I_bits=13;"
 				MinimalRebuild="true"
@@ -117,7 +118,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h"
+				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -138,6 +139,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="_DEBUG;_CONSOLE;I_bits=13;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
@@ -228,7 +230,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				WholeProgramOptimization="true"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;I_bits=13;"
 				RuntimeLibrary="0"
@@ -296,7 +298,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h"
+				CommandLine="if not exist ..\..\..\include\version.h (echo #define GGNFS_VERSION &quot;0.77.1-VC8(%DATE%)&quot; &gt;..\..\..\include\version.h)&#x0D;&#x0A;set Wd=..\..\..\src\lasieve4&#x0D;&#x0A;if not exist %Wd%\asm (echo creating %Wd%\asm &amp;&amp; md %Wd%\asm)&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\siever-config.h %Wd%\asm\siever-config.h&#x0D;&#x0A;call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -317,6 +319,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
 				PreprocessorDefinitions="NDEBUG;_CONSOLE;I_bits=13;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
