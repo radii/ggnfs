@@ -424,7 +424,7 @@ int main(int argC, char *args[])
     free(M.cEntry); free(M.cIndex); return -1;
   }
 
-  if (getDependencies(&M, &C, deps, testMode) == 0) {
+  if (getDependencies(&M, &C, deps, origC, testMode) == 0) {
     if (!(ifp = fopen("depinf", "rb"))) {
       fprintf(stderr, "Error opening depinf for read!\n");
       exit(-1);

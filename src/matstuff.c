@@ -1071,11 +1071,11 @@ int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor,
 
 
 /***************************************************/
-int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, long testMode)
+int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, s32 origC, long testMode)
 /***************************************************/
 { double blstart, blstop, difficulty;
   int    res;
-  s32   i, j, origC = M->numCols;
+  s32   i, j;
   u64   *tmpDeps;
 
   difficulty = (M->numCols/64.0)*(M->cIndex[M->numCols] + M->numCols*M->numDenseBlocks);

@@ -447,7 +447,7 @@ typedef struct {
 
 
 /* matstuff.c */
-int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, long testMode);
+int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, s32 origC, long testMode);
 int writeSparseMat(char *fname, nfs_sparse_mat_t *M);
 int readSparseMat(nfs_sparse_mat_t *M, char *fname);
 int cm_init(llist_t *C, nfs_sparse_mat_t *M);
@@ -715,8 +715,6 @@ int   factRels_clsieved(relation_t *R, size_t numRels, nf_t *N);
 int   completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv);
 int   relConvertToData(s32 *data, relation_t *R);
 int   dataConvertToRel(relation_t *R, s32 *data);
-void  readRawS32(s32 *w, FILE *fp);
-void  writeRawS32(FILE *fp, s32 *w);
 int   writeRel(FILE *fp, s32 *relData);
 int   writeRelList(char *fname, rel_list *L);
 int   readRel(relation_t *R, FILE *fp);

@@ -1864,11 +1864,13 @@ zeitb(1);
 #ifdef MPQS_ZEIT
 zeita(2);
 #endif
-    if (!mpqs_next_pol()) {
-      if (retry) {
+    if (!mpqs_next_pol()) {     
+    /* Silence the frequent, but harmless warning below */
+    /* if (retry) {
         fprintf(stderr,"warning: not enough polynomials in mpqs with ");
         mpz_out_str(stderr,10,N); fprintf(stderr,"\n");
       }
+    */
 #ifdef MPQS_ZEIT
 zeitb(2);
 #endif
@@ -1931,7 +1933,8 @@ zeitb(10);
       }
     }
     if (mpqs_nrels>MPQS_MAX_NRELS-MPQS_MIN_RELBUFFER) {
-      fprintf(stderr,"warning: too many relations in mpqs\n");
+      /* Silence the frequent, but harmless warning */
+      /* fprintf(stderr,"warning: too many relations in mpqs\n"); */
       return -5;
     }
   }

@@ -851,13 +851,13 @@ sub plotLP {
   close(LOG);
   $ENV{'XAXIS'}='Total relations';
   $ENV{'YAXIS'}="";
-  $cmd="\"$PLOT\""." xprimes.jpg 'ExcessLargePrimes' .lprels";
+  $cmd="\"$PLOT\""." xprimes.png 'ExcessLargePrimes' .lprels";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);
   die "Return value $res. Terminating...\n" if ($res);
   $ENV{'XAXIS'}='Total relations';
   $ENV{'YAXIS'}="Full relation-sets";
-  $cmd="\"$PLOT\""." relations.jpg 'TotalFF' .rels";
+  $cmd="\"$PLOT\""." relations.png 'TotalFF' .rels";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);
   die "Return value $res. Terminating...\n" if ($res);
