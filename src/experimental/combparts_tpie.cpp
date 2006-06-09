@@ -452,7 +452,7 @@ s32 removeHeavyRelSets(LSList& R, LSList& P, int maxRelsInRS) {
 	printf("--------------------------------------------------------------\n");
 	printf("Wt = Weight\n# R-S = Number of relation-sets with this weight.\n");
 	printf("Cum. R-S = # of relation-sets with at most this weight.\n");
-	printf("Cum. wt. = cunulative weight of relation-sets upto here.\n");
+	printf("Cum. wt. = cumulative weight of relation-sets upto here.\n");
 	printf("--------------------------------------------------------------\n");
 
 	if (numR) {
@@ -814,12 +814,12 @@ bool checkRelSets(LSList&R, LSList& dataList) {
 	return true;
 }
 
-s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF) {
+s32 combParts_tpie(llist_t *lR, llist_t *lP, int maxRelsInFF, s32 minFF) {
 	MM_manager.ignore_memory_limit();
 
-	LSList P(_P);
-	LSList R(_R);
-	LSList cmpP(_P);
+	LSList P(lP);
+	LSList R(lR);
+	LSList cmpP(lP);
 
 	double t1=sTime();
 	s32 numFulls=combParts_new(P,R,maxRelsInFF,minFF);
@@ -828,9 +828,9 @@ s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF) {
 	} else {
 		printf("checkRelSets() failed. Exiting...\n");
 	}
-	ll_clear(_P);
-	P.toLList_t(_P);
-	R.toLList_t(_R);
+	ll_clear(lP);
+	P.toLList_t(lP);
+	R.toLList_t(lR);
 
 	double t2=sTime();
 	msgLog("","Elapsed time for cycle-counting: %lf seconds.",t2-t1);

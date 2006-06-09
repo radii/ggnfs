@@ -26,7 +26,7 @@ choosetarget :
 	@echo "	prescott                 Intel Pentium 4 with SSE3"
 	@echo "	pentium-m              	 Intel Pentium M"
 	@echo "	athlon			 AMD Athlon (k7)"
-	@echo "	athlon-xp		 AMD Athlon XP (k7)"
+	@echo "	athlon-xp		 AMD Athlon XP (k7) with SSE"
 	@echo "	x86_64                   AMD Opteron/Athlon64 (k8)"
 	@echo "	nocona                   Intel 64-bit-capable Xeon/Pentium"
 	@echo "	ppc_970             	 PowerPC 970"
@@ -53,6 +53,9 @@ pentium-m :
 	
 athlon :
 	@ARCH="athlon" $(MAKE) x86common
+
+athlon-xp :
+	@ARCH="athlon-xp" $(MAKE) x86common
 
 x86_64 :
 	@ARCH="k8" $(MAKE) common

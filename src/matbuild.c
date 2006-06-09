@@ -108,7 +108,7 @@ s32  delCols[2048], numDel=0;
 
 int cmp2S32s(const void *a, const void *b);
 #ifdef GGNFS_TPIE
-s32 combParts_tpie(llist_t *_R, llist_t *_P, int maxRelsInFF, s32 minFF);
+s32 combParts_tpie(llist_t *lR, llist_t *lP, int maxRelsInFF, s32 minFF);
 #endif
 
 /******************************************************/
@@ -651,6 +651,7 @@ s32 getCols(char *colName, multi_file_t *prelF, multi_file_t *lpF, nfs_fb_t *FB,
   mpz_init(tmp);
   tPP = approxPi_x(FB->maxP_r) + approxPi_x(FB->maxP_a);
   tPP = tPP - FB->rfb_size - FB->afb_size;
+  memset(&Rl, 0, sizeof(Rl));
   printf("Max # of large primes is approximately %" PRId32 ".\n", tPP);
   numFulls = doRowOps3(&P, &Rl, prelF, maxRelsInFF);
 

@@ -1287,7 +1287,11 @@ int main(int argC, char *args[])
       }
       fclose(fp);
     }
-    printf("     New file appears to have %" PRId32 " relations.\n", numNewRels);
+    /* Each rel ends with <nl>, so that when the last rel is read from
+     * the file it STILL does not indicate EOF.  The "while" loop therefore
+     * continues.
+     */
+    printf("     New file has %" PRId32 " relations.\n", numNewRels-1);
   }
 
   totalRels = 0;

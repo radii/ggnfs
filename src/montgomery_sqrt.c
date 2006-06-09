@@ -36,6 +36,13 @@
 
 //#define _DEBUG
 
+#ifdef GMP_BUG
+#define patched_mpz_set_d(z, d) { double d_ = (d);  \
+  if (-1.0 < d_ && d_ < 1.0) mpz_set_ui((z), 0); else mpz_set_d((z), d_); }
+#else 
+#define patched_mpz_set_d(z, d) mpz_set_d(z, d)
+#endif
+
 #ifdef _DEBUG
 #define MAX_IDEAL_STR 4096
 char idealSelStr[MAX_IDEAL_STR+1];
@@ -1895,7 +1902,7 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
         getCol(v, &H, j);
         computeEmbedding_ib(&sr, &si, v, i, M); /* (sr, si) <-- sigma_i(v). */
         entry = exp(lambda[i] + log(fabs(sr))); if (sr < 0) entry *= -1.0;
-        mpz_set_d(&H.entry[d+i][j], entry);
+        patched_mpz_set_d(&H.entry[d+i][j], entry);
       }
     } else {
       /* Quite probably a complex root. */
@@ -1903,9 +1910,9 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
         getCol(v, &H, j);
         computeEmbedding_ib(&sr, &si, v, i, M); /* (sr, si) <-- sigma_i(v). */
         entry = exp(lambda[i]) * sr * M_SQRT2;
-        mpz_set_d(&H.entry[d+i][j], entry);
+        patched_mpz_set_d(&H.entry[d+i][j], entry);
         entry = exp(lambda[i]) * si * M_SQRT2;
-        mpz_set_d(&H.entry[d+i+1][j], entry);
+        patched_mpz_set_d(&H.entry[d+i+1][j], entry);
       }
       /***************************************************/
       /* Since the roots have been ordered, the next one */

@@ -7,6 +7,11 @@ LIBFLAGS=$(LOCALLIB)
 MATBUILD_TPIE=0
 TPIE_DIR=F:/tmp/tpie/tpie_091905
 
+# Turn on\off workaround for GMP 4.2 bug
+# Consult http://swox.com/list-archives/gmp-bugs/2006-May/000475.html
+# for more info
+GMP_BUG=1
+
 ifeq ($(HOST),generic)
     ALLOPT+= -DGGNFS_HOST_GENERIC
 endif
@@ -61,6 +66,10 @@ ifeq ($(MATBUILD_TPIE),1)
   INC+= -I$(TPIE_DIR)/include
   LIBFLAGS+= -L$(TPIE_DIR)/lib
   LIBS+=-ltpie
+endif
+
+ifeq ($(GMP_BUG),1)
+  CFLAGS+=-DGMP_BUG
 endif
 
 .PHONY: all tests bins latsiever polsel strip clean lasieve-clean \

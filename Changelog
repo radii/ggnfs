@@ -1,3 +1,8 @@
+6/9/06 (asl)
+  * Incorporated Cygwin compatibility fix by R. Backstrom
+  * Workaround of GMP 4.2 bug - use GMP_BUG switch in makefile.
+    (http://swox.com/list-archives/gmp-bugs/2006-May/000475.html)
+
 6/8/06 (frmky)
   * Removed unused readRawS32() and writeRawS32() prototypes from ggnfs.h
   * Incorporate the patch by forzles to fix the odd exponent error
