@@ -1,3 +1,8 @@
+6/10/06 (asl)
+  * Fix for PPC by Mark Rodenkirch
+  * Added -nolpcount command line switch (by forzles)
+  * Bugfix for M->maxDataSize was not setup correctly (by forzles)
+
 6/9/06 (asl)
   * Incorporated Cygwin compatibility fix by R. Backstrom
   * Workaround of GMP 4.2 bug - use GMP_BUG switch in makefile.

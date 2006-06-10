@@ -760,7 +760,7 @@ sub changeParams {
   print "-> Reprocessing siever output...\n";
   $i=0;
   while (-e "spairs.dump.$i") {
-    $cmd="$NICE \"$PROCRELS\" -fb $NAME.fb -prel $RELSBIN -newrel spairs.dump.$i";
+    $cmd="$NICE \"$PROCRELS\" -fb $NAME.fb -prel $RELSBIN -newrel spairs.dump.$i -nolpcount";
     print "=>$cmd\n" if($ECHO_CMDLINE);
     $res=system($cmd);
     $i++;

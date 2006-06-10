@@ -1,4 +1,11 @@
-ALLOPT=-march=$(ARCH) -pipe
+# Workaround for PPC
+# Due to unknown reason -march isn't supported there
+ifeq ($(ARCH),970)
+    ALLOPT=-mcpu=$(ARCH) -m64 -pipe
+else
+    ALLOPT=-march=$(ARCH) -pipe
+endif
+
 INC=-I. -I.. -I../include $(LOCALINC)
 LIBS=-lgmp -lm
 BINDIR=../bin

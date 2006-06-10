@@ -102,6 +102,7 @@
 "-maxrelsinff <int>    : Max relation-set weight.\n"\
 "-speedtest            : Do nothing but report a number representing the relative speed\n"\
 "                        of this machine.\n"\
+"-nolpcount            : Don't count large primes.\n"\
 "-prune <float>        : EXPERIMENTAL! Remove the heaviest <float> fraction of processed\n"\
 "                        relations (and dump them in siever-output format, just in case).\n"\
 "                        ASCII files, then quit.\n"
@@ -1114,7 +1115,7 @@ int main(int argC, char *args[])
 { char       fbName[64], prelName[40], newRelName[64], depName[64], colName[64];
   char       tmpStr[1024], line[128];
   int        i, qcbSize = DEFAULT_QCB_SIZE, seed=DEFAULT_SEED, retVal=0, dump=0;
-  int        fr=0, maxRelsInFF=MAX_RELS_IN_FF;
+  int        fr=0, maxRelsInFF=MAX_RELS_IN_FF, doCountLP=1;
   double     startTime, rStart, rStop, pruneFrac=0.0;
   off_t      oldSize, newSize, maxSize;
   s32        totalRels, numNewRels;
@@ -1180,6 +1181,8 @@ int main(int argC, char *args[])
     } else if (strcmp(args[i], "-prune")==0) {
       if ((++i) < argC) 
         pruneFrac = atof(args[i]);
+    } else if (strcmp(args[i], "-nolpcount")==0) {
+      doCountLP=0;
     } else if (strcmp(args[i], "-speedtest")==0) {
       u32 a,b[1024],c=rand();
       double start=sTime(), now;
@@ -1318,7 +1321,8 @@ int main(int argC, char *args[])
       printf("     %d | %ld\n", i, relsNumLP[i]);
     }
   }
-  countLP(&prelF);
+  if (doCountLP)
+    countLP(&prelF);
   return retVal;
 }  
 

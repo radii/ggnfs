@@ -1147,6 +1147,7 @@ int readSparseMat(nfs_sparse_mat_t *M, char *fname)
   fread(M->denseBlockIndex, sizeof(s32), M->numDenseBlocks, fp);
   M->cIndex = (s32 *)lxmalloc((M->numCols+1)*sizeof(s32), 1);
   fread(M->cIndex, sizeof(s32), M->numCols+1, fp);
+  M->maxDataSize = M->cIndex[M->numCols]+1;
   M->cEntry = (s32 *)lxmalloc((M->cIndex[M->numCols]+1)*sizeof(s32),1);
   fread(M->cEntry, sizeof(s32), M->cIndex[M->numCols], fp);
   for (i=0; i<M->numDenseBlocks; i++) {
