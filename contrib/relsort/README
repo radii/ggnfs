@@ -13,7 +13,7 @@ the name of output files. The prefixes may include path to the files.
 Maximum size of the output files is defined by constant `limit` in the 
 sources (currently, it is 2GB).
 
-It outputs to stdout shell script like:
+It outputs to stdout a shell script like:
 cat infile1 infile6 ... >outfile1
 cat infile5 infile8 ... >outfile2
 ...

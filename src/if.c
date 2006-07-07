@@ -50,7 +50,7 @@ void *xmalloc(size_t size)
   if (size == 0)
     return NULL;
   if ((x = malloc(size)) == NULL)
-    complain("xmalloc: %m");
+    complain("xmalloc: %m\n");
   return x;
 }
 
@@ -63,7 +63,7 @@ void *xvalloc(size_t size)
   if (size == 0)
     return NULL;
   if ((x = malloc(size)) == NULL)
-    complain("xvalloc: %m");
+    complain("xvalloc: %m\n");
   memset(x,0,size);
   return x;
 }
@@ -77,7 +77,7 @@ void *xcalloc(size_t n, size_t s)
   if (n == 0 || s == 0)
     return NULL;
   if ((p = calloc(n, s)) == NULL)
-    complain("calloc: %m");
+    complain("calloc: %m\n");
   return p;
 }
 
@@ -93,7 +93,7 @@ void *xrealloc(void *x, size_t size)
     return NULL;
   }
   if ((y = realloc(x, size)) == NULL && size != 0)
-    complain("xrealloc: %m");
+    complain("xrealloc: %m\n");
   return y;
 }
 

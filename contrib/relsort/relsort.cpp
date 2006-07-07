@@ -28,14 +28,17 @@
 #include <map>
 using namespace std;
 
-const off_t limit = 1ul << 31;
+#define CAT "cat"
+//#define CAT "type"
+
+const off_t limit = 1ul << 31;   // 2GB limit per resulting container
 
 typedef multimap<off_t,char*> fmap_t;
 
 int main(int argc, char* argv[]) {
 
-    if(argc<3) {
-	cout << "Usage: " << argv[0] << " [-d] <ibase> <obase>" << endl;
+    if(argc!=3) {
+	cout << "Usage: " << argv[0] << " <ibase> <obase>" << endl;
         return 1;
     }
 
@@ -68,7 +71,7 @@ int main(int argc, char* argv[]) {
     while(!M.empty()) {
 	off_t sz = limit;
 	clog << "Block " << blk << " : ";
-        cout << "cat ";
+        cout << CAT << " ";
 
 	for(fmap_t::reverse_iterator im=M.rbegin();im!=M.rend();) {
 	    if( im->first <= sz ) {
