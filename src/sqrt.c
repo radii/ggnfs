@@ -52,15 +52,6 @@
 
 
 
-typedef struct {
-  s32 numRels;
-  s32 numPrimes;
-  s32 Rels[MAX_RELS_IN_FF];
-  s32 QCB[2];
-  char sign;
-  s32 rows[MAX_ROWS_IN_COL];
-} column_t;
-
 /******************************************************/
 void readColIndex(column_t *C, FILE *fp)
 /******************************************************/

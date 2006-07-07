@@ -443,6 +443,24 @@ typedef struct {
   s32  numDenseBlocks;
 } nfs_sparse_mat_t;
 
+/***********************************************************/
+/* This structure is for columns that are being processed. */
+/* Before processing, we know only the relations that      */
+/* comprise each column. After processing, we know all the */
+/* nonzero rows of the matrix (i.e., the primes appearing  */
+/* with odd exponent and the QCB (sign bit is in QCB)).    */
+/* During processing, we will know some of each. That is,  */
+/* we might have already replaced some relations with their*/
+/* factorizations, but not yet all of them. These data are */
+/* what will be stored in the file cols.np.                */
+/***********************************************************/
+typedef struct {
+  s32 numRels;
+  s32 numPrimes;
+  s32 Rels[MAX_RELS_IN_FF];
+  s32 QCB[2];
+  s32 rows[MAX_ROWS_IN_COL];
+} column_t;
 
 
 
@@ -454,6 +472,7 @@ int cm_init(llist_t *C, nfs_sparse_mat_t *M);
 int cm_removeCols(llist_t *C, s32 *cols, s32 numCols);
 int removeCols(nfs_sparse_mat_t *M, llist_t *C, s32 *cols, s32 m);
 int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor, llist_t *C);
+int checkMat(nfs_sparse_mat_t *M, s32 *delCols, s32 *numDel);
 
 
 /* mpz_poly.c */

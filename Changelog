@@ -1,3 +1,7 @@
+07/07/06 (relf)
+  * minor enhacements
+  * forzles' patch http://groups.yahoo.com/group/ggnfs/message/1894 applied
+
 6/10/06 (asl)
   * Fix for PPC by Mark Rodenkirch
   * Added -nolpcount command line switch (by forzles)

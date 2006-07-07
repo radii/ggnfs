@@ -116,25 +116,6 @@
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"
 
-/***********************************************************/
-/* This structure is for columns that are being processed. */
-/* Before processing, we know only the relations that      */
-/* comprise each column. After processing, we know all the */
-/* nonzero rows of the matrix (i.e., the primes appearing  */
-/* with odd exponent and the QCB (sign bit is in QCB)).    */
-/* During processing, we will know some of each. That is,  */
-/* we might have already replaced some relations with their*/
-/* factorizations, but not yet all of them. These data are */
-/* what will be stored in the file cols.np.                */
-/***********************************************************/
-typedef struct {
-  s32 numRels;
-  s32 numPrimes;
-  s32 Rels[MAX_RELS_IN_FF];
-  s32 QCB[2];
-  s32 rows[MAX_ROWS_IN_COL];
-} column_t;
-
 
 
 #define CC_OFF  0

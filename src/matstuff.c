@@ -1158,3 +1158,102 @@ int readSparseMat(nfs_sparse_mat_t *M, char *fname)
   return 0;
 }
 
+
+/*********************************************************/
+static int cmp2L1(const void *a, const void *b)
+/*********************************************************/
+{ s32 *A=(s32 *)a, *B=(s32 *)b;
+
+  if (A[0] < B[0]) return -1;
+  if (A[1] > B[1]) return 1;
+  return 0;
+}
+
+/*********************************************************/
+static int colsAreEqual(nfs_sparse_mat_t *M, s32 c0, s32 c1)
+/*********************************************************/
+{ int i, j, found;
+  s32 w0, w1, e;
+
+  w0 = M->cIndex[c0+1]-M->cIndex[c0];
+  w1 = M->cIndex[c1+1]-M->cIndex[c1];
+  if (w0 != w1) return 0;
+  for (i=M->cIndex[c0]; i<M->cIndex[c0+1]; i++) {
+    e = M->cEntry[i];
+    for (j=M->cIndex[c1], found=0; j<M->cIndex[c1+1]; j++)
+      if (M->cEntry[j]==e) found=1;
+    if (!(found)) return 0;
+  }
+  for (i=2; i<M->numDenseBlocks; i++) {
+    if (M->denseBlocks[i][c0] != M->denseBlocks[i][c1])
+      return 0;
+  }
+  return 1; 
+}
+
+/*********************************************************/
+int checkMat(nfs_sparse_mat_t *M, s32 *delCols, s32 *numDel)
+/*********************************************************/
+/* Do a sanity check on the matrix: Make sure there are  */
+/* no all zero columns and such.                         */
+/*********************************************************/
+{ s32 c, i, w;
+  int nz, warn=0;
+  s32 *colHash, h, hi;
+
+  *numDel=0;
+  colHash = (s32 *)lxmalloc(2*M->numCols*sizeof(s32),1);
+  for (c=0; c<M->numCols; c++) {
+    w = M->cIndex[c+1] - M->cIndex[c];
+    if (w == 0) {
+      /* Skip QCB & sign entries. */
+      for (i=2, nz=0; i<M->numDenseBlocks; i++) {
+        if (M->denseBlocks[i][c])
+          nz=1;
+      }
+      if (nz==0) {
+        printf("Warning: column %" PRId32 " is all zero!\n", c);
+        if (*numDel < 2048) 
+          delCols[(*numDel)++]=c;
+        warn=1;
+      }
+    }
+    h = 0x00000000;
+    for (i=M->cIndex[c]; i<M->cIndex[c+1]; i++) {
+      hi = NFS_HASH(0, M->cEntry[i], 0x8FFFFFFF);
+      h ^= hi;
+    }
+    for (i=NUM_QCB_BLOCKS; i<M->numDenseBlocks; i++) 
+      h ^= (M->denseBlocks[i][c] & 0xFFFFFFFF) ^ 
+           ((M->denseBlocks[i][c] & 0xFFFFFFFF00000000ULL) >> 32);
+    colHash[2*c] = h;
+    colHash[2*c+1]=c;
+  }
+  qsort(colHash, M->numCols, 2*sizeof(s32), cmp2L1);
+  for (i=0; i<(M->numCols-1); i++) {
+    if (colHash[2*i]==colHash[2*i+2]) {
+      if (colsAreEqual(M, colHash[2*i+1], colHash[2*i+3])) {
+        printf("Bad matrix: column %" PRId32 " = column %" PRId32 "!\n", 
+               colHash[2*i+1], colHash[2*i+3]);
+        if (*numDel < 2048) 
+          delCols[(*numDel)++]=colHash[2*i+1];
+        
+        warn=2;
+      }
+    }
+  }
+
+  if (warn) {
+    printf("checkMat() did not like something about the matrix:\n");
+    printf("This is probably a sign that something has gone horribly wrong\n");
+    printf("in the matrix construction (matbuild).\n");
+    if (*numDel < 2048) {
+      printf("However, the number of bad columns is only %" PRId32 ",\n", *numDel);
+      printf("so we will delete them and attempt to continue.\n");
+    }
+    else warn = 2048;
+  }
+  free(colHash);
+  return warn;
+}
+
