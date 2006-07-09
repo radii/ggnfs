@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
         clog.flush();
 
 	ostringstream of;
-        of << " " << obase << "." << setfill('0') << setw(3) << blk;
-	cout << ">" << of.str() << endl;
+        of << obase << "." << setfill('0') << setw(3) << blk;
+	cout << " > " << of.str() << endl;
         ++blk;
     }
 
