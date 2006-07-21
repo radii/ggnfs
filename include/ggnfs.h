@@ -22,6 +22,8 @@
 #ifndef _GGNFS_H
 #define _GGNFS_H
 
+#define GGNFS_VERBOSE 1
+
 #include "version.h"
 #include <gmp.h>
 

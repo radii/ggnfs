@@ -526,7 +526,9 @@ int factRel(relation_t *R, nf_t *N)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
+#ifdef GGNFS_VERBOSE
         fprintf(stderr, "%" PRId32 "\n", p);
+#endif
         return -177;
       }
     }
@@ -781,7 +783,9 @@ int completeRelFact(relation_t *R, nf_t *N)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< (u32)FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
+#ifdef GGNFS_VERBOSE
         fprintf(stderr, "%" PRId32 "\n", pFacts[i]);
+#endif
         return -177;
       }
     }
@@ -1220,7 +1224,9 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       kk += (pFacts[j]>1);
       if (pFacts[j]==0) pFacts[j]=1;
       if (mpz_fdiv_ui(temp1, pFacts[j]) != 0) { 
+#ifdef GGNFS_VERBOSE
         gmp_printf("temp1=%Zd, pFacts[%d]=%ld\n", temp1, j, pFacts[j]); 
+#endif
 	return -191; 
       }
       mpz_tdiv_q_ui(temp1, temp1, pFacts[j]);
@@ -1261,7 +1267,9 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       } else if ((numLarge < MAX_LARGE_RAT_PRIMES) && ((u32)pFacts[i]< (u32)FB->maxP_r)) {
         R->p[numLarge++] = pFacts[i];
       } else {
+#ifdef GGNFS_VERBOSE
         fprintf(stderr, "%" PRId32 " (numLarge=%d)\n", pFacts[i], numLarge);
+#endif
         return -177;
       }
     }
@@ -1354,7 +1362,12 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
       numpFacts += (pFacts[j]>1);
       kk += (pFacts[j] > 1);
       if (pFacts[j]==0) pFacts[j]=1;
-      if (mpz_fdiv_ui(norm, pFacts[j]) != 0) { gmp_printf("norm=%Zd, pFacts[%d]=%ld\n", norm, j, pFacts[j]); return -291; }
+      if (mpz_fdiv_ui(norm, pFacts[j]) != 0) { 
+#ifdef GGNFS_VERBOSE
+        gmp_printf("norm=%Zd, pFacts[%d]=%ld\n", norm, j, pFacts[j]); 
+#endif
+	return -291; 
+      }
       mpz_tdiv_q_ui(norm, norm, pFacts[j]);
     }
     if (mpz_cmp_ui(norm, 1)) {
@@ -1387,7 +1400,12 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
     for (i=0; i<numpFacts; i++) {
       /* Find this factor in the AFB. */
       p = pFacts[i];
-      if ((u32)p> (u32)FB->maxP_a) { fprintf(stderr, "%" PRId32 "\n", p); return -1923; }
+      if ((u32)p> (u32)FB->maxP_a) { 
+#ifdef GGNFS_VERBOSE
+        fprintf(stderr, "%" PRId32 "\n", p); 
+#endif
+	return -1923; 
+      }
       /* Find the corresponding 'r': */
       if (R->b%p==0) r=p; /* prime @ infty. */
       else r = mulmod32((p+(s32)(R->a%p))%p, inverseModP(R->b, p), p);

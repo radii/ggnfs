@@ -1,3 +1,7 @@
+07/07/21 (relf)
+  * GGNFS_VERBOSE introduced (on by default)
+  * some auxiliary output in rels.c wrapped with #ifdef GGNFS_VERBOSE .. #endif
+
 07/07/06 (relf)
   * minor enhacements
   * forzles' patch http://groups.yahoo.com/group/ggnfs/message/1894 applied
