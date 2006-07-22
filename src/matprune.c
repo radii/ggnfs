@@ -36,7 +36,7 @@
 #define DEFAULT_WT_FACTOR 0.7
 #define DEFAULT_COLNAME "cols"
 
-#define USAGE " [-cols <fname>] [-wt <wtFactor>] [-v]\n"\
+#define USAGE " [-cols <fname>] [-wt <wtFactor>]\n"\
 "-wt <float>         : Weight factor (for pruning; higher means matrix\n"\
 "                      should be kept as sparse as possible, while lower\n"\
 "                      means to shrink the matrix dimensions as much as possible.\n"
@@ -1297,6 +1297,9 @@ int main(int argC, char *args[])
     } else if (strcmp(args[i], "-cols")==0) {
       if ((++i) < argC) 
         strncpy(colName, args[i], 64);
+    } else if (strcmp(args[i], "--help")==0) {
+      printf("USAGE: %s %s\n", args[0], USAGE);
+      exit(0);
     }
   }
 
