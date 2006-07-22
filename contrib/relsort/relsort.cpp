@@ -1,5 +1,5 @@
 /**************************************************************/
-/* relsort.cpp            Version 2.0                         */
+/* relsort.cpp            Version 2.1                         */
 /* Copyleft 2005 by Max Alekseyev                             */
 /**************************************************************/
 /*
@@ -50,11 +50,9 @@ const size_t limit = 1ul << 31;   // 2GB limit per resulting container
 
 typedef multimap<size_t,string> fmap_t;
 
-int main(int argc, char* argv[]) 
-{
+int main(int argc, char* argv[]) {
 
-    if (argc != 3) 
-    {
+    if (argc != 3) {
 	cout << "Usage: " << argv[0] << " <ibase> <obase>" << endl;
         return 1;
     }
@@ -70,14 +68,12 @@ int main(int argc, char* argv[])
     glob(ibase.c_str(), GLOB_NOSORT, 0, &glb);
 
 //    clog << "Quering size ";
-    for(int i=0;i<glb.gl_pathc;++i) 
-    {
+    for(int i=0;i<glb.gl_pathc;++i) {
 //	cout << glb.gl_pathv[i] << endl;
 //        clog << "."; clog.flush();
 
         struct stat st;
-        if (stat(glb.gl_pathv[i], &st) != 0)
-        {
+        if (stat(glb.gl_pathv[i], &st) != 0) {
             cout << "Error: unable to obtain filesize information for '" << glb.gl_pathv[i] << "'." << endl;
             return 1;
         }
@@ -89,21 +85,20 @@ int main(int argc, char* argv[])
     clog << endl << "Files: " << glb.gl_pathc << "\tTotal size: " << totalsize << endl;
 
     for(int blk=0;!M.empty();++blk) {
+
+	ostringstream of;
+        of << obase << "." << setfill('0') << setw(3) << blk;
+
 	size_t sz = limit;
-        cout << CAT;
 
 	while(!M.empty()) {
 	    fmap_t::iterator im = M.lower_bound(sz+1);
 	    if(im==M.begin()) break;
 	    --im;
 	    sz -= im->first;
-	    cout << " " << im->second.c_str();
+	    cout << CAT << " " << im->second.c_str() << " >> " << of.str() << endl;
       	    M.erase(im);
 	}
-
-	ostringstream of;
-        of << obase << "." << setfill('0') << setw(3) << blk;
-	cout << " > " << of.str() << endl;
 
 	clog << "Block " << blk << " : ";
 	clog << "size " << limit - sz << endl;
