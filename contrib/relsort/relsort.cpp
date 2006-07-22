@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
         struct stat st;
         if (stat(glb.gl_pathv[i], &st) != 0) {
-            cout << "Error: unable to obtain filesize information for '" << glb.gl_pathv[i] << "'." << endl;
+            cerr << "ERROR: unable to obtain filesize information for '" << glb.gl_pathv[i] << "'." << endl;
             return 1;
         }
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
       	    M.erase(im);
 	}
 
-	clog << "Block " << blk << " : ";
+	clog << "Container " << blk << " : ";
 	clog << "size " << limit - sz << endl;
         clog.flush();
     }

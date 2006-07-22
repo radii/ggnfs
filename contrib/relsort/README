@@ -6,16 +6,18 @@ So it seems intractable even to feed 2000 files to `procrels` assuming
 that each run takes 5 minutes.
 
 `relsort` is a simple pre-processor of files with relations that re-packs 
-them into a smaller number of files.
+them into a smaller number of containers.
 
 As an input it takes a prefix of the name of input files and a prefix of 
 the name of output files. The prefixes may include path to the files. 
-Maximum size of the output files is defined by constant `limit` in the 
+The maximum size of the output files is defined by constant `limit` in the 
 sources (currently, it is 2GB).
 
 It outputs to stdout a shell script like:
-cat infile1 infile6 ... >outfile1
-cat infile5 infile8 ... >outfile2
+cat infile1 >> outfile1
+cat infile6 >> outfile1
+cat infile5 >> outfile2
+cat infile8 >> outfile2
 ...
 
 Running this script will re-pack large number of input files infile* into a smaller
