@@ -88,10 +88,7 @@ int main(int argc, char* argv[])
 
     clog << endl << "Files: " << glb.gl_pathc << "\tTotal size: " << totalsize << endl;
 
-    int blk = 0;
-
-    while (!M.empty()) 
-    {
+    for(int blk=0;!M.empty();++blk) {
 	size_t sz = limit;
         cout << CAT;
 
@@ -111,8 +108,6 @@ int main(int argc, char* argv[])
 	clog << "Block " << blk << " : ";
 	clog << "size " << limit - sz << endl;
         clog.flush();
-
-        blk++;
     }
 
     globfree(&glb);
