@@ -1,6 +1,6 @@
 /**************************************************************/
-/* relsort.cpp                                                */
-/* Copyleft 2005 by Max Alekseyev                            */
+/* relsort.cpp            Version 2.0                         */
+/* Copyleft 2005 by Max Alekseyev                             */
 /**************************************************************/
 /*
  *   It is free software; you can redistribute it and/or modify
@@ -10,6 +10,9 @@
  *
  *
  * Revision History:
+ *
+ *    Max         22/07/2006
+ *        Version 2.0: algorithm fixed/improved.
  *
  *    Sten        22/07/2006
  *        Code ported and tested on Win32 platform.
@@ -90,33 +93,25 @@ int main(int argc, char* argv[])
     while (!M.empty()) 
     {
 	size_t sz = limit;
-//	clog << "Block " << blk << " : ";
         cout << CAT;
 
-        //
-        // Sten: I replaced reverse_iterator with iterator since
-        //       M.erase(im.base()) construct didn't work on my MinGW build.
-        //       I'm to lazy to dig why it is so.
-        //
-search_again:
-	for(fmap_t::iterator im = M.begin(); im != M.end(); im++) 
-        {
-	    if (im->first <= sz) 
-            {
-		sz -= im->first;
-		cout << " " << im->second.c_str();
-      	        M.erase(im);       // Sten: Map has been modified, so we have no
-                goto search_again; //       guaranee our iterators are valid any longer.
-                                   //       It's safer to start search again.
-	    }           
+	while(!M.empty()) {
+	    fmap_t::iterator im = M.lower_bound(sz+1);
+	    if(im==M.begin()) break;
+	    --im;
+	    sz -= im->first;
+	    cout << " " << im->second.c_str();
+      	    M.erase(im);
 	}
-
-//	clog << "size " << limit - sz << endl;
-//      clog.flush();
 
 	ostringstream of;
         of << obase << "." << setfill('0') << setw(3) << blk;
 	cout << " > " << of.str() << endl;
+
+	clog << "Block " << blk << " : ";
+	clog << "size " << limit - sz << endl;
+        clog.flush();
+
         blk++;
     }
 
