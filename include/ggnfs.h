@@ -65,7 +65,7 @@ typedef long ssize_t;
 	#endif
 
 	#ifndef M_PI
-		#define M_PI		3.14159265358979323846f
+		#define M_PI        3.14159265358979323846f
 	#endif
 
 	#ifndef M_SQRT2
@@ -276,8 +276,8 @@ typedef struct {
   u32 *relIndex; /* relIndex[i] is the index of the start of relation 'i' in
                      the following array: */
   s32 *relData;  /* This is where all the relation data is held, in a very
-                     specific format: see rels.c for the format description.
-                   */
+                    specific format: see rels.c for the format description.
+                 */
 } rel_list;
 
 /* This is a more generic structure, (which will be) used
@@ -290,12 +290,9 @@ typedef struct {
   s32  numFields;
 } llist_t;
 
-
 typedef struct {
   s32 x, y;
 } lpair_t;
-
-
 
 typedef struct {
   char       name[MAX_NAMESIZE];
@@ -333,7 +330,6 @@ typedef struct {
   int        MFB_r;      /* Bits in largest value to factor into large primes */
   int        MFB_a;      /* Bits in largest value to factor into large primes */
 } nfs_fb_t;
-
 
 typedef struct {
   nfs_fb_t *FB;
@@ -381,7 +377,6 @@ typedef struct {
   char     fbName[MAXFNAMESIZE+1];
   int      nDigits;
 } nfs_sieve_job_t;
-
   
 typedef struct {
   s32 p;
@@ -407,7 +402,6 @@ typedef struct {
   int      e;     /* valuation of <p> at this ideal. */
   int      f;     /* This ideal has norm p^f. */
 } prime_id_t;
-
 
 typedef struct {
   mpz_poly      f;      /* NFS polynomial, f=c_0 + c_1x + ... + c_dx^d. */
@@ -464,18 +458,12 @@ typedef struct {
   s32 rows[MAX_ROWS_IN_COL];
 } column_t;
 
-
-
 /* matstuff.c */
 int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, s32 origC, long testMode);
 int writeSparseMat(char *fname, nfs_sparse_mat_t *M);
 int readSparseMat(nfs_sparse_mat_t *M, char *fname);
-int cm_init(llist_t *C, nfs_sparse_mat_t *M);
-int cm_removeCols(llist_t *C, s32 *cols, s32 numCols);
-int removeCols(nfs_sparse_mat_t *M, llist_t *C, s32 *cols, s32 m);
-int pruneMatrix(nfs_sparse_mat_t *M, s32 minExtraCols, double wtFactor, llist_t *C);
 int checkMat(nfs_sparse_mat_t *M, s32 *delCols, s32 *numDel);
-
+s32 matrixWeight(nfs_sparse_mat_t *M);
 
 /* mpz_poly.c */
 void   mpz_poly_init(mpz_poly f);
@@ -502,7 +490,7 @@ int    mpz_poly_mod_pp(mpz_poly r, mpz_poly a, mpz_poly b, mpz_t p);
 int    mpz_poly_gcd(mpz_poly g, mpz_poly h, mpz_t p);
 int    mpz_poly_modp(poly_t res, mpz_poly q, s32 p);
 int    mpz_polyCoprime(mpz_poly f, mpz_poly g, mpz_t p);
-s32   mpz_poly_evalModp(mpz_poly h, s32 p, s32 x);
+s32    mpz_poly_evalModp(mpz_poly h, s32 p, s32 x);
 void   mpz_poly_mul(mpz_poly res, mpz_poly op1, mpz_poly op2);
 void   mpz_poly_add(mpz_poly res, mpz_poly op1, mpz_poly op2);
 void   mpz_poly_mulmod(mpz_poly res, mpz_poly op1, mpz_poly op2, mpz_poly mod);
@@ -513,7 +501,6 @@ int    mpz_poly_irreduciblelike_modp(mpz_poly _f, mpz_t p);
 int    mpz_poly_div(mpz_poly q, mpz_poly x, mpz_poly y, mpz_t p);  
 int    mpz_poly_fact(mpz_poly *Pi, int *exps, mpz_poly A, mpz_t p);
 int    mpz_poly_inv(mpz_poly inv, mpz_poly f, mpz_poly m, mpz_t p);
-
 
 int    Zalpha_sqrt(mpz_poly res, mpz_poly a, mpz_poly _f, mpz_t N, mpz_t p);
 
@@ -711,10 +698,7 @@ int  ll_read(llist_t *C, char *fname);
 
 
 /* combparts.c */
-s32 combParts(llist_t *R, llist_t *P, int maxRelsInFF, s32 minFF);
-
-
-
+u32 combParts(llist_t *R, llist_t *P, u32 maxRelsInFF, u32 minFF, u32 minFull);
 
 /* rels.c */
 #define GETNUMRFB(_s) ((_s)>>24)

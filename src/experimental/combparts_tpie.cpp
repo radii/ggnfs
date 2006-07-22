@@ -412,21 +412,39 @@ int combinedSize(LSList& R, s32 a, s32 b) {
  * weight to stdout. This is to help the user if he/she needs
  * to re-run with a different maxRelsInFF.
  **************************************************************/
-s32 removeHeavyRelSets(LSList& R, LSList& P, int maxRelsInRS) {
+u32 removeHeavyRelSets(LSList& R, LSList& P, u32 maxRelsInRS, u32 minFull) {
 	s32 *remove=NULL, numR, maxR, fSize;
 	u32 byWt[10*MAX_RELS_IN_FF];
+  u32 i, cum, cwt;
 
-	numR=0;
-	maxR=8192;
+  cum = 0;
+	numR = 0;
+	maxR = 8192;
+  
 	if (!(remove = (s32 *)malloc(maxR*sizeof(s32)))) {
 		printf("removeHeavyRelSets(): Memory allocation error for remove!\n");
 		exit(-1);
 	}
-	for (u32 i=0; i<10*MAX_RELS_IN_FF; i++)
+	for (i=0; i<10*MAX_RELS_IN_FF; i++)
 		byWt[i]=0;
-	for (u32 i=0; i<R.numFields(); i++) {
+
+  /* Do one quick pass to measure weights */
+  for (i=0; i<R.numFields(); ++i) {
+    fSize = R.fieldSize(i);
+    byWt[fSize]+=1;
+  }
+
+  /* Adjust maxRelsInRS here, if automatic mode */
+  if (maxRelsInRS == 0) {
+    for (i=0, cum=0; (cum<minFull) && i<10*MAX_RELS_IN_FF; ++i ) {
+      cum += byWt[i];
+    }
+
+    maxRelsInRS = i;
+  }
+
+	for (i=0; i<R.numFields(); i++) {
 		fSize = R.fieldSize(i);
-		byWt[fSize]+=1;
 		if (fSize>maxRelsInRS) {
 			if (numR >= maxR) {
 				maxR += 8192;
@@ -439,10 +457,18 @@ s32 removeHeavyRelSets(LSList& R, LSList& P, int maxRelsInRS) {
 			remove[numR++] = i;
 		}
 	}
-	printf("Before deleting relation sets heavier than wt %d, there were:\n", maxRelsInRS);
+
+  if (cum>0) {
+    /* Automatic mode */
+    printf("Before deleting relation sets heavier than wt %d [auto], there were:\n", maxRelsInRS);
+  } else {
+    /* User-specified mode */
+    printf("Before deleting relation sets heavier than wt %d, there were:\n", maxRelsInRS);
+  }    
+
 	printf("Wt	|	# R-S	 | Cum. R-S | Cum. wt.\n");
 	printf("---------------------------------\n");
-	for (u32 i=0,cum=0,cwt=0; i<10*MAX_RELS_IN_FF; i++) {
+	for (i=0,cum=0,cwt=0; i<10*MAX_RELS_IN_FF; i++) {
 		cum += byWt[i];
 		cwt += i*byWt[i];
 		if (byWt[i]>0) {
@@ -736,9 +762,9 @@ s32 reduceRelSets(LSList& R, LSList& P) {
  * 	'P' will be modified in the process.
  * 	Return value: The number of full relations built.
  **************************************************************/ 
-s32 combParts_new(LSList& P, LSList& R, int maxRelsInFF, s32 minFF) {
+u32 combParts_new(LSList& P, LSList& R, u32 maxRelsInFF, u32 minFF, u32 minFull) {
 	s32 wt0, wt1;
-	s32 lastFull, full;
+	u32 lastFull, full;
 	int	pass=0;
 	double shrink;
 
@@ -783,7 +809,7 @@ s32 combParts_new(LSList& P, LSList& R, int maxRelsInFF, s32 minFF) {
 				wt0, wt1);
 		shrink = (double)(wt0-wt1)/wt0;
 	} while (shrink > 0.10);
-	full = removeHeavyRelSets(R, P, maxRelsInFF);
+	full = removeHeavyRelSets(R, P, maxRelsInFF, minFull);
 	msgLog("", "After removing heavy rel-sets, weight is %" PRId32 ".", R.Weight());
 	//printf("After removing heavy rel-sets, weight is %" PRId32 ".\n", R.Weight());
 
@@ -814,7 +840,7 @@ bool checkRelSets(LSList&R, LSList& dataList) {
 	return true;
 }
 
-s32 combParts_tpie(llist_t *lR, llist_t *lP, int maxRelsInFF, s32 minFF) {
+u32 combParts_tpie(llist_t *lR, llist_t *lP, u32 maxRelsInFF, u32 minFF, u32 minFull) {
 	MM_manager.ignore_memory_limit();
 
 	LSList P(lP);
@@ -822,7 +848,7 @@ s32 combParts_tpie(llist_t *lR, llist_t *lP, int maxRelsInFF, s32 minFF) {
 	LSList cmpP(lP);
 
 	double t1=sTime();
-	s32 numFulls=combParts_new(P,R,maxRelsInFF,minFF);
+	s32 numFulls=combParts_new(P, R ,maxRelsInFF, minFF, minFull);
 	if (checkRelSets(R,cmpP)) { 
 		printf("checkRelSets() reports, that R has good chances to be fine ;)\n");
 	} else {

@@ -76,7 +76,8 @@ $matWtFactor=0.05;
 # are just taking a painfully long time to solve), you can drop this
 # to, say 32, 24, or 20. The smaller this number, the more sieving you'll
 # have to do, but you'll also get a sparser matrix.
-$maxRelsInFF=28;
+# 0 really means automatic adjustment in matbuild.
+$maxRelsInFF=0;
 
 # This is for an Athlon 2800+ laptop. If your machine is about half as fast,
 # replace this with a 2. 25% as fast, replace with a 4. It controls how long
@@ -110,6 +111,7 @@ $PROCRELS=$GGNFS_BIN_PATH."/procrels".$EXEC_SUFFIX;
 $CLSIEVE=$GGNFS_BIN_PATH."/sieve".$EXEC_SUFFIX;
 $MATBUILD=$GGNFS_BIN_PATH."/matbuild".$EXEC_SUFFIX;
 $MATSOLVE=$GGNFS_BIN_PATH."/matsolve".$EXEC_SUFFIX;
+$MATPRUNE=$GGNFS_BIN_PATH."/matprune".$EXEC_SUFFIX;
 $SQRT=$GGNFS_BIN_PATH."/sqrt".$EXEC_SUFFIX;
 $POLYSELECT=$GGNFS_BIN_PATH."/polyselect".$EXEC_SUFFIX;
 $POL51M0=$GGNFS_BIN_PATH."/pol51m0b".$EXEC_SUFFIX;
@@ -119,6 +121,7 @@ $DEFAULT_PAR_FILE=$GGNFS_BIN_PATH."/def-par.txt";
 $DEFAULT_POLSEL_PAR_FILE=$GGNFS_BIN_PATH."/def-nm-params.txt";
 
 $DEPFILE="deps";
+$COLS="cols";
 $SPMAT="spmat";
 $RELSBIN="rels.bin";
 $LOGFILE="ggnfs.log";
@@ -872,6 +875,7 @@ sub checkParams {
     $missing .= 'makefb ' unless (-x $MAKEFB);
     $missing .= 'procrels ' unless (-x $PROCRELS);
     $missing .= 'matbuild ' unless (-x $MATBUILD);
+    $missing .= 'matprune ' unless (-x $MATPRUNE);
     $missing .= 'matsolve ' unless (-x $MATSOLVE);
     $missing .= 'sqrt ' unless (-x $SQRT);
     $missing .= '(lattice siever) ' unless (-x $LATSIEVER);
@@ -1432,7 +1436,7 @@ if ($DOCLASSICAL) {
 ####################################################
 $sieveSideOpt = ($LATSIEVE_SIDE) ? '-r' : '-a';
 $sieveSide = ($LATSIEVE_SIDE) ? 'rational' : 'algebraic';
-while (!(-e $SPMAT)) {
+while (!(-e $COLS)) {
   printf "-> Q0=$Q0, QSTEP=$QSTEP.\n";
   # Create a job file.
   makeJobFile($JOBNAME, $Q0, $QSTEP, $CLIENT_ID, $NUM_CLIENTS);
@@ -1531,7 +1535,7 @@ while (!(-e $SPMAT)) {
     ##############################################################################
     # Find out how many Relations and total large primes there are.
 
-# this needs to be fixed.
+    # this needs to be fixed.
     open(LOG, $LOGFILE) || return;
     while ($_ = <LOG>) {
       chomp;
@@ -1550,7 +1554,7 @@ while (!(-e $SPMAT)) {
     } else {
       print "-> Found $tlp total LP vs. $trel relations.\n";
       if ((($tlp - $trel) < 0.8*$trel)||($FORCECC=="on")) {
-        $cmd="$NICE \"$MATBUILD\" -fb $NAME.fb -prel $RELSBIN -maxrelsinff $maxRelsInFF -minff $minFF -wt $matWtFactor";
+        $cmd="$NICE \"$MATBUILD\" -fb $NAME.fb -prel $RELSBIN -maxrelsinff $maxRelsInFF -minff $minFF";
         print "=>$cmd\n" if($ECHO_CMDLINE);
         $res=system($cmd);
         die "Return value $res. Terminating...\n" if ($res);
@@ -1570,10 +1574,10 @@ while (!(-e $SPMAT)) {
     if ($t < $minFF) {
       printf "-> Found $t relation-sets versus minFF=$minFF.\n";
       printf "-> More sieving needed.\n";
-      # Remove the `spmat' file so we can do some more sieving.
-      # Note: this really shouldnt happen anymore, if all the 
+      # Remove the `cols' file so we can do some more sieving.
+      # Note: this really shouldnt happen anymore, if all the
       # command-line args are right.
-      unlink $SPMAT;
+      unlink $COLS;
     }
     unlink $JOBNAME;
   }
@@ -1585,10 +1589,23 @@ if ($CLIENT_ID > 1) {
 }
 
 ###############################
-# Obviously, the matrix step. #
+# Matrix pruning step.        #
 ###############################
-if (!(-e $DEPFILE)) {
+if (!(-e $SPMAT)) {
   print "-> Doing matrix step...\n";
+  $cmd="$NICE \"$MATPRUNE\" -wt $matWtFactor";
+  print "=>$cmd\n" if($ECHO_CMDLINE);
+  $res=system($cmd);
+  die "Return value $res. Terminating...\n" if ($res);
+} else {
+  printf "-> File 'spmat' already exists. Proceeding to matsolve step.\n";
+}
+
+#######################################
+# Obviously, the matrix solving step. #
+#######################################
+if (!(-e $DEPFILE)) {
+  print "-> Doing matrix solving step...\n";
   $cmd="$NICE \"$MATSOLVE\"";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);

@@ -12,7 +12,7 @@ BINDIR=../bin
 LIBFLAGS=$(LOCALLIB)
 
 MATBUILD_TPIE=0
-TPIE_DIR=F:/tmp/tpie/tpie_091905
+TPIE_DIR=../../tpie
 
 # Turn on\off workaround for GMP 4.2 bug
 # Consult http://swox.com/list-archives/gmp-bugs/2006-May/000475.html
@@ -46,7 +46,7 @@ OBJS=getprimes.o fbmisc.o squfof.o rels.o $(LANCZOS).o poly.o mpz_poly.o \
      matstuff.o dickman.o fbgen.o llist.o if.o rellist.o intutils.o lasieve4/mpz-ull.o
 
 BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
-     $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild
+     $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild $(BINDIR)/matprune
 
 LSBINS=latsiever polsel
 
@@ -114,6 +114,9 @@ $(BINDIR)/matbuild-tpie : matbuild.c $(OBJS)
 	$(CPP) $(INC) $(CFLAGS) $(LIBFLAGS) -DGGNFS_TPIE -o $@ matbuild.c \
 	  experimental/combparts_tpie.cpp experimental/llist_tpie.cpp \
 	  $(OBJS) $(LIBS)
+
+$(BINDIR)/matprune : matprune.c $(OBJS)
+	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matprune.c $(OBJS) $(LIBS)
 
 $(BINDIR)/matsolve : matsolve.c $(OBJS)
 	$(CC) $(INC) $(CFLAGS) $(LIBFLAGS) -o $@ matsolve.c $(OBJS) $(LIBS)

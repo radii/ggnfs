@@ -1,4 +1,11 @@
-07/07/21 (relf)
+07/22/06 (asl)
+  * Separated matrix pruning into separate program.
+  * factLat.pl was changed in order to track changes in flow.
+  * Added smart adjustment of maxRelsInFF: if supplied value is
+    zero, program will select it as small as possible.
+  * Set default for maxRelsInFF for factLat.pl to zero.
+
+07/21/06 (relf)
   * GGNFS_VERBOSE introduced (on by default)
   * some auxiliary output in rels.c wrapped with #ifdef GGNFS_VERBOSE .. #endif
 

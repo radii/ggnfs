@@ -55,20 +55,52 @@
 "| to the terms of the GNU General Public License version 2.|\n"\
 "|__________________________________________________________|\n"
 
-
-
-
-
 /***** Globals *****/
 s32 delCols[2048], numDel=0;
 
+/***************************************************/
+int getDependencies(nfs_sparse_mat_t *M, llist_t *C, s32 *deps, s32 origC, long testMode)
+/***************************************************/
+{ double blstart, blstop, difficulty;
+  int    res;
+  s32   i, j;
+  u64   *tmpDeps;
+
+  difficulty = (M->numCols/64.0)*(M->cIndex[M->numCols] + M->numCols*M->numDenseBlocks);
+  difficulty /= 1000000.0;
+  printf("Matrix difficulty is about %1.2lf\n", difficulty);
+  if (!testMode) printf("Doing block Lanczos...\n");
+  blstart = sTime();
+  tmpDeps = (u64 *)malloc(M->numCols*sizeof(u64));
+  res = blockLanczos64(tmpDeps, MultB64, MultB_T64, (void *)M, M->numCols,
+		       testMode);
+  blstop = sTime();
+  printf("Returned %d. Block Lanczos took %1.2lf seconds.\n", res, blstop-blstart);
+  msgLog("", "BLanczosTime: %1.1lf", blstop-blstart);
+  if (res < 0) return res;
+
+  /******************************************************/
+  /* Now, we need to translate the dependencies back to */
+  /* deps for the original matrix.                      */
+  /******************************************************/
+  memset(deps, 0x00, origC*sizeof(s32));
+
+  for (i=0; i<M->numCols; i++) {
+    for (j=C->index[i]; j<C->index[i+1]; j++)
+      deps[C->data[j]] ^= (s32)(tmpDeps[i]&0xFFFFFFFF);
+  }
+
+  free(tmpDeps);  
+  return 0;
+}
 
 /****************************************************/
 int main(int argC, char *args[])
 /****************************************************/
 { char       colName[64], depName[64], str[1024];
   double     startTime, stopTime;
-  s32       *deps, origC, seed=DEFAULT_SEED;
+  s32       *deps, origC;
+  u32        seed=DEFAULT_SEED;
   long       testMode=0;
   struct stat fileInfo;
   nfs_sparse_mat_t M;
@@ -108,9 +140,8 @@ int main(int argC, char *args[])
   }
   seedBlockLanczos(seed);
   startTime = sTime();
-  msgLog("", "GGNFS-%s : matsolve (seed=%" PRId32 ")", GGNFS_VERSION, seed);
-  printf("Using PRNG seed=%" PRId32 ".\n", seed);
-
+  msgLog("", "GGNFS-%s : matsolve (seed=%" PRIu32 ")", GGNFS_VERSION, seed);
+  printf("Using PRNG seed=%" PRIu32 ".\n", seed);
 
   readSparseMat(&M, "spmat");
   ll_read(&C, "sp-index");
