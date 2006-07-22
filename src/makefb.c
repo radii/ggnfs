@@ -43,15 +43,15 @@
 "-if <filename>    : read n, m, f from <filename>\n"\
 "-rl <limit>       : create a rational factor base upto <limit>\n"\
 "-al <limit>       : create an algebraic factor base with norms upto <limit>\n"\
-"  The next two options are for backward-compatibility:\n"\
-"-rs <size>        : create a rational factor base of size <size>\n"\
-"-as <size>        : create an algebraic factor base of size <size>\n"\
 "-mpr <long>       : max large rational prime for large-prime variation\n"\
 "-mpa <long>       : max large algebraic prime for large-prime variation\n"\
 "-lpbr <int>       : max bits in large rational prime.\n"\
 "-lpba <int>       : max bits in large algebraic prime.\n"\
 "-2p               : Upto 2 large rat. and algebraic primes (default is 1).\n"\
-"-3p               : Upto 3 large rat. and algebraic primes (default is 1).\n"
+"-3p               : Upto 3 large rat. and algebraic primes (default is 1).\n"\
+"  The next two options are for backward-compatibility:\n"\
+"-rs <size>        : create a rational factor base of size <size>\n"\
+"-as <size>        : create an algebraic factor base of size <size>\n"
 
 
 /*********************************************************************/
