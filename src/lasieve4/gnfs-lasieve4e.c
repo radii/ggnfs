@@ -108,6 +108,7 @@ static unsigned char *fss_sv;
 u32_t process_no;
 char *sysload_cmd;
 double sieveStartTime;
+static u16_t short_output = 0;
 
 int rho_factor(unsigned long *factors, mpz_t n);
 
@@ -2554,51 +2555,55 @@ printf("Too large!\n");
                       mpz_out_str(g_ofile, 10, g_sr_a);
                       fprintf(g_ofile, ",");
                       mpz_out_str(g_ofile, 10, g_sr_b);
+
+                      if (short_output == 0) /* Sten: added -s parameter to the command line. */
+                      {
 #ifdef _ORIG_OUTPUT_FORMAT
-                      for (s = 0; s < 2; s++) {
-                        u32_t *x;
-
-                        fprintf(ofile, "\n%c", 'X' + s);
-                        for (i = 0; i < nlp[s]; i++) {
-                          fprintf(ofile, " ");
-                          mpz_out_str(ofile, OBASE, large_primes[s][i]);
-                        }
-                        for (x = fbp_buffers[s]; x < fbp_buffers_ub[s]; x++) {
-                          fprintf(ofile, " %X", *x);
-                        }
-                      }
-                      fprintf(ofile, "\n");
+                         for (s = 0; s < 2; s++) {
+                           u32_t *x;
+                          
+                           fprintf(ofile, "\n%c", 'X' + s);
+                           for (i = 0; i < nlp[s]; i++) {
+                             fprintf(ofile, " ");
+                             mpz_out_str(ofile, OBASE, large_primes[s][i]);
+                           }
+                           for (x = fbp_buffers[s]; x < fbp_buffers_ub[s]; x++) {
+                             fprintf(ofile, " %X", *x);
+                           }
+                         }
 #else
-                      { int numR=0;
-                        u32_t *x;
-
-                        fprintf(g_ofile, ":");
-                        for (i = 0; i < nlp[1]; i++) { /* rational first. */
-                          if (i>0) fprintf(g_ofile, ",");
-                          mpz_out_str(g_ofile, OBASE, large_primes[1][i]);
-                          numR++;
+                         { int numR=0;
+                          u32_t *x;
+    
+                          fprintf(g_ofile, ":");
+                          for (i = 0; i < nlp[1]; i++) { /* rational first. */
+                            if (i>0) fprintf(g_ofile, ",");
+                            mpz_out_str(g_ofile, OBASE, large_primes[1][i]);
+                            numR++;
+                          }
+                          for (x = fbp_buffers[1]; x < fbp_buffers_ub[1];x++) {
+                            if (numR>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
+                            else { fprintf(g_ofile, "%X", (unsigned int)*x); numR++;}
+                          }
                         }
-                        for (x = fbp_buffers[1]; x < fbp_buffers_ub[1];x++) {
-                          if (numR>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
-                          else { fprintf(g_ofile, "%X", (unsigned int)*x); numR++;}
+                        { int numA=0;
+                          u32_t *x;
+    
+                          fprintf(g_ofile, ":");
+                          for (i = 0; i < nlp[0]; i++) { /* algebraic next. */
+                            if (i>0) fprintf(g_ofile, ",");
+                            mpz_out_str(g_ofile, OBASE, large_primes[0][i]);
+                            numA++;
+                          }
+                          for (x = fbp_buffers[0]; x < fbp_buffers_ub[0];x++) {
+                            if (numA>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
+                            else { fprintf(g_ofile, "%X", (unsigned int)*x); numA++;}
+                          }
                         }
-                      }
-                      { int numA=0;
-                        u32_t *x;
-
-                        fprintf(g_ofile, ":");
-                        for (i = 0; i < nlp[0]; i++) { /* algebraic next. */
-                          if (i>0) fprintf(g_ofile, ",");
-                          mpz_out_str(g_ofile, OBASE, large_primes[0][i]);
-                          numA++;
-                        }
-                        for (x = fbp_buffers[0]; x < fbp_buffers_ub[0];x++) {
-                          if (numA>0) fprintf(g_ofile, ",%X", (unsigned int)*x);
-                          else { fprintf(g_ofile, "%X", (unsigned int)*x); numA++;}
-                        }
-                      }
-                      fprintf(g_ofile, "\n");
 #endif
+                      } /* if (short_output == 0) */
+
+                      fprintf(g_ofile, "\n");
                     }
                   } else
                     continue;
@@ -2812,7 +2817,7 @@ int main(int argc, char **argv)
 #define NumRead16(x) if(sscanf(optarg, "%hu" ,(unsigned short*)&x)!=1) Usage()
 
     while ((option =
-            getopt(argc, argv, "FJ:L:M:N:P:S:ab:c:f:i:kn:o:rt:vz")) != -1) {
+            getopt(argc, argv, "FJ:L:M:N:P:S:ab:c:f:i:kn:o:rst:vz")) != -1) {
       switch (option) {
         case 'F':
           force_aFBcalc = 1; break;
@@ -2859,6 +2864,9 @@ int main(int argc, char **argv)
             errprintf("Ignoring -r\n"); break;
           }
           special_q_side = RATIONAL_SIDE; break;
+        case 's':
+          short_output = 1;
+          break;
         case 't':
           if (sscanf(optarg, "%hu", &cmdline_first_td_side) != 1)
             complain("-t %s ???\n", optarg);

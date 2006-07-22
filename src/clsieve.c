@@ -30,6 +30,7 @@
 #endif
 
 extern int clForceStop;
+extern int clShortOutput; /* Sten: -s command line parameter. */
 
 /* sieving takes place in L1-cache-size blocks */
 #define BLOCK_SIZE 65536
@@ -1960,40 +1961,46 @@ void clMakeOutputLine(char *str, relation_t *R)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%" PRId64 ",%" PRId32 ":", R->a, R->b);
-  for (i=0; i<R->rFSize; i++) {
-    if (numR==0)
-      sprintf(s, "%" PRIx32, R->rFactors[i]);
-    else sprintf(s, ",%" PRIx32 "", R->rFactors[i]);
-    strcat(str, s);
-    numR++;
-  }
-  for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
-    if (R->p[i] > 1) {
-      if (numR>0)
-        sprintf(s, ",%" PRIx32 "", R->p[i]);
-      else
-        sprintf(s, "%" PRIx32 "", R->p[i]);
+  sprintf(str, "%" PRId64 ",%" PRId32, R->a, R->b);
+
+  if (clShortOutput == 0)
+  {
+    strcat(str, ":");
+
+    for (i=0; i<R->rFSize; i++) {
+      if (numR==0)
+        sprintf(s, "%" PRIx32, R->rFactors[i]);
+      else sprintf(s, ",%" PRIx32 "", R->rFactors[i]);
       strcat(str, s);
       numR++;
     }
-  }
-  strcat(str, ":");
-  for (i=0; i<R->aFSize; i++) {
-    if (numA==0)
-      sprintf(s, "%" PRIx32 "", R->aFactors[i]);
-    else sprintf(s, ",%" PRIx32 "", R->aFactors[i]);
-    strcat(str, s);
-    numA++;
-  }
-  for (i=0; i<MAX_LARGE_ALG_PRIMES; i++) {
-    if (R->a_p[i] > 1) {
-      if (numA>0)
-        sprintf(s, ",%" PRIx32 "", R->a_p[i]);
-      else
-        sprintf(s, "%" PRIx32 "", R->a_p[i]);
+    for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
+      if (R->p[i] > 1) {
+        if (numR>0)
+          sprintf(s, ",%" PRIx32 "", R->p[i]);
+        else
+          sprintf(s, "%" PRIx32 "", R->p[i]);
+        strcat(str, s);
+        numR++;
+      }
+    }
+    strcat(str, ":");
+    for (i=0; i<R->aFSize; i++) {
+      if (numA==0)
+        sprintf(s, "%" PRIx32 "", R->aFactors[i]);
+      else sprintf(s, ",%" PRIx32 "", R->aFactors[i]);
       strcat(str, s);
       numA++;
+    }
+    for (i=0; i<MAX_LARGE_ALG_PRIMES; i++) {
+      if (R->a_p[i] > 1) {
+        if (numA>0)
+          sprintf(s, ",%" PRIx32 "", R->a_p[i]);
+        else
+          sprintf(s, "%" PRIx32 "", R->a_p[i]);
+        strcat(str, s);
+        numA++;
+      }
     }
   }
 } 
