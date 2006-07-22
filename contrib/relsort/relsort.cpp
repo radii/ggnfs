@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         totalsize += st.st_size;
     }
 
-//    clog << endl << "Files: " << glb.gl_pathc << "\tTotal size: " << totalsize << endl;
+    clog << endl << "Files: " << glb.gl_pathc << "\tTotal size: " << totalsize << endl;
 
     int blk = 0;
 
