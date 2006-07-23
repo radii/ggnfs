@@ -95,12 +95,8 @@
 "-prel <file prefix>   : File name prefix for input/output of processed relations.\n"\
 "-newrel <fname>       : File name for new, unprocessed relations.\n"\
 "-nodfactor            : Don't try to factor the discriminant again.\n"\
-"-cc <on | off | auto> : Cycle count: on, off, auto.\n"\
-"-minff <int>          : Minimum number of FF's (prevent R-S wt. reduction and\n"\
-"                        writing of the column files if there are fewer than this).\n"\
 "-dump                 : Dump processed relations into siever-output formatted\n"\
 "-s                    : Use short relations format (only a,b) with -dump and -prune\n"\
-"-maxrelsinff <int>    : Max relation-set weight.\n"\
 "-speedtest            : Do nothing but report a number representing the relative speed\n"\
 "                        of this machine.\n"\
 "-nolpcount            : Don't count large primes.\n"\
@@ -118,17 +114,11 @@
 "|__________________________________________________________|\n"
 
 
-
-#define CC_OFF  0
-#define CC_ON   1
-#define CC_AUTO 2
-
 /***** Globals *****/
-int  discFact=1, cycleCount=CC_AUTO;
+int  discFact=1;
 int  dump_short_mode=0; /* Sten: dump only a,b when -s parameter specified.  */
-s32  initialFF=0, initialRelations=0, finalFF=0;
+s32  initialRelations;
 s32  totalLargePrimes=0;
-s32  minFF;
 long relsNumLP[8]={0,0,0,0,0,0,0,0};
 
 /********************************************************************************/
@@ -1178,7 +1168,6 @@ int main(int argC, char *args[])
   strcpy(prelF.prefix, DEFAULT_PRELPREFIX);
   line[0]=0;
   printf(START_MSG, GGNFS_VERSION);
-  minFF=0;
   for (i=1; i<argC; i++) {
     if (strcmp(args[i], "-fb")==0) {
       if ((++i) < argC) 
@@ -1192,24 +1181,12 @@ int main(int argC, char *args[])
     } else if (strcmp(args[i], "-qs")==0) {
       if ((++i) < argC)
         qcbSize = atoi(args[i]);
-    } else if (strcmp(args[i], "-minff")==0) {
-      if ((++i) < argC)
-        minFF = atoi(args[i]);
     } else if (strcmp(args[i], "-seed")==0) {
       if ((++i) < argC) {
         seed = atoi(args[i]);
       }
     } else if (strcmp(args[i], "-nodfactor")==0) {
       discFact=0;
-    } else if (strcmp(args[i], "-cc")==0) {
-      if ((++i) < argC) {
-        if (strcmp(args[i], "off")==0)
-          cycleCount=CC_OFF;
-        else if (strcmp(args[i], "on")==0) 
-          cycleCount=CC_ON;
-        else if (strcmp(args[i], "auto")==0)
-          cycleCount=CC_AUTO;
-      }
     } else if (strcmp(args[i], "-v")==0) {
       verbose++;
     } else if (strcmp(args[i], "-dump")==0) {
@@ -1274,8 +1251,6 @@ int main(int argC, char *args[])
     pruneRelLists(&prelF, "spairs.dump", pruneFrac, N.FB, dump_short_mode);
     return 0;
   }
-  if (minFF < N.FB->rfb_size + N.FB->afb_size + 64 + 32)
-    minFF = N.FB->rfb_size + N.FB->afb_size + 64 + 32;
   if (verbose)
     printf("Getting QCB of size %d...\n", qcbSize);
   generateQCB(N.FB, qcbSize); 

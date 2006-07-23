@@ -1,3 +1,17 @@
+07/32/06 (asl)
+  * Minor dead code cleanup from procrels.
+  * Added SQUFOF for relations factoring. Got 2x speedup for short
+    format.
+
+07/23/06 (asl)
+  * Sten probably forget to add, that there is new "short" relation
+    format suported. It can reduce bandwidth, if you're transfering
+    somehow. Sievers now accepts "-s" switch. Procrels determine the
+    actual format automaticaly, but there is also "-s" switch there
+    to force usign short format for dumping & pruning.
+    Please note, that relation processing time is somehow 30x more
+    for short format comparing to usually one. You've been warned! :)
+  
 07/22/06 (asl)
   * Separated matrix pruning into separate program.
   * factLat.pl was changed in order to track changes in flow.

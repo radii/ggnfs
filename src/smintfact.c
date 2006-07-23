@@ -115,6 +115,7 @@ int factor(u32 *factors, mpz_t n, int useTrialDivision)
   static mpz_t div1, div2, remain;
   static __mpz_struct stack[32];
   static int initialized=0, stackSize=0;
+  u32 sq_f;
   s32 c;
 
   if (!(initialized)) {
@@ -148,16 +149,25 @@ int factor(u32 *factors, mpz_t n, int useTrialDivision)
     }
   } 
 
-  /* 50000 is sufficient for all primes below 100,000,000. */
-  c = 1;
-  do {
-    if (c <= 2)
-      res = prho(div1, div2, remain, c, 50000);
-    else
-      res = prho(div1, div2, remain, c, c*50000);
-    c++;
-  } while (res && (c <4));
-
+  /* Do some SQUFOF factoring at first */
+  sq_f = squfof(remain);
+  if (sq_f && (sq_f > 1)) {    
+    /* We really catch the factor */
+    mpz_div_ui(div1, remain, sq_f);
+    mpz_set_ui(div2, sq_f);
+  } else {
+    /* SQUFOF failed or returned trivial factor. Do Pollard Rho */
+    /* 50000 is sufficient for all primes below 100,000,000. */
+    c = 1;
+    do {
+      if (c <= 2)
+        res = prho(div1, div2, remain, c, 50000);
+      else
+        res = prho(div1, div2, remain, c, c*50000);
+      c++;
+    } while (res && (c <4));
+  }
+  
   if (res) {
 #define _QUIET
 #ifndef _QUIET
@@ -174,7 +184,8 @@ int factor(u32 *factors, mpz_t n, int useTrialDivision)
     } else return -1; /* Prime factor that doesn't fit in a s32. */
   } else {
     mpz_set(&stack[stackSize++], div2);
-    retVal = factor(&factors[numFactors], div1, 1);
+    /* It's useless to do trial division here */
+    retVal = factor(&factors[numFactors], div1, 0);
     mpz_set(div2, &stack[--stackSize]);
     if (retVal >=0) numFactors += retVal;
     else return retVal;
@@ -184,7 +195,8 @@ int factor(u32 *factors, mpz_t n, int useTrialDivision)
       factors[numFactors++] = mpz_get_ui(div2);
     } else return -1; /* Prime factor that doesn't fit in a s32. */
   } else {
-    retVal = factor(&factors[numFactors], div2, 1);
+    /* It's useless to do trial division here */
+    retVal = factor(&factors[numFactors], div2, 0);
     if (retVal >=0) numFactors += retVal;
     else return retVal;
   }
