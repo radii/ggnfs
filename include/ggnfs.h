@@ -725,7 +725,7 @@ int   writeRelList(char *fname, rel_list *L);
 int   readRel(relation_t *R, FILE *fp);
 int   readRelList(rel_list *L, char *fname);
 int   parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB);
-void  makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB);
+void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB, int short_form);
 s32  lookupRFB(s32 p, nfs_fb_t *FB);
 s32  lookupAFB(s32 p, s32 r, nfs_fb_t *FB);
 #define readRaw32(w,fp)  fread((w),sizeof(s32),1,(fp))

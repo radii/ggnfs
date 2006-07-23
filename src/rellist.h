@@ -53,7 +53,7 @@ void clearRelList(rel_list *RL);
 /* the heaviest removeFrac relations from the processed relation files  */
 /* file, appending them in siever-output format to the file appendName. */
 /************************************************************************/
-void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB);
+void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB, int short_form);
 
 #if defined (__cplusplus)
 };

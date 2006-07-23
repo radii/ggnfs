@@ -99,6 +99,7 @@
 "-minff <int>          : Minimum number of FF's (prevent R-S wt. reduction and\n"\
 "                        writing of the column files if there are fewer than this).\n"\
 "-dump                 : Dump processed relations into siever-output formatted\n"\
+"-s                    : Use short relations format (only a,b) with -dump and -prune\n"\
 "-maxrelsinff <int>    : Max relation-set weight.\n"\
 "-speedtest            : Do nothing but report a number representing the relative speed\n"\
 "                        of this machine.\n"\
@@ -124,6 +125,7 @@
 
 /***** Globals *****/
 int  discFact=1, cycleCount=CC_AUTO;
+int  dump_short_mode=0; /* Sten: dump only a,b when -s parameter specified.  */
 s32  initialFF=0, initialRelations=0, finalFF=0;
 s32  totalLargePrimes=0;
 s32  minFF;
@@ -775,7 +777,8 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
     s32 r, k;
     s64 p;
     int c, m;
-
+    int short_form = 0; /* 0 - we have only a,b.
+                           1 - we have a,b and all large factors. */
 
     if (fData != NULL) {
       fPos = fEol + 1;
@@ -807,88 +810,147 @@ s32 addNewRelations5(multi_file_t *prelF, char *fName,  nf_t *N)
       continue;
     }
     *fEol = '\0';
+
     /* expand and optimize parseOutputLine() */
     /* %ld */
     fPos += (m = *fPos == '-');
-    if ((unsigned int)(p = *fPos - '0') >= 10) {
+    if ((unsigned int)(p = *fPos - '0') >= 10) 
+    {
       continue;
     }
+    
     fPos++;
-    while ((unsigned int)(c = *fPos - '0') < 10) {
+    
+    while ((unsigned int)(c = *fPos - '0') < 10) 
+    {
       p = (((p << 2) + p) << 1) + c; /* p = p * 10 + c */
       fPos++;
     }
+    
     R.a = m ? -p : p;
+    
     /* , */
     fPos++;
+    
     /* %ld */
     fPos += (m = *fPos == '-');
-    if ((unsigned int)(p = *fPos - '0') >= 10) {
+    
+    if ((unsigned int)(p = *fPos - '0') >= 10) 
+    {
       continue;
     }
+    
     fPos++;
-    while ((unsigned int)(c = *fPos - '0') < 10) {
+    
+    while ((unsigned int)(c = *fPos - '0') < 10)
+    {
       p = (((p << 2) + p) << 1) + c; /* p = p * 10 + c */
       fPos++;
     }
+
     R.b = m ? -p : p;
+
     /* : */
-    while (fPos < fEol && *fPos++ != ':') {
-      ;
+    while (fPos < fEol && (*fPos != ':')) 
+    {
+      fPos++;
     }
-    /* %lx,%lx,... */
-    for (j=0; j<FB->maxLP; j++)
-      R.p[j] = 1;
-    R.rFSize = 0;
-    m = 0;
-    while (fPos < fEol && *fPos != ':') {
-      if ((p = xdigit[*fPos++]) < 0) {
-        continue;
-      }
-      while ((c = xdigit[*fPos]) >= 0) {
-        p = (p << 4) + c;
-        fPos++;
-      }
-      k = lookupRFB(p, FB);
-      if (k >= 0) {
-        R.rFactors[R.rFSize++] = k;
-      } else if ((p > maxRFB) && (m < FB->maxLP)) {
-        R.p[m++] = p;
-      }
-    }
-    /* : */
-    fPos += *fPos == ':';
-    /* %lx,%lx,... */
-    for (j=0; j<FB->maxLPA; j++) 
-      R.a_p[j] = R.a_r[j] = 1;
-    R.aFSize = 0;
-    m = 0;
-    while (fPos < fEol && *fPos != ':') {
-      if ((p = xdigit[*fPos++]) < 0) {
-        continue;
-      }
-      while ((c = xdigit[*fPos]) >= 0) {
-        p = (p << 4) + c;
-        fPos++;
-      }
-      if (R.b % p) { /* p is always non-zero? */
-        r = mulmod32(p + (R.a % p), inverseModP(R.b, p), p);
-        k = lookupAFB(p, r, FB);
-        if (k >= 0) {
-          R.aFactors[R.aFSize++] = k;
-        } else if ((p > maxAFB) && (m < FB->maxLPA)) {
-          R.a_p[m] = p; 
-          R.a_r[m++] = r;
+    
+    short_form = (fPos == fEol);
+    fPos++;
+
+    if (short_form == 0)
+    {
+        /* This is long form of the relation.  */
+        /* %lx,%lx,... */
+        for (j=0; j<FB->maxLP; j++)
+        {
+          R.p[j] = 1;
         }
-      }
-    }
+
+        R.rFSize = 0;
+        m = 0;
+        
+        while (fPos < fEol && *fPos != ':') 
+        {
+          if ((p = xdigit[*fPos++]) < 0) 
+          {
+            continue;
+          }
+          
+          while ((c = xdigit[*fPos]) >= 0) 
+          {
+            p = (p << 4) + c;
+            fPos++;
+          }
+          
+          k = lookupRFB(p, FB);
+          
+          if (k >= 0)
+          {
+            R.rFactors[R.rFSize++] = k;
+          }
+          else if ((p > maxRFB) && (m < FB->maxLP)) 
+          {
+            R.p[m++] = p;
+          }
+        }
+
+        /* : */
+        fPos += *fPos == ':';
+        
+        /* %lx,%lx,... */
+        
+        for (j=0; j<FB->maxLPA; j++)
+        {
+          R.a_p[j] = R.a_r[j] = 1;
+        }
+
+        R.aFSize = 0;
+        m = 0;
+        
+        while (fPos < fEol && *fPos != ':') 
+        {
+          if ((p = xdigit[*fPos++]) < 0) 
+          {
+            continue;
+          }
+          
+          while ((c = xdigit[*fPos]) >= 0) 
+          {
+            p = (p << 4) + c;
+            fPos++;
+          }
+          
+          if (R.b % p) 
+          { 
+            /* p is always non-zero? */
+            r = mulmod32(p + (R.a % p), inverseModP(R.b, p), p);
+            k = lookupAFB(p, r, FB);
+          
+            if (k >= 0) 
+            {
+              R.aFactors[R.aFSize++] = k;
+            } 
+            else 
+            if ((p > maxAFB) && (m < FB->maxLPA)) 
+            {
+              R.a_p[m] = p; 
+              R.a_r[m++] = r;
+            }
+          }
+        }
+    } /* if (*fPos == ':')  */
+
     numRead++;
 
 //    printf("Read (%" PRId64 ", %ld) from file\n", R.a, R.b );
 
     if (checkAB(R.a, R.b)==0) {
       fileno = NFS_HASH(R.b, R.b, prelF->numFiles);
-      factRes = completePartialRelFact(&R, N, CLIENT_SKIP_R_PRIMES, CLIENT_SKIP_A_PRIMES);
+      /* Sten: we smartly choose here if this is short format or long and thus if
+               we should try to factor relation completely or only partly. */
+      factRes = (short_form ? factRel(&R, N) : completePartialRelFact(&R, N, CLIENT_SKIP_R_PRIMES, CLIENT_SKIP_A_PRIMES));
       if (factRes == 0) {
         k = newDataIndex[fileno];
         newDataIndex[fileno] += relConvertToData(&newData[fileno][newDataIndex[fileno]], &R);
@@ -1019,7 +1081,7 @@ s32 dumpPairs(char *fName, multi_file_t *prelF, nfs_fb_t *FB)
     printf("Dumping %" PRId32 " relations from %s...\n", numRels, prelName);
     for (j=0; j<numRels; j++) {
       dataConvertToRel(&R, &RL->relData[RL->relIndex[j]]);
-      makeOutputLine(outStr, &R, FB);
+      makeOutputLine(outStr, &R, FB, dump_short_mode);
       fprintf(ofp, "%s\n", outStr);
       if ((++total % MAX_DUMP_PER_FILE)==0) {
         fclose(ofp);
@@ -1151,7 +1213,9 @@ int main(int argC, char *args[])
     } else if (strcmp(args[i], "-v")==0) {
       verbose++;
     } else if (strcmp(args[i], "-dump")==0) {
-      dump=1;
+        dump=1;
+    } else if (strcmp(args[i], "-s")==0) {
+        dump_short_mode=1;
     } else if (strcmp(args[i], "-fr")==0) {
       fr=1;
       if ((++i)<argC) 
@@ -1207,7 +1271,7 @@ int main(int argC, char *args[])
   }
   if (pruneFrac > 0.0000000001) {
     set_prelF(&prelF, DEFAULT_MAX_FILESIZE, 0);
-    pruneRelLists(&prelF, "spairs.dump", pruneFrac, N.FB);
+    pruneRelLists(&prelF, "spairs.dump", pruneFrac, N.FB, dump_short_mode);
     return 0;
   }
   if (minFF < N.FB->rfb_size + N.FB->afb_size + 64 + 32)

@@ -153,7 +153,7 @@ void clearRelList(rel_list *RL)
 /* the heaviest removeFrac relations from the processed relation files  */
 /* file, appending them in siever-output format to the file appendName. */
 /************************************************************************/
-void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB)
+void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs_fb_t *FB, int short_form)
 #define MAX_PR_SIZE 2048
 { 
 	rel_list *RL;
@@ -227,7 +227,7 @@ void pruneRelLists(multi_file_t *prelF, char *appendName, double removeFrac, nfs
 			{
 				/* We need to dump and remove this relation. */
 				dataConvertToRel(&R, &RL->relData[RL->relIndex[j]]);
-				makeOutputLine(outputStr, &R, FB);
+				makeOutputLine(outputStr, &R, FB, short_form);
 				fprintf(afp, "%s\n", outputStr);
 			} 
 			else

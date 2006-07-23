@@ -1475,7 +1475,7 @@ int completePartialRelFact(relation_t *R, nf_t *N, s32 rTDiv, s32 aTDiv)
 }
 
 /**************************************************************/
-void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
+void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB, int short_form)
 /**************************************************************/
 /* Turn a good relation with partial factorization into a     */
 /* line of output, parseable by procrels.c (using the function*/
@@ -1484,7 +1484,13 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
 { int i, numR=0, numA=0;
   char s[128];
 
-  sprintf(str, "%" PRId64 ",%" PRId32 ":", R->a, R->b);
+  sprintf(str, "%" PRId64 ",%" PRId32, R->a, R->b);
+
+  if (short_form)
+      return;
+
+  strcat(str, ":");
+
   for (i=0; i<R->rFSize; i++) {
     if (R->rFactors[i] >= CLIENT_SKIP_R_PRIMES) {
       if (numR==0)
@@ -1494,6 +1500,7 @@ void makeOutputLine(char *str, relation_t *R, nfs_fb_t *FB)
       numR++;
     }
   }
+
   for (i=0; i<MAX_LARGE_RAT_PRIMES; i++) {
     if (R->p[i] > 1) {
       if (numR>0)
@@ -1538,78 +1545,139 @@ int parseOutputLine(relation_t *R, char *str, nfs_fb_t *FB)
 /*   potentially a good relation. Nonzero if it's bad for    */
 /*   some reason.                                            */
 /*************************************************************/
-{ size_t  len=strlen(str), i, j, size;
-  int largeAlg, largeRat;
-  char ab[128], rfb[256], afb[256];
-  s32 p, r, k;
-  s32 maxRFB, maxAFB;
+{ 
+    size_t len = strlen(str);
+    size_t i;
+    size_t j;
+    size_t size;
+  
+    int largeAlg, largeRat;
+    char ab[128], rfb[256], afb[256];
+  
+    s32 p, r, k;
+    s32 maxRFB, maxAFB;
 
-  maxRFB = FB->rfb[2*(FB->rfb_size-1)];
-  maxAFB = FB->afb[2*(FB->afb_size-1)];
+    maxRFB = FB->rfb[2*(FB->rfb_size - 1)];
+    maxAFB = FB->afb[2*(FB->afb_size - 1)];
  
-  /* It's a shame - we could have parsed this with something similar
-     to sscanf(str, "%[^:]:%[^:]:%[^:]", s1, s2, s3) ,
-     but it doesn't handle the empty case well. There is surely some
-     other standard library function capable of doing this parsing,
-     but oh well.
-  */
-  i=j=0;
-  while ((i<len) && (j<127)&& (str[i] != ':'))
-    ab[j++] = str[i++];
-  ab[j]=0; i++;
-
-  j=0;
-  while ((i<len) && (j<255) && (str[i] != ':'))
-    rfb[j++] = str[i++];
-  rfb[j]=0; i++;
-
-  j=0;
-  while ((i<len) && (j<255) && (str[i] != ':'))
-    afb[j++] = str[i++];
-  afb[j]=0; i++;
-
-  if (sscanf(ab, "%" SCNd64 ",%" SCNd32, &R->a, &R->b) != 2) return -1;
-
-  /* Rational primes: */
-  largeRat=0;
-  R->p[0]=R->p[1]=1;
-  R->rFSize=0; j=0;
-  size = strlen(rfb);
-  while ((j<size)&&(sscanf(rfb+j,"%" SCNd32, &p)==1)) {
-    k = lookupRFB(p, FB);
-    if (k>=0) {
-      R->rFactors[R->rFSize] = k;
-      R->rFSize+=1;
-    } else if ((p > maxRFB)&&(largeRat < FB->maxLP)) {
-      R->p[largeRat++] = p;
+    /* It's a shame - we could have parsed this with something similar
+       to sscanf(str, "%[^:]:%[^:]:%[^:]", s1, s2, s3) ,
+       but it doesn't handle the empty case well. There is surely some
+       other standard library function capable of doing this parsing,
+       but oh well.
+    */
+  
+    i = 0;
+    j = 0;
+  
+    while ((i < len) && (j < 127) && (str[i] != ':'))
+    {
+        ab[j++] = str[i++];
     }
-    while (isxdigit(rfb[j])) j++;
-    j++; /* Pass the seperator. */
-  }
 
-  /* Algebraic primes: */
-  largeAlg=0;
-  R->a_p[0]=R->a_p[1]=1;
-  R->a_r[0]=R->a_r[1]=1;
-  R->aFSize=0; j=0;
-  size = strlen(afb);
-  while ((j<size) && (sscanf(afb+j,"%" SCNd32, &p)==1)) {
-    if (R->b % p) {
-      r = mulmod32(p+(s32)(R->a%p), inverseModP(R->b, p), p);
-      k = lookupAFB(p, r, FB);
-//printf("\n\n(%ld, %ld) : Look up of algebraic factor (%ld, %ld) gave k=%ld\n",
-//        R->a, R->b, p, r, k);
-      if (k>=0) {
-        R->aFactors[R->aFSize] = k;
-        R->aFSize+=1;
-      } else if ((p > maxAFB) && (largeAlg < FB->maxLPA)) {
-        R->a_p[largeAlg] = p; 
-        R->a_r[largeAlg++] = r;
-      }
+    ab[j] = 0; 
+    i++;
+
+    j = 0;
+  
+    while ((i < len) && (j < 255) && (str[i] != ':'))
+    {
+        rfb[j++] = str[i++];
     }
-    while (isxdigit(afb[j])) j++;
-    j++; /* Pass the seperator. */
-  }
-  return 0;
+
+    rfb[j] = 0; 
+    i++;
+
+    j = 0;
+  
+    while ((i < len) && (j < 255) && (str[i] != ':'))
+    {
+      afb[j++] = str[i++];
+    }
+  
+    afb[j] = 0; 
+    i++;
+
+    if (sscanf(ab, "%" SCNd64 ",%" SCNd32, &R->a, &R->b) != 2) 
+        return -1;
+
+    /* Rational primes: */
+    largeRat = 0;
+  
+    R->p[0] = 1;
+    R->p[1] = 1;
+  
+    R->rFSize = 0; 
+    j = 0;
+  
+    size = strlen(rfb);
+  
+    while ((j < size) && (sscanf(rfb + j,"%" SCNd32, &p) == 1)) 
+    {
+        k = lookupRFB(p, FB);
+        if (k >= 0) 
+        {
+            R->rFactors[R->rFSize] = k;
+            R->rFSize+=1;
+        } 
+        else 
+        if ((p > maxRFB) && (largeRat < FB->maxLP)) 
+        {
+            R->p[largeRat++] = p;
+        }
+        while (isxdigit(rfb[j]))
+        {
+            j++;
+        }
+
+        j++; /* Pass the separator. */
+    }
+
+    /* Algebraic primes: */
+    largeAlg = 0;
+  
+    R->a_p[0] = 1;
+    R->a_p[1] = 1;
+
+    R->a_r[0] = 1;
+    R->a_r[1] = 1;
+
+    R->aFSize = 0;
+    j = 0;
+  
+    size = strlen(afb);
+
+    while ((j < size) && (sscanf(afb + j,"%" SCNd32, &p) == 1)) 
+    {
+        if (R->b % p) 
+        {
+            r = mulmod32(p + (s32)(R->a%p), inverseModP(R->b, p), p);
+            k = lookupAFB(p, r, FB);
+
+            //printf("\n\n(%ld, %ld) : Look up of algebraic factor (%ld, %ld) gave k=%ld\n",
+            //        R->a, R->b, p, r, k);
+         
+            if (k>=0) 
+            {
+                R->aFactors[R->aFSize] = k;
+                R->aFSize++;
+            } 
+            else 
+            if ((p > maxAFB) && (largeAlg < FB->maxLPA)) 
+            {
+                R->a_p[largeAlg] = p; 
+                R->a_r[largeAlg++] = r;
+            }
+        } 
+
+        while (isxdigit(afb[j])) 
+        {
+            j++;
+        }
+
+        j++; /* Pass the separator. */
+    }
+
+    return 0;
 }
 
