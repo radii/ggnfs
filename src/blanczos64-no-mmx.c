@@ -58,6 +58,12 @@ static const u64 bit64[] ALIGNED16 ={
 #endif
 #define BIT64(_i) bit64[(_i)]
 
+#if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
+    // L2_CACHE_SIZE has to be a power of 2.
+    // MULTB_T64_PAGESIZE is a half of L2 cache size.
+    #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+    #define MULTB_T64_PAGEMASK (-MULTB_T64_PAGESIZE)
+#endif
 
 /*************************************************************/ 
 /* Implementation of the Block Lanczos algorithm for finding */
@@ -183,10 +189,6 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     }
   }
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
-// L2_CACHE_SIZE has to be a power of 2.
-// MULTB64_PAGESIZE is a half of L2 cache size.
-#define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-#define MULTB64_PAGEMASK (-MULTB64_PAGESIZE)
   {
     s32 n = M->numCols;
     u32 pagestart;
@@ -266,10 +268,6 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     }
   }
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
-// L2_CACHE_SIZE has to be a power of 2.
-// MULTB_T64_PAGESIZE is a half of L2 cache size.
-#define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-#define MULTB_T64_PAGEMASK (-MULTB_T64_PAGESIZE)
   {
     s32 n = M->numCols;
     u32 pagestart;
