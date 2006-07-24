@@ -150,7 +150,7 @@ typedef  int64_t i64_t;
 #define ULL_NO_UL
 #endif
 
-#if defined (_MSC_VER) || defined( __MINGW32__ ) || defined ( MINGW32 )
+#if defined (_MSC_VER)
     #define GGNFS_x86_32_MSCASM_MMX
 #elif defined(__GNUC__) && defined(__x86_64__)
     #define GGNFS_x86_64_ATTASM
