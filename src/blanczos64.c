@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+
 #include "ggnfs.h"
 #include "prand.h"
 
@@ -46,13 +47,7 @@
     #define ALIGNED16(x)	x
 #endif
 
-#if defined( __GNUC__ )
-    #define GGNFS_x86_32_ATTASM_MMX
-#elif defined( _MSC_VER ) || defined( __MINGW32__ ) || defined ( MINGW32 )
-    #define GGNFS_x86_32_MSCASM_MMX
-#endif
-
-#if defined( GGNFS_x86_32_ATTASM_MMX )
+#if defined( GGNFS_x86_32_ATTASM_MMX ) || defined( GGNFS_x86_64_ATTASM )
     #if defined(__MINGW32__) || defined(MINGW32)
         void * __cdecl __mingw_aligned_malloc (size_t, size_t);
         void * __cdecl __mingw_aligned_realloc (void*, size_t, size_t);
@@ -63,27 +58,12 @@
         #define malloc_aligned64(p,a,n) (!((p) = (u64*)memalign((a),(n)*sizeof(u64))) || ((uintptr_t)(p)%(a)))
         #define free_aligned64(x) free(x)
     #endif
-
-    #define XEMMS asm("emms")
-    #define XOR64(_a, _b) {       asm("movq (%0), %%mm0\n" \
-                                  "pxor (%1), %%mm0\n" \
-                                  "movq %%mm0, (%0)\n" \
-                                  : : "r"(_a), "r"(_b) : "memory" ); } 
 #elif defined( GGNFS_x86_32_MSCASM_MMX )
     #define malloc_aligned64(p,a,n)  (!((p) = (u64*)_aligned_malloc((n) * sizeof(u64), (a))) || ((uintptr_t)(p)%(a)))
     #define free_aligned64(x)      _aligned_free(x)
-    #define XEMMS                  __asm	emms
-    #define XOR64(_a, _b)          __asm {				\
-                                   __asm	mov	 eax,_a		\
-                                   __asm	mov	 edx,_b		\
-                                   __asm	movq mm0,[eax]		\
-                                   __asm	pxor mm0,[edx]		\
-                                   __asm	movq [eax],mm0	}
 #else
     #define malloc_aligned64(p,a,n)	(!((p) = (u64*)malloc((n) * sizeof(u64))) || ((uintptr_t)(p)%(a)))
     #define free_aligned64(x)	        free(x)
-    #define XEMMS
-    #define XOR64(_a, _b)           { *(_a) ^= *(_b); }
 #endif
 
 static ALIGNED16(const u64 bit64[]) ={
@@ -114,7 +94,37 @@ static ALIGNED16(const u64 bit64[]) ={
 
 #define BIT64(_i) bit64[(_i)]
 
+#if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
+    // L2_CACHE_SIZE has to be a power of 2.
+    // MULTB64_PAGESIZE is a half of L2 cache size.
+    #if defined(GGNFS_x86_32_ATTASM_MMX) || defined(GGNFS_x86_64_ATTASM)
+        #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+        #if L2_CACHE_SIZE == 256
+            #define MULTB64_PAGEMASK "-16384"
+        #elif L2_CACHE_SIZE == 512
+            #define MULTB64_PAGEMASK "-32768"
+        #elif L2_CACHE_SIZE == 1024
+            #define MULTB64_PAGEMASK "-65536"
+        #else
+            #error Unsupported L2_CACHE_SIZE
+        #endif
 
+    #elif defined(GGNFS_x86_32_MSCASM_MMX)
+
+        #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+        #if L2_CACHE_SIZE == 256
+            #define MULTB64_PAGEMASK -16384
+        #elif L2_CACHE_SIZE == 512
+            #define MULTB64_PAGEMASK -32768
+        #elif L2_CACHE_SIZE == 1024
+            #define MULTB64_PAGEMASK -65536
+        #else
+            #error Unsupported L2_CACHE_SIZE
+        #endif
+    #else
+        #error Unsupported assembler model!
+    #endif
+#endif
 
 /***** Prototypes for locally used functions. *****/
 void MultB64(u64 *Product, u64 *x, void *P);
@@ -229,36 +239,6 @@ void MultB64(u64 *Product, u64 *x, void *P) {
     }
   }
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
-    // L2_CACHE_SIZE has to be a power of 2.
-    // MULTB64_PAGESIZE is a half of L2 cache size.
-    #if defined(GGNFS_x86_32_ATTASM_MMX)
-        #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-        #if L2_CACHE_SIZE == 256
-            #define MULTB64_PAGEMASK "-16384"
-        #elif L2_CACHE_SIZE == 512
-            #define MULTB64_PAGEMASK "-32768"
-        #elif L2_CACHE_SIZE == 1024
-            #define MULTB64_PAGEMASK "-65536"
-        #else
-            #error Unsupported L2_CACHE_SIZE
-        #endif
-
-    #elif defined(GGNFS_x86_32_MSCASM_MMX)
-
-        #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-        #if L2_CACHE_SIZE == 256
-            #define MULTB64_PAGEMASK -16384
-        #elif L2_CACHE_SIZE == 512
-            #define MULTB64_PAGEMASK -32768
-        #elif L2_CACHE_SIZE == 1024
-            #define MULTB64_PAGEMASK -65536
-        #else
-            #error Unsupported L2_CACHE_SIZE
-        #endif
-    #else
-        #error Unsupported assembler model!
-    #endif
-
   {
     s32 n = M->numCols;
     u32 *cEntry = M->cEntry;
@@ -553,36 +533,6 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
     }
   }
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
-// L2_CACHE_SIZE has to be a power of 2.
-// MULTB_T64_PAGESIZE is a half of L2 cache size.
-    #if defined(GGNFS_x86_32_ATTASM_MMX)
-
-        #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-        #if L2_CACHE_SIZE == 256
-            #define MULTB_T64_PAGEMASK "-16384"
-        #elif L2_CACHE_SIZE == 512
-            #define MULTB_T64_PAGEMASK "-32768"
-        #elif L2_CACHE_SIZE == 1024
-            #define MULTB_T64_PAGEMASK "-65536"
-        #else
-            #error Unsupported L2_CACHE_SIZE!
-        #endif
-    #elif defined (GGNFS_x86_32_MSCASM_MMX)
-
-        #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-        #if L2_CACHE_SIZE == 256
-            #define MULTB_T64_PAGEMASK -16384
-        #elif L2_CACHE_SIZE == 512
-            #define MULTB_T64_PAGEMASK -32768
-        #elif L2_CACHE_SIZE == 1024
-            #define MULTB_T64_PAGEMASK -65536
-        #else
-            #error Unsupported L2_CACHE_SIZE!
-        #endif
-    #else
-        #error Unsupported assembler model!
-    #endif
-
     {
         s32 n = M->numCols;
         u32 *cEntry = M->cEntry;
