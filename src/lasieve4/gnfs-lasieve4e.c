@@ -559,7 +559,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   l2:     mov		[i_o],esi
 	  emms
   }
-#elif defined(GGNFS_x86_64_ATTASM_MMX)
+#elif defined(GGNFS_x86_64_ATTASM)
   asm volatile (
     "movq     (%%rax),%%mm7\n"
     ".align 32\n"

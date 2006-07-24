@@ -17,6 +17,7 @@
 #include <gmp.h>
 #include <sys/types.h>
 
+#include "ggnfs.h"
 #include "if.h"
 
 #define L1_BITS 14
@@ -44,14 +45,6 @@ extern const uint32_t *schedule_sizebits;
 extern const uint32_t schedule_primebounds[N_PRIMEBOUNDS];
 extern const uint32_t schedule_sizebits[N_PRIMEBOUNDS];
 void siever_init(void);
-
-#if defined (_MSC_VER)
-    #define GGNFS_x86_32_MSCASM_MMX
-#elif defined(__GNUC__) && defined(__x86_64__)
-    #define GGNFS_x86_64_ATTASM_MMX
-#elif defined(__GNUC__) && defined(__i386__)
-    #define GGNFS_x86_32_ATTASM_MMX
-#endif
 
 #if !defined(_MSC_VER)
 #define NAME(_a) asm(_a)

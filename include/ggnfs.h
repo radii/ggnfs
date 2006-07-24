@@ -150,6 +150,15 @@ typedef  int64_t i64_t;
 #define ULL_NO_UL
 #endif
 
+#if defined (_MSC_VER)
+    #define GGNFS_x86_32_MSCASM_MMX
+#elif defined(__GNUC__) && defined(__x86_64__)
+    #define GGNFS_x86_64_ATTASM
+    #define HAVE_SSIMD
+#elif defined(__GNUC__) && defined(__i386__)
+    #define GGNFS_x86_32_ATTASM_MMX
+#endif
+
 /* This is just for a procrels hack. */
 #define BAD_LP_INDEX 0xFFFFFFFE
 
