@@ -48,7 +48,7 @@
 #define MATSAVE_BACKUP_NAME "matsave.bak"
 
 /* Exported variables */
-volatile int matsave_interval = 0;
+volatile int matsave_interval = 300; /* By default save each 300 seconds */
 
 /* Local variables */
 static u32 matsave_magic = MATSAVE_MAGIC;

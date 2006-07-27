@@ -1,4 +1,7 @@
-07/32/06 (asl)
+07/27/06 (asl)
+  * Matrix save interval is now 300 seconds by default.
+
+07/23/06 (asl)
   * Minor dead code cleanup from procrels.
   * Added SQUFOF for relations factoring. Got 2x speedup for short
     format.
