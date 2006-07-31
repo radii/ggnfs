@@ -538,7 +538,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         u32 *cEntry = M->cEntry;
         s32 *cIndex = M->cIndex;
         u32 pagestart;
-        for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
+        for (pagestart = 0; pagestart < n; pagestart += MULTB64_PAGESIZE) {
         #if defined(GGNFS_x86_32_ATTASM_MMX)
             asm volatile("\
         	movl	%0, %%esi			#cEntry		\n\
@@ -557,7 +557,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	addl	%%edx, %%ebx			#s+=p		\n\
         2:								\n\
         	movl	(%%esi,%%edx,4), %%eax		#p[0]		\n\
-        	andl	$"MULTB_T64_PAGEMASK", %%eax	#&pagemask	\n\
+        	andl	$"MULTB64_PAGEMASK", %%eax	#&pagemask	\n\
         	cmpl	%5, %%eax			#==pagestart	\n\
         	jne	7f						\n\
         	movl	(%%esi,%%edx,4), %%eax		#p[0]		\n\
@@ -566,7 +566,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	.set	n, 1				#p[1]..p[15]	\n\
         	.rept	15						\n\
         		movl	4*n(%%esi,%%edx,4), %%eax		\n\
-        		andl	$"MULTB_T64_PAGEMASK", %%eax		\n\
+        		andl	$"MULTB64_PAGEMASK", %%eax		\n\
         		cmpl	%5, %%eax				\n\
         		jne	7f					\n\
         		movl	4*n(%%esi,%%edx,4), %%eax		\n\
@@ -584,7 +584,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	jge	5f						\n\
         4:								\n\
         	movl	(%%esi,%%edx,4), %%eax		#p[0]		\n\
-        	andl	$"MULTB_T64_PAGEMASK", %%eax	#&pagemask	\n\
+        	andl	$"MULTB64_PAGEMASK", %%eax	#&pagemask	\n\
         	cmpl	%5, %%eax			#==pagestart	\n\
         	jne	7f						\n\
         	movl	(%%esi,%%edx,4), %%eax		#p[0]		\n\
@@ -607,7 +607,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
 
         #define rep3(n)								\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
-        	__asm	and		eax,MULTB_T64_PAGEMASK	\
+        	__asm	and		eax,MULTB64_PAGEMASK	\
         	__asm	cmp		eax,[pagestart]			\
         	__asm	jne		rep3##n					\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
@@ -632,7 +632,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         		add		ebx,edx				; s+=p
         	l2:						
         		mov		eax,[esi+edx*4]		; p[0]
-        		and		eax,MULTB_T64_PAGEMASK
+        		and		eax,MULTB64_PAGEMASK
         		cmp		eax,[pagestart]
         		jne		l3				
         		mov		eax,[esi+edx*4]		; p[0]
@@ -664,7 +664,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         		jge		l7				
         	l5:						
         		mov		eax,[esi+edx*4]		; p[0]
-        		and		eax,MULTB_T64_PAGEMASK
+        		and		eax,MULTB64_PAGEMASK
         		cmp		eax,[pagestart]
         		jne		l6				
         		mov		eax,[esi+edx*4]		; p[0]
