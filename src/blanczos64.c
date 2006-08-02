@@ -836,6 +836,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
   int  Si[64], Si_1[64];
   u64 i, j, m, mask, isZero, r1,r2;
   u32  iterations;
+  u32  resume_iterations = 0;
   int  errs=0, numDeps=-1, cont, s;
   double startTime, now, estTotal, save_time;
 
@@ -868,8 +869,8 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     goto SHORT_CIRC_STOP;
   }
   
-  iterations = matresume(n,Wi,Wi_1,Wi_2,T_1,tmp,U_1,tmp2,Si,Si_1,
-                         X,Y,Vi,Vi_1,Vi_2);
+  resume_iterations = iterations = matresume(n,Wi,Wi_1,Wi_2,T_1,tmp,U_1,tmp2,Si,Si_1,
+                                             X,Y,Vi,Vi_1,Vi_2);
   if (iterations > 0) {
     i = iterations;
     MultB(tmp_n, Y, P); 
@@ -1004,9 +1005,9 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
       m = i;
     }
     now = sTime();
-    estTotal = ((double)1.02*n/(iterations*64.0))*(now-startTime);
+    estTotal = ((double)1.02*(n-resume_iterations)/((iterations-resume_iterations)*64.0))*(now-startTime);
     printTmp("Lanczos(SIMD): Estimate %1.1lf%% complete (%1.1lf secs / %1.1lf secs)...",
-              (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
+              (double)100.0*64.0*(iterations-resume_iterations)/(1.02*(n-resume_iterations)), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");
       fprintf(stderr, "Number of iterations is %" PRIu32 ".\n", iterations);
