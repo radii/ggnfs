@@ -235,6 +235,12 @@ int main(int argC, char *args[])
   printf("LPFFILES = %d\n", lpF.numFiles);
   printf("There are %" PRId32 " columns in this dependency. Getting corresponding (a,b) pairs...\n", numCols);
 
+  /* Sten: check for empty relations set. */
+  if (numCols == 0) {
+    fprintf(stderr, "Something went horribly wrong. Dependency can't contain empty set of relations (numCols == 0).\n");
+    res=-1; goto SS_DONE;
+  }
+
   if (stat(colIndex, &fileInfo)) {
     fprintf(stderr, "Could not stat column index file %s!\n", colIndex);
     res=-1; goto SS_DONE;
