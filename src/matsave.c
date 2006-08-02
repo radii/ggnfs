@@ -210,12 +210,16 @@ int matsave(u32 iterations, s32 n, const u64 *Wi, const u64 *Wi_1,
             const u64 *Vi, const u64 *Vi_1, const u64 *Vi_2)
 {
   using_backup = 0;
+  /* Sten: delete matsave.bak before renaming matsave to matsave.bak. */
+  remove(MATSAVE_BACKUP_NAME); 
+
   if (rename(MATSAVE_FILE_NAME,MATSAVE_BACKUP_NAME) == -1 && errno != ENOENT)
     fprintf(stderr, "Could not backup %s.\n", file_desc());
   if ((file = fopen(MATSAVE_FILE_NAME,"wb")) == NULL) {
     fprintf(stderr, "Could not open %s for writing.\n", file_desc());
     return 0;
   }
+
   printTmp("Creating %s at iteration %" PRIu32 "...",file_desc(),iterations);
   if (!matwrite_u32(&matsave_magic,1)) return 0;
   if (!matwrite_u32(&matsave_version,1)) return 0;
