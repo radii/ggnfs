@@ -60,9 +60,9 @@ static const u64 bit64[] ALIGNED16 ={
 
 #if defined(L2_CACHE_SIZE) && (L2_CACHE_SIZE > 0)
     // L2_CACHE_SIZE has to be a power of 2.
-    // MULTB_T64_PAGESIZE is a half of L2 cache size.
-    #define MULTB_T64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
-    #define MULTB_T64_PAGEMASK (-MULTB_T64_PAGESIZE)
+    // MULTB64_PAGESIZE is a half of L2 cache size.
+    #define MULTB64_PAGESIZE (L2_CACHE_SIZE * 1024 / 2 / sizeof(u64))
+    #define MULTB64_PAGEMASK (-MULTB64_PAGESIZE)
 #endif
 
 /*************************************************************/ 
@@ -271,33 +271,33 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
   {
     s32 n = M->numCols;
     u32 pagestart;
-    for (pagestart = 0; pagestart < n; pagestart += MULTB_T64_PAGESIZE) {
+    for (pagestart = 0; pagestart < n; pagestart += MULTB64_PAGESIZE) {
       u32 *p = M->cEntry;
       s32 i;
       for (i = 0; i < n; i++) {
         u64 t = Product[i];
         u32 *s = p + ((M->cIndex[i + 1] - M->cIndex[i]) & -16);
         for (; p < s; p += 16) {
-          if ((p[0] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[0]];
-          if ((p[1] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[1]];
-          if ((p[2] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[2]];
-          if ((p[3] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[3]];
-          if ((p[4] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[4]];
-          if ((p[5] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[5]];
-          if ((p[6] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[6]];
-          if ((p[7] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[7]];
-          if ((p[8] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[8]];
-          if ((p[9] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[9]];
-          if ((p[10] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[10]];
-          if ((p[11] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[11]];
-          if ((p[12] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[12]];
-          if ((p[13] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[13]];
-          if ((p[14] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[14]];
-          if ((p[15] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[15]];
+          if ((p[0] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[0]];
+          if ((p[1] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[1]];
+          if ((p[2] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[2]];
+          if ((p[3] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[3]];
+          if ((p[4] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[4]];
+          if ((p[5] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[5]];
+          if ((p[6] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[6]];
+          if ((p[7] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[7]];
+          if ((p[8] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[8]];
+          if ((p[9] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[9]];
+          if ((p[10] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[10]];
+          if ((p[11] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[11]];
+          if ((p[12] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[12]];
+          if ((p[13] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[13]];
+          if ((p[14] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[14]];
+          if ((p[15] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[15]];
         }
         s = M->cEntry + M->cIndex[i + 1];
         for (; p < s; p++) {
-          if ((p[0] & MULTB_T64_PAGEMASK) == pagestart) t ^= x[p[0]];
+          if ((p[0] & MULTB64_PAGEMASK) == pagestart) t ^= x[p[0]];
         }
         Product[i] = t;
       }
