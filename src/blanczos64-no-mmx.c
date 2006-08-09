@@ -527,7 +527,7 @@ int blockLanczos64(u64 *deps, MAT_MULT_FUNC_PTR64 MultB,
     now = sTime();
     estTotal = ((double)1.02*(n-resume_iterations)/((iterations-resume_iterations)*64.0))*(now-startTime);
     printTmp("Lanczos(genC): Estimate %1.1lf%% complete (%1.1lf secs / %1.1lf secs)...",
-              (double)100.0*64.0*(iterations-resume_iterations)/(1.02*(n-resume_iterations)), now-startTime, estTotal);  
+              (double)100.0*64.0*iterations/(1.02*n), now-startTime, estTotal);  
     if ((double)100.0*64.0*iterations/n > 250) {
       fprintf(stderr, "Some error has occurred: Lanczos is not converging!\n");
       fprintf(stderr, "Number of iterations is %" PRIu32 ".\n", iterations);
