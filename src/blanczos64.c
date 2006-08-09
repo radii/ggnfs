@@ -2811,8 +2811,7 @@ void mult64x64 (u64 *c, const u64 *a, const u64 *b)
 }
 
 #if 0
-
-void mult64x64(u64 *c, u64 *a, u64 *b) {
+void mult64x64(u64 *c, const u64 *a, const u64 *b) {
     #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
             movl	%0, %%esi			#a		\n\
@@ -2830,7 +2829,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
         2:								\n\
             .set	n, 1						\n\
             .rept	6				#b[1]..b[6]	\n\
-                testb	$1<<n, %%al				\n\
+			testb	$1<<(n), %%al				\n\
                 jz	2f					\n\
                 pxor	8*n(%%edx), %%mm0			\n\
             2:								\n\
@@ -2854,7 +2853,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
         2:								\n\
             .set	n, 16						\n\
             .rept	15				#b[16]..b[30]	\n\
-                testl	$1<<n, %%eax				\n\
+			testl	$1<<(n), %%eax				\n\
                 jz	2f					\n\
                 pxor	8*n(%%edx), %%mm0			\n\
             2:								\n\
@@ -2923,7 +2922,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             movq	mm0,[edx]			; b[0]
         l2:	
         #define rep5(n)						\
-            __asm	test	al,1 << n		\
+            __asm	test	al,1 << (n)		\
             __asm	jz		rep5##n			\
             __asm	pxor	mm0,[edx+8*n]	\
             __asm	rep5##n:
@@ -2940,7 +2939,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             pxor	mm0,[edx+8*7]		; b[7]
         l3:
         #define rep6(n)						\
-            __asm	test	ah,1 << n - 8	\
+            __asm	test	ah,1 << (n - 8)	\
             __asm	jz		rep6##n			\
             __asm	pxor	mm0,[edx+8*n]	\
             __asm	rep6##n:
@@ -2958,7 +2957,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             pxor	mm0,[edx+8*15]		; b[15]
         l4:
         #define rep7(n)						\
-            __asm	test	eax,1 << n		\
+            __asm	test	eax,1 << (n)	\
             __asm	jz		rep7##n			\
             __asm	pxor	mm0,[edx+8*n]	\
             __asm	rep7##n:
@@ -2984,10 +2983,10 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             pxor	mm0,[edx+8*31]		; b[31]
         l5:						
             mov		eax,[esi+ecx*8+4]	; t=a[i]>>32
-        #define rep8(n)						\
-            __asm	test	al,1 << n - 32	\
-            __asm	jz		rep8##n			\
-            __asm	pxor	mm0,[edx+8*n]	\
+        #define rep8(n)						 \
+            __asm	test	al,1 << (n - 32) \
+            __asm	jz		rep8##n			 \
+            __asm	pxor	mm0,[edx+8*n]	 \
             __asm	rep8##n:
 
             rep8(32)
@@ -3002,10 +3001,10 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             jns		l6				
             pxor	mm0,[edx+8*39]		; b[39]
         l6:
-        #define rep9(n)						\
-            __asm	test	ah,1 << n - 40	\
-            __asm	jz		rep9##n			\
-            __asm	pxor	mm0,[edx+8*n]	\
+        #define rep9(n)						 \
+            __asm	test	ah,1 << (n - 40) \
+            __asm	jz		rep9##n			 \
+            __asm	pxor	mm0,[edx+8*n]	 \
             __asm	rep9##n:
 
             rep9(40)
@@ -3021,7 +3020,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
             pxor	mm0,[edx+8*47]		; b[47]
         l7:
         #define rep10(n)						\
-            __asm	test	eax,1 << n - 32		\
+            __asm	test	eax,1 << (n - 32)	\
             __asm	jz		rep10##n			\
             __asm	pxor	mm0,[edx+8*n]		\
             __asm	rep10##n:
@@ -3055,9 +3054,7 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
         #error Unsupported assembler model!
     #endif
 }
-
-#endif // 0
-
+#endif /* 0 */
 
 /******************************************/
 void preMult(u64 *A, u64 *B)
