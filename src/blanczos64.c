@@ -25,6 +25,7 @@
 
 #include "ggnfs.h"
 #include "prand.h"
+#include "blanczos64.h"
 
 /*************************************************************/ 
 /* Implementation of the Block Lanczos algorithm for finding */
@@ -131,7 +132,7 @@ void MultB64(u64 *Product, u64 *x, void *P);
 void MultB_T64(u64 *Product, u64 *x, void *P);
 void multT(u64 *res, u64 *A, u64 *B, s32 n);
 void multS(u64 *D, int *S);
-void mult64x64(u64 *res, u64 *A, u64 *B);
+void mult64x64 (u64 *c, const u64 *a, const u64 *b);
 void preMult(u64 *A, u64 *B);
 void multnx64(u64 *C_n, u64 *A_n, u64 *B, s32 n);
 void addmultnx64(u64 *C_n, u64 *A_n, u64 *B, s32 n);
@@ -227,8 +228,6 @@ int testMult(nfs_sparse_mat_t *P)
   return totalFailures;
 }
 
-
-
 void MultB64(u64 *Product, u64 *x, void *P) {
   nfs_sparse_mat_t *M = (nfs_sparse_mat_t *)P;
   memset(Product, 0, M->numCols * sizeof(u64)); 
@@ -314,7 +313,6 @@ void MultB64(u64 *Product, u64 *x, void *P) {
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
     #elif defined(GGNFS_x86_32_MSCASM_MMX)
-
         #define rep1(n)								\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
         	__asm	and		eax,MULTB64_PAGEMASK	\
@@ -327,27 +325,27 @@ void MultB64(u64 *Product, u64 *x, void *P) {
         	__asm	rep1##n:
         	__asm
         	{
-        		mov		esi,[cEntry]
-		        mov		edi,[Product]
-	        	xor		ecx, ecx			; i
-        		xor		edx, edx			; p
-        	l1:	mov		eax,[cIndex]
-        		mov		ebx,4[eax+ecx*4+4]	; s = cIndex[i + 1]
-        		sub		ebx,[eax+ecx*4]		; s -= cIndex[i]
+        		mov		esi,[cEntry]         ; esi = cEntry
+		        mov		edi,[Product]        ; edi = Product
+	        	xor		ecx, ecx		 	 ; ecx = i
+        		xor		edx, edx			 ; edx = p
+        	l1:	mov		eax,[cIndex]         ; eax = cIndex
+        		mov		ebx,[eax+ecx*4+4]	 ; ebx = s = cIndex[i + 1]
+        		sub		ebx,[eax+ecx*4]		 ; ebx = (s -= cIndex[i])
         		jle		l7
-        		mov		eax,[x]				; x
-        		movq	mm1,[eax+ecx*8]		; t = x[i]
-        		and		ebx,-16				; s &= -16
+        		mov		eax,[x]				 ; eax = x
+        		movq	mm1,[eax+ecx*8]		 ; mm1 = t = x[i]
+        		and		ebx,-16				 ; ebx = (cIndex[i + 1] - cIndex[i]) & -16
            		jz		l4
-        		add		ebx,edx				; s += p
-        	l2:	mov		eax,[esi+edx*4]		; p[0]
-        		and		eax,MULTB64_PAGEMASK
-        		cmp		eax,[pagestart]
+        		add		ebx,edx			 	 ; ebx = p + ((cIndex[i + 1] - cIndex[i]) & -16)
+        	l2:	mov		eax,[esi+edx*4] 	 ; eax = p[0]
+        		and		eax,MULTB64_PAGEMASK ; eax = p[0] & MULTB64_PAGEMASK
+        		cmp		eax,[pagestart]      ; if (p[0] & MULTB64_PAGEMASK == pagestart)
         		jne		l3
-        		mov		eax,[esi+edx*4]		; p[0]
-        		movq	mm0,[edi+eax*8]		; Product[p[0]]
-        		pxor	mm0,mm1				; ^=t
-        		movq	[edi+eax*8],mm0
+        		mov		eax,[esi+edx*4]		 ; eax = p[0]
+        		movq	mm0,[edi+eax*8]		 ; mm0 = Product[p[0]]
+        		pxor	mm0,mm1				 ; mm0 = Product[p[0]] ^ t
+        		movq	[edi+eax*8],mm0      ; Product[p[0]] = Product[p[0]] ^ t
         	l3:	rep1(1)
         		rep1(2)
         		rep1(3)
@@ -364,8 +362,8 @@ void MultB64(u64 *Product, u64 *x, void *P) {
         		rep1(14)
         		rep1(15)
 
-        		add		edx,16				; p+=16
-        		cmp		edx,ebx				; p<s
+        		add		edx,16				; edx = (p += 16)
+        		cmp		edx,ebx				; p < s
         		jl		l2
         	l4:	mov		eax,[cIndex]
         		mov		ebx,[eax+ecx*4+4]	; s = cIndex[i + 1]
@@ -604,7 +602,6 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
                    "m"(pagestart) :
                    "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
     #elif defined(GGNFS_x86_32_MSCASM_MMX)
-
         #define rep3(n)								\
         	__asm	mov		eax,[esi+edx*4+4*n]		\
         	__asm	and		eax,MULTB64_PAGEMASK	\
@@ -625,7 +622,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
         		sub		ebx,[eax+ecx*4]		; s-=cIndex[i]
         		jle		l8				
-        		mov		eax,[x]				; Product
+        		mov		eax,[Product]		; Product
         		movq	mm0,[eax+ecx*8]		; t=Product[i]
         		and		ebx,-16				; s&=-16
         		jz		l4				
@@ -674,7 +671,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         		cmp		edx,ebx				; p<s
         		jl		l5				
         	l7:						
-        		mov		eax,[x]				; Product
+        		mov		eax,[Product]		; Product
         		movq	[eax+ecx*8],mm0		; Product[i]=t
         	l8:						
         		add		ecx,1				; i++
@@ -742,20 +739,19 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         	emms" : : "m"(cEntry), "m"(x), "m"(cIndex), "m"(Product), "m"(n) :
                  "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi");
     #elif defined(GGNFS_x86_32_MSCASM_MMX)
-
         __asm
 	    {
-        		mov		esi,[cEntry]
-        		mov		edi,[x]
-        		xor		ecx,ecx				; i
-        		xor		edx,edx				; p
+        		mov		esi,[cEntry]        ; esi = cEntry
+        		mov		edi,[x]             ; edi = x
+        		xor		ecx,ecx				; ecx = i
+        		xor		edx,edx				; edx = p
         	l1:						
-        		mov		eax,[cIndex]
-        		mov		ebx,[eax+ecx*4+4]	; s=cIndex[i+1]
-        		sub		ebx,[eax+ecx*4]		; s-=cIndex[i]
+        		mov		eax,[cIndex]        ; eax = cIndex
+        		mov		ebx,[eax+ecx*4+4]	; ebx = s = cIndex[i+1]
+        		sub		ebx,[eax+ecx*4]		; ebx = (s -= cIndex[i])
         		jle		l6				
-        		mov		eax,[x]				; Product
-        		movq	mm0,[eax+ecx*8]		; t=Product[i]
+        		mov		eax,[Product]		; eax = Product
+				movq	mm0,[eax+ecx*8]		; mm0 = t = Product[i]
         		and		ebx,-16
         		jz		l3				
         		add		ebx,edx				; s+=p
@@ -798,7 +794,7 @@ void MultB_T64(u64 *Product, u64 *x, void *P) {
         		cmp		edx,ebx				; p<s
         		jl		l4				
         	l5:						
-        		mov		eax,[x]				; Product
+        		mov		eax,[Product]		; Product
         		movq	[eax+ecx*8],mm0		; Product[i]=t
         	l6:						
         		add		ecx,1				; i++
@@ -1996,7 +1992,11 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
                 lea		ecx,[mult_w]
                 mov		edx,[c]
                 mov		eax,[i]
-                shl		eax,6
+				// --------------------------------------------------------------
+				// Sten - there was "shl eax,6" here. But this seems to be a bug.
+				// Actually we need to compute eax *= sizeof(c).
+                shl		eax,3          
+				// --------------------------------------------------------------
                 add		edx,eax
                 shl		eax,5
                 add		ecx,eax
@@ -2719,7 +2719,6 @@ void multT(u64 *c, u64 *a, u64 *b, s32 n) {
     }
   }
 }
-
   
 /*********************************************/
 void multS(u64 *D, int *S)
@@ -2742,6 +2741,76 @@ void multS(u64 *D, int *S)
   for (i=0; i<64; i++) 
     D[i] &= mask;
 }
+
+/****************************************************************************/
+/* Sten: I adopted mult64x64_k5h() routine from test1.c.                    */
+/****************************************************************************/
+void mult64x64 (u64 *c, const u64 *a, const u64 *b)
+{
+  u64 w[16][16]; /* 2048 bytes on stack, for multithread compatible.  */
+  m64 z = m_clear ();
+  int i;
+
+  for (i = 0; i < 16; ++i)
+  {
+    /* For MMX build we have only 8 registers, need use it optimal.  */
+    m64 b0, b1, b2, b3;
+    m64 b01, b23;
+
+    *(m64*)&w[i][0x0] = z;
+    *(m64*)&w[i][0x1] = b0 = *(m64*)&b[i*4];
+    *(m64*)&w[i][0x2] = b1 = *(m64*)&b[i*4 + 1];
+    *(m64*)&w[i][0x4] = b2 = *(m64*)&b[i*4 + 2];
+    *(m64*)&w[i][0x8] = b3 = *(m64*)&b[i*4 + 3];
+
+    *(m64*)&w[i][0x5] = var64xor (b0, b2);
+    *(m64*)&w[i][0x6] = var64xor (b1, b2);
+    *(m64*)&w[i][0x9] = var64xor (b0, b3);
+    *(m64*)&w[i][0xA] = var64xor (b1, b3);
+
+    *(m64*)&w[i][0x3] = b01 = var64xor (b0, b1);
+    *(m64*)&w[i][0x7] = var64xor (b01, b2);
+    *(m64*)&w[i][0xB] = var64xor (b01, b3);
+
+    *(m64*)&w[i][0xC] = b23  = var64xor (b2, b3);
+    *(m64*)&w[i][0xD] = var64xor (b23, b0);
+    *(m64*)&w[i][0xE] = var64xor (b23, b1);
+
+    *(m64*)&w[i][0xF] = var64xor (b01, b23);
+  }
+
+  for (i = 0; i < 64; ++i)
+  {
+    m64 v;
+    u32 t = ((u32*)&a[i])[0];
+
+    v = *(m64*)&w[0x0][t & 15];
+    v = mem64xor (v, &w[0x1][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x2][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x3][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x4][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x5][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x6][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0x7][t >> 4]);
+
+    t = ((u32*)&a[i])[1];
+
+    v = mem64xor (v, &w[0x8][t & 15]);
+    v = mem64xor (v, &w[0x9][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xA][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xB][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xC][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xD][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xE][(t >>= 4) & 15]);
+    v = mem64xor (v, &w[0xF][t >> 4]);
+
+    *(m64*)&c[i] = v;
+  }
+
+  m_empty ();
+}
+
+#if 0
 
 void mult64x64(u64 *c, u64 *a, u64 *b) {
     #if defined(GGNFS_x86_32_ATTASM_MMX)
@@ -2986,6 +3055,9 @@ void mult64x64(u64 *c, u64 *a, u64 *b) {
         #error Unsupported assembler model!
     #endif
 }
+
+#endif // 0
+
 
 /******************************************/
 void preMult(u64 *A, u64 *B)
@@ -3698,7 +3770,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
                 mov		ebx,[esi+ecx*8]
                 movzx	eax,bl
                 movzx	edx,bh
-                movq	mm0,[mult_w+eax*8]
+				movq	mm0,[mult_w+eax*8]
                 shr		ebx,16
                 pxor	mm0,[mult_w+8*256+edx*8]
                 movzx	eax,bl
@@ -3725,7 +3797,7 @@ void multnx64(u64 *c, u64 *a, u64 *b, s32 n) {
         #endif
       }
 }
-    
+
 void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
     #if defined(GGNFS_x86_32_ATTASM_MMX)
         asm volatile("\
@@ -4342,7 +4414,7 @@ void addmultnx64(u64 *c, u64 *a, u64 *b, s32 n) {
         l2:			
             mov		ebx,[esi+ecx*8]
             movzx	eax,bl
-            movzx	eax,bh
+            movzx	edx,bh
             movq	mm0,[mult_w+eax*8]
             shr		ebx,16
             pxor	mm0,[mult_w+8*256+edx*8]
