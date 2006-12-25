@@ -34,10 +34,10 @@ endif
 
 DEBUGOPT=-W -Wall -g -pg
 
-CFLAGS=-DNDEBUG -O3 -ffast-math -funroll-loops -finline-functions \
+CFLAGS=-DNDEBUG -O3 -funroll-loops -finline-functions \
        -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
 # CFLAGS=$(DEBUGOPT) $(ALLOPT)
-
+# -ffast-math removed since -funsafe-math-optimizations seems to cause occasional problems, especially in sqrt
 
 export ARCH HOST ALLOPT CFLAGS DEBUGOPT
 

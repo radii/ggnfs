@@ -1850,6 +1850,38 @@ void computeEmbedding_ib(double *sr, double *si, mpz_poly v, int i, msqrt_t *M)
   *si = (double)ti;
 }
 
+#ifndef M_El
+#define M_El 2.7182818284590452353602874713526625L
+#endif
+
+/* r = e^x */
+void helper_mpf_exp(mpf_ptr r, double x)
+{
+  /* TJW: try to determine if e^x will fit in a 'double' */
+  /* Assumption: max double == 2^1023, ln(max double) ~= 700 */
+  if(x <= 700.0) {
+    mpf_set_d(r, exp(x));
+  }
+  else {
+    mpf_t t;
+    mpf_init_set_d(t, M_El);
+    unsigned long ip = (unsigned long) floor(x);
+    double fp = x - floor(x);
+    mpf_pow_ui(r, t, ip);
+    mpf_set_d(t, exp(fp));
+    mpf_mul(r, r, t);
+    mpf_clear(t);
+  }
+}
+
+/* r = a*b */
+void helper_mpf_mul(mpf_ptr r, mpf_srcptr a, double b)
+{
+  mpf_t t;
+  mpf_init_set_d(t, b);
+  mpf_mul(r, a, t);
+  mpf_clear(t);
+}
 
 /*********************************************************************/
 int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
@@ -1859,11 +1891,12 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
 /* do another LLL, and choose an element of the ideal.               */
 /*********************************************************************/
 { int    i, j, d=M->N->degree, lowestCol;
-  double c, lambda[MAXPOLYDEGREE], zi, entry, sr, si, lowestWt, thisWt, logNormI;
+  double c, lambda[MAXPOLYDEGREE], zi, sr, si, lowestWt, thisWt, logNormI;
   static mpz_mat_t H, U;
   static mpz_poly  v;
   static mpz_t     tmp;
   static int initialized=0;
+  mpf_t entry;
 
   if (!(initialized)) {
     mpz_mat_init2(&H, 2*d, d);
@@ -1872,6 +1905,7 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
     initialized=1;
   }
 
+  mpf_init(entry);
   logNormI = logNorm(I, M);
   /* LLL reduction on I. */
 //  mpz_mat_LLL(&H, &U, I);
@@ -1901,18 +1935,20 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
       for (j=0; j<d; j++) {
         getCol(v, &H, j);
         computeEmbedding_ib(&sr, &si, v, i, M); /* (sr, si) <-- sigma_i(v). */
-        entry = exp(lambda[i] + log(fabs(sr))); if (sr < 0) entry *= -1.0;
-        patched_mpz_set_d(&H.entry[d+i][j], entry);
+        helper_mpf_exp(entry, lambda[i] + log(fabs(sr))); if(sr < 0) mpf_neg(entry, entry);
+        mpz_set_f(&H.entry[d+i][j], entry);
       }
     } else {
       /* Quite probably a complex root. */
       for (j=0; j<d; j++) {
         getCol(v, &H, j);
         computeEmbedding_ib(&sr, &si, v, i, M); /* (sr, si) <-- sigma_i(v). */
-        entry = exp(lambda[i]) * sr * M_SQRT2;
-        patched_mpz_set_d(&H.entry[d+i][j], entry);
-        entry = exp(lambda[i]) * si * M_SQRT2;
-        patched_mpz_set_d(&H.entry[d+i+1][j], entry);
+        helper_mpf_exp(entry, lambda[i]);
+        helper_mpf_mul(entry, entry, sr * M_SQRT2);
+        mpz_set_f(&H.entry[d+i][j], entry);
+        helper_mpf_exp(entry, lambda[i]);
+        helper_mpf_mul(entry, entry, si * M_SQRT2);
+        mpz_set_f(&H.entry[d+i+1][j], entry);
       }
       /***************************************************/
       /* Since the roots have been ordered, the next one */
@@ -1924,6 +1960,7 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
   }
   H.rows += d;  
 
+  mpf_clear(entry);
 //  mpz_mat_LLL(&H, &U, &H);
   mpz_mat_LLL(&H, NULL, &H);
   

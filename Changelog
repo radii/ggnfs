@@ -1,3 +1,10 @@
+12/24/06 (frmky)
+  * Removed -ffast-math since it seems to be triggering a bug in sqrt.
+  * Incorporated patch from Tom Wu to prevent an overflow in sqrt.
+    He notes that a possible overflow condition still exists in 
+    computeDelta().  It is possible for the code that finds the lowest 
+    weight column to get a floating point overflow.
+
 07/27/06 (asl)
   * Matrix save interval is now 300 seconds by default.
 
