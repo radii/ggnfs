@@ -1,3 +1,7 @@
+01/04/07 (frmky)
+  * More changes to montgomery_sqrt.c to eliminate another floating
+    point overflow.  This does not address the concern noted below.
+
 12/24/06 (frmky)
   * Removed -ffast-math since it seems to be triggering a bug in sqrt.
   * Incorporated patch from Tom Wu to prevent an overflow in sqrt.
