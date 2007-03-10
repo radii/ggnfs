@@ -76,8 +76,9 @@ $matWtFactor=0.05;
 # are just taking a painfully long time to solve), you can drop this
 # to, say 32, 24, or 20. The smaller this number, the more sieving you'll
 # have to do, but you'll also get a sparser matrix.
-# 0 really means automatic adjustment in matbuild.
-$maxRelsInFF=0;
+# 0 really means automatic adjustment in matbuild.  This is great for 
+# rebuilding a matrix, but initially produces matrices that are very dense. 
+$maxRelsInFF=32;
 
 # This is for an Athlon 2800+ laptop. If your machine is about half as fast,
 # replace this with a 2. 25% as fast, replace with a 4. It controls how long

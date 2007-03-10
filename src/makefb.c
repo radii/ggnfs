@@ -69,6 +69,20 @@ int makefb(nfs_fb_t *FB)
     return -1;
   }
 
+  if (mpz_probab_prime_p(FB->n,10)) {
+    fprintf(stderr, "makefb() error: input is probably prime FB->n = ");
+    mpz_out_str(stderr, 10, FB->n);
+    fprintf(stderr, "\n");
+    return -1;
+  }
+
+  if (mpz_perfect_power_p(FB->n)) {
+    fprintf(stderr, "makefb() error: input is a perfect power FB->n = ");
+    mpz_out_str(stderr, 10, FB->n);
+    fprintf(stderr, "\n");    
+    return -1;
+  }
+
   /* Verify the polynomial. */
   mpz_init(eval); mpz_init(mpow); mpz_init(tmp); mpz_init(neg_y0);
   mpz_set_ui(eval, 0);

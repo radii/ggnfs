@@ -1,3 +1,12 @@
+03/09/07 (frmky)
+  * Added an optional GMP version of updateEps_ab(), but left it
+    disabled by default.  The GMP version has been extensively
+    tested and works properly.
+  * Added prime power check to input number in makefb.c.
+  * Changed default maxrelsinff from 0 to 32 in factLat.pl.  0 is
+    excellent when rebuilding a matrix, but for the initial run it
+    leads to matrices that are very dense.
+
 01/04/07 (frmky)
   * More changes to montgomery_sqrt.c to eliminate another floating
     point overflow.  This does not address the concern noted below.

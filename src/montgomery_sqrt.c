@@ -1147,6 +1147,33 @@ void updateEps_ab(msqrt_t *M, s64 a, s64 b, int exponent)
 /* This is now correct. The initialization ends up with the correct        */
 /* values for log_eps, so don't mess with this!
 */ 
+#ifdef _MP_EPS_AB
+{ int i, d=M->N->degree,prec=2048, logmul;
+  static mpf_t xr, xi, c, tmp1;
+  static int initialized=0;
+
+  if (!(initialized)) {
+    mpf_init2(xr, prec); mpf_init2(xi, prec); mpf_init2(c, prec);
+    mpf_init2(tmp1, prec);
+    initialized=1;
+  }
+
+  for (i=0; i<d; i++) {
+    mpf_set_si(xr,a); mpf_set_si(tmp1,b);
+    mpf_mul(tmp1,tmp1,M->N->fZeros[i].mpr);
+    mpf_sub(xr,xr,tmp1);
+    mpf_set_si(xi,-b);
+    mpf_mul(xi,xi,M->N->fZeros[i].mpi);
+    mpf_mul(c,xr,xr);
+    mpf_mul(tmp1,xi,xi);
+    mpf_add(c,c,tmp1);
+    mpf_sqrt(c,c);
+    logmul=1;
+    while (mpf_cmp_d(c,1.0e1)>0) {logmul*=2;mpf_sqrt(c, c);}
+    M->log_eps[i] += log(mpf_get_d(c))*exponent*logmul;
+  }
+}
+#else
 { int    i, d=M->N->degree;
   double xr, xi, c;
 
@@ -1157,6 +1184,7 @@ void updateEps_ab(msqrt_t *M, s64 a, s64 b, int exponent)
     M->log_eps[i] += c;
   }
 }
+#endif
 
 #define _MP_EPS
 /***********************************************************************/
@@ -1166,7 +1194,7 @@ void updateEps(msqrt_t *M, mpz_poly delta, int exponent)
 /* gamma is a polynomial in the \omega_i (the integral basis).         */
 /***********************************************************************/
 #ifdef _MP_EPS
-{ int     i, j, d=M->N->degree,logmul=1,prec=1024;
+{ int     i, j, d=M->N->degree,logmul=1,prec=2048;
   static mpf_t  xr, xi, c, tmp1;
   static int initialized=0;
 
@@ -1863,7 +1891,7 @@ void helper_mpf_exp(mpf_ptr r, double x)
   /* Assumption: max double == 2^1023, ln(max double) ~= 700 */
   static mpf_t t;
   static int inited=0;
-  if (!(inited)) {mpf_init2(t,1024); inited=1; }
+  if (!(inited)) {mpf_init2(t,2048); inited=1; }
 
   if(x <= 700.0) {
     mpf_set_d(r, exp(x));
@@ -1883,7 +1911,7 @@ void helper_mpf_mul(mpf_ptr r, mpf_srcptr a, double b)
 {
   static mpf_t t;
   static int inited=0;
-  if (!(inited)) {mpf_init2(t,1024); inited=1; }
+  if (!(inited)) {mpf_init2(t,2048); inited=1; }
   mpf_set_d(t, b);
   mpf_mul(r, a, t);
 }
@@ -1910,7 +1938,7 @@ int chooseDelta(mpz_poly delta, mpz_mat_t *I, int sl, msqrt_t *M)
     initialized=1;
   }
 
-  mpf_init2(entry,1024);
+  mpf_init2(entry,2048);
   logNormI = logNorm(I, M);
   /* LLL reduction on I. */
 //  mpz_mat_LLL(&H, &U, I);
