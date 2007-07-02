@@ -25,7 +25,6 @@
 #define GGNFS_VERBOSE 1
 
 #include "version.h"
-#include <gmp.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -44,6 +43,9 @@ extern "C" {
 #include <stdarg.h>
 #include <stdlib.h>
 #include <math.h>
+
+/* stdio.h should be included before gmp.h */
+#include <gmp.h>
 
 typedef unsigned char uchar;
 

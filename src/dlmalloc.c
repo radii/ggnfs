@@ -747,6 +747,9 @@ extern Void_t*     sbrk();
 #ifndef HAVE_MREMAP
 #ifdef linux
 #define HAVE_MREMAP 1
+#define _GNU_SOURCE
+#define __USE_GNU
+#include <sys/mman.h>
 #else
 #define HAVE_MREMAP 0
 #endif
@@ -4160,7 +4163,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
     if (oldsize == newsize - offset) 
       return oldmem;
 
-    cp = (char*)mremap((char*)oldp - offset, oldsize + offset, newsize, 1);
+    cp = (char*)mremap((char*)oldp - offset, oldsize + offset, newsize, MREMAP_MAYMOVE);
     
     if (cp != (char*)MORECORE_FAILURE) {
 
