@@ -1,0 +1,11 @@
+
+GGNFS now includes a somewhat modified version of the Msieve
+factoring library, primarily for use with NFS postprocessing.
+The latest version of Msieve is available from 
+
+www.boo.net/~jasonp/qs.html
+
+and the library version here should stay current.
+
+Jason Papadopoulos (jasonp@boo.net)
+12/15/07

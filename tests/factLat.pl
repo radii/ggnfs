@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 # The path where the binaries are:
-$GGNFS_BIN_PATH="../../bin";
+#$GGNFS_BIN_PATH="../../bin";
+$GGNFS_BIN_PATH="../bin";
 # And some other popular choices:
 #$GGNFS_BIN_PATH="../../src";
 #$GGNFS_BIN_PATH="../ggnfs.vc/bin";
