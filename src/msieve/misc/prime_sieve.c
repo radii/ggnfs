@@ -1,15 +1,24 @@
-/*--------------------------------------------------------------------
-This source distribution is placed in the public domain by its author,
-Jason Papadopoulos. You may use it for any purpose, free of charge,
-without having to notify anyone. I disclaim any responsibility for any
-errors.
+/*----------------------------------------------------------------------
+Copyright 2007, Jason Papadopoulos
 
-Optionally, please be nice and tell me if you find this source to be
-useful. Again optionally, if you add to the functionality present here
-please consider making those additions public too, so that others may 
-benefit from your work.
- 					 --jasonp@boo.net 12/13/07
---------------------------------------------------------------------*/
+This file is part of GGNFS.
+
+GGNFS is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+GGNFS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GGNFS; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+$Id: prime_sieve.c,v 1.2 2007-12-16 18:24:25 jasonp_sf Exp $
+----------------------------------------------------------------------*/
 
 #include <common.h>
 

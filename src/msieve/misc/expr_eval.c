@@ -1,12 +1,24 @@
-/*--------------------------------------------------------------------
-This source distribution is placed in the public domain by its author,
-Brian Gladman. You may use it for any purpose, free of charge, without 
-having to notify anyone. I disclaim any responsibility for any errors.
+/*----------------------------------------------------------------------
+Copyright 2007, Brian Gladman / Jason Papadopoulos
 
-Modified for use within the msieve library by Jason Papadopoulos
+This file is part of GGNFS.
 
-       				   --jasonp@boo.net 12/13/07
---------------------------------------------------------------------*/
+GGNFS is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+GGNFS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GGNFS; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+$Id: expr_eval.c,v 1.2 2007-12-16 18:24:24 jasonp_sf Exp $
+----------------------------------------------------------------------*/
 
 #include <common.h>
 
