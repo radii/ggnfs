@@ -1897,9 +1897,9 @@ void helper_mpf_exp(mpf_ptr r, double x)
     mpf_set_d(r, exp(x));
   }
   else {
-    mpf_set_d(t, M_El);
     unsigned long ip = (unsigned long) floor(x);
     double fp = x - floor(x);
+    mpf_set_d(t, M_El);
     mpf_pow_ui(r, t, ip);
     mpf_set_d(t, exp(fp));
     mpf_mul(r, r, t);
