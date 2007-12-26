@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GGNFS; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-$Id: demo.c,v 1.1 2007-12-16 03:54:46 jasonp_sf Exp $
+$Id$
 ----------------------------------------------------------------------*/
 
 #include <msieve.h>
