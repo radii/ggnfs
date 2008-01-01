@@ -26,10 +26,6 @@
 
 #include "version.h"
 
-#if defined (__cplusplus)
-extern "C" {
-#endif
-
 #define _USE_MATH_DEFINES
 #define __STDC_FORMAT_MACROS
 
@@ -55,6 +51,10 @@ typedef unsigned char uchar;
 /* *signed* size type */
 #ifndef ssize_t
 typedef long ssize_t;
+#endif
+
+#if defined (__cplusplus)
+extern "C" {
 #endif
 
 #if _MSC_VER < 1300 /* VC6 math.h lacks of these defines */

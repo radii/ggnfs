@@ -169,7 +169,8 @@ ulladdmul(uint64_t * resptr, unsigned int ulf, uint64_t * ullfptr)
 		mov edi, resptr 
 		mov ecx, ulf 
 		mov eax,[esi]
-		mul ecx add[edi], eax 
+		mul ecx 
+        add[edi], eax 
 		adc[edi + 4], edx 
 		mov eax,[esi + 4]
 		mul ecx 

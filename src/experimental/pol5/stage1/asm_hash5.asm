@@ -13,7 +13,7 @@
 	extern _raw_bound
 	extern _raw_cand_ptr
 	
-	extern _hashdata
+;	extern _hashdata
 
 	section .text
 	
@@ -26,7 +26,7 @@ _asm_hash1:
 	push       ebx
 	push       ebp
 	sub        esp, 8
-	lea		   ebp, [_hashdata]
+	lea		   ebp, [_hashdataptr]     ; BRG: was _hashdata
 	
 	pxor       mm0, mm0
 	mov        ecx, 256
@@ -116,7 +116,7 @@ _asm_hash2:
 	push       ebx
 	push       ebp
 	sub        esp, 8
-	lea		   ebp, [_hashdata]
+	lea		   ebp, [_hashdataptr]     ; BRG: was _hashdata
 	
 	mov        esi, dword [_s21l]
 	mov        dword [esp], esi

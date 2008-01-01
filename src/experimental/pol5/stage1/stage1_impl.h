@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "ggnfs.h"
 #include "poly_stage1.h"
 #include "profile.h"
