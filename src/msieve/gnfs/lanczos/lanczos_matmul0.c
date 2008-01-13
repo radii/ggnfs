@@ -123,7 +123,7 @@ static void mul_packed(packed_matrix_t *matrix, uint64 *x, uint64 *b) {
 		}
 		else {
 			t->command = COMMAND_RUN;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 			SetEvent(t->run_event);
 #else
 			pthread_cond_signal(&t->run_cond);
@@ -140,7 +140,7 @@ static void mul_packed(packed_matrix_t *matrix, uint64 *x, uint64 *b) {
 		thread_data_t *t = matrix->thread_data + i;
 
 		if (i < matrix->num_threads - 1) {
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 			WaitForSingleObject(t->finish_event, INFINITE);
 #else
 			pthread_mutex_lock(&t->run_lock);
@@ -198,7 +198,7 @@ void mul_trans_packed(packed_matrix_t *matrix, uint64 *x, uint64 *b) {
 		}
 		else {
 			t->command = COMMAND_RUN_TRANS;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 			SetEvent(t->run_event);
 #else
 			pthread_cond_signal(&t->run_cond);
@@ -213,7 +213,7 @@ void mul_trans_packed(packed_matrix_t *matrix, uint64 *x, uint64 *b) {
 		thread_data_t *t = matrix->thread_data + i;
 
 		if (i < matrix->num_threads - 1) {
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 			WaitForSingleObject(t->finish_event, INFINITE);
 #else
 			pthread_mutex_lock(&t->run_lock);
@@ -422,7 +422,7 @@ static void matrix_thread_init(thread_data_t *t, la_col_t *A,
 }
 
 /*-------------------------------------------------------------------*/
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 static DWORD WINAPI worker_thread_main(LPVOID thread_data) {
 #else
 static void *worker_thread_main(void *thread_data) {
@@ -432,7 +432,7 @@ static void *worker_thread_main(void *thread_data) {
 	while(1) {
 
 		/* wait forever for work to do */
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 		WaitForSingleObject(t->run_event, INFINITE);
 #else
 		pthread_mutex_lock(&t->run_lock);
@@ -453,7 +453,7 @@ static void *worker_thread_main(void *thread_data) {
 		/* signal completion */
 
 		t->command = COMMAND_WAIT;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 		SetEvent(t->finish_event);
 #else
 		pthread_cond_signal(&t->run_cond);
@@ -461,7 +461,7 @@ static void *worker_thread_main(void *thread_data) {
 #endif
 	}
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 	return 0;
 #else
 	return NULL;
@@ -472,7 +472,7 @@ static void *worker_thread_main(void *thread_data) {
 static void start_worker_thread(thread_data_t *t)
 {
 	t->command = COMMAND_WAIT;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 	t->run_event = CreateEvent(NULL, 0, 0, NULL);
 	t->finish_event = CreateEvent(NULL, 0, 0, NULL);
 	t->thread_id = CreateThread(NULL, 0, worker_thread_main, t, 0, NULL);
@@ -488,7 +488,7 @@ static void start_worker_thread(thread_data_t *t)
 static void stop_worker_thread(thread_data_t *t)
 {
 	t->command = COMMAND_END;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
 	SetEvent(t->run_event);
 	WaitForSingleObject(t->thread_id, INFINITE);
 	CloseHandle(t->thread_id);
@@ -637,6 +637,45 @@ void packed_matrix_free(packed_matrix_t *p) {
 			}
 		}
 	}
+}
+
+/*-------------------------------------------------------------------*/
+size_t packed_matrix_sizeof(packed_matrix_t *p) {
+
+	uint32 i, j;
+	size_t mem_use = 0;
+
+	if (p->unpacked_cols) {
+		la_col_t *A = p->unpacked_cols;
+		mem_use = p->ncols * sizeof(la_col_t);
+		for (i = 0; i < p->ncols; i++) {
+			mem_use += A[i].weight * sizeof(uint32);
+		}
+	}
+	else {
+		for (i = 0; i < p->num_threads; i++) {
+			thread_data_t *t = p->thread_data + i;
+
+			mem_use += p->ncols * sizeof(uint64) +
+				   t->num_blocks * sizeof(packed_block_t) +
+				   t->ncols * sizeof(uint64) *
+					((t->num_dense_rows + 63) / 64);
+
+			for (j = 0; j < t->num_blocks; j++) {
+				packed_block_t *b = t->blocks + j;
+				if (b->entries) {
+					mem_use += b->num_entries * 
+							sizeof(uint32);
+				}
+				else {
+					mem_use += (b->num_entries + 
+						    2 * NUM_MEDIUM_ROWS) * 
+							sizeof(uint16);
+				}
+			}
+		}
+	}
+	return mem_use;
 }
 
 /*-------------------------------------------------------------------*/

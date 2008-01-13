@@ -90,8 +90,10 @@ typedef struct {
 	uint32 num_ideals;          /* current number of unique large ideals */
 	uint32 max_ideal_degree;    /* largest number of relations in which
 					an ideal occurs */
-	uint32 filtmin;             /* min. value an ideal needs to be 
-				       tracked during filtering */
+	uint32 filtmin_r;           /* min. value a rational ideal needs 
+				       to be tracked during filtering */
+	uint32 filtmin_a;           /* min. value an algebraic ideal needs 
+				       to be tracked during filtering */
 	uint32 target_excess;      /* how many more relations than ideals
 					are required for filtering to proceed */
 } filter_t;
@@ -179,10 +181,11 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 			filter_t *filter, uint32 disk_based);
 
 /* perform clique removal on the current set of relations.
-   see clique.c for explanations of the last two parameters */
+   see clique.c for explanations of the last three parameters */
 
 uint32 nfs_purge_cliques(msieve_obj *obj, filter_t *filter,
 			uint32 clique_heap_size, 
+			uint32 max_clique_relations,
 			uint32 excess_relations); 
 
 /* initialize the merge process */

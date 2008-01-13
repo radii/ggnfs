@@ -206,7 +206,7 @@ static uint32 verify_alg_ideal_powers(relation_t *rlist,
 		relation_t *r = rlist + i;
 		relation_lp_t rlp;
 
-		find_large_ideals(r, &rlp, 0);
+		find_large_ideals(r, &rlp, 0, 0);
 
 		for (j = 0; j < rlp.ideal_count; j++) {
 			ideal_t *curr_ideal = rlp.ideal_list + j;
@@ -462,8 +462,15 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 		mp_add(&sqrt_r, &sqrt_a, &tmp1);
 		mp_gcd(&tmp1, n, &tmp1);
 		if (!mp_is_one(&tmp1) && mp_cmp(n, &tmp1) != 0) {
+			/* factor found; add it to the list of factors. 
+			   Stop trying dependencies if the remaining
+			   composite is small enough that another method
+			   will factor it faster.
 
-			/* factor found; add it to the list of factors */
+			   Actually, we should be stopping when the remaining
+			   composite is much larger (70-80 digits), but 
+			   avoid doing this because the MPQS code will run
+			   and wipe out all the NFS relations we've collected */
 
 			factor_found = 1;
 			if (factor_list_add(obj, factor_list, &tmp1) == 0)

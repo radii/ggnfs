@@ -737,6 +737,10 @@ void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 	   are not cycles, then sort in order of increasing
 	   cycle weight */
 
+	logprintf(obj, "memory use: %.1f MB\n", (double)
+			get_merge_memuse(relset_array, num_relsets,
+						&ideal_list) / 1048576);
+
 	for (i = num_cycles = 0; i < num_relsets; i++) {
 		relation_set_t *r = relset_array + i;
 

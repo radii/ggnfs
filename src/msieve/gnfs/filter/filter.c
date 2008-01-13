@@ -44,7 +44,7 @@ static void dump_cycles(msieve_obj *obj, merge_t *merge) {
 	char buf[256];
 	FILE *cycle_fp;
 
-	sprintf(buf, "%s.cyc", obj->savefile_name);
+	sprintf(buf, "%s.cyc", obj->savefile.name);
 	cycle_fp = fopen(buf, "wb");
 	if (cycle_fp == NULL) {
 		logprintf(obj, "error: can't open cycle file\n");
@@ -65,14 +65,16 @@ static void dump_cycles(msieve_obj *obj, merge_t *merge) {
 }
 
 /*--------------------------------------------------------------------*/
-static void find_fb_size(factor_base_t *fb, uint32 limit,
+static void find_fb_size(factor_base_t *fb, 
+			uint32 limit_r, uint32 limit_a,
 			uint32 *entries_r_out, uint32 *entries_a_out) {
 
 	prime_sieve_t prime_sieve;
 	uint32 entries_r = 0;
 	uint32 entries_a = 0;
 
-	init_prime_sieve(&prime_sieve, 0, limit + 1000);
+	init_prime_sieve(&prime_sieve, 0, 
+			MAX(limit_r, limit_a) + 1000);
 
 	while (1) {
 		uint32 p = get_next_prime(&prime_sieve);
@@ -80,20 +82,24 @@ static void find_fb_size(factor_base_t *fb, uint32 limit,
 		uint32 high_coeff;
 		uint32 roots[MAX_POLY_DEGREE + 1];
 
-		if (p >= limit)
+		if (p >= limit_r && p >= limit_a)
 			break;
 
-		num_roots = poly_get_zeros(roots, &fb->rfb.poly, p, 
-						&high_coeff, 1);
-		if (high_coeff == 0)
-			num_roots++;
-		entries_r += num_roots;
+		if (p < limit_r) {
+			num_roots = poly_get_zeros(roots, &fb->rfb.poly, p, 
+							&high_coeff, 1);
+			if (high_coeff == 0)
+				num_roots++;
+			entries_r += num_roots;
+		}
 
-		num_roots = poly_get_zeros(roots, &fb->afb.poly, p, 
-						&high_coeff, 1);
-		if (high_coeff == 0)
-			num_roots++;
-		entries_a += num_roots;
+		if (p < limit_a) {
+			num_roots = poly_get_zeros(roots, &fb->afb.poly, p, 
+							&high_coeff, 1);
+			if (high_coeff == 0)
+				num_roots++;
+			entries_a += num_roots;
+		}
 	}
 
 	free_prime_sieve(&prime_sieve);
@@ -106,8 +112,10 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
 	filter_t filter;
 	merge_t merge;
-	uint32 filtmin;
-	uint32 filtmin_pass2;
+	uint32 filtmin_r;
+	uint32 filtmin_a;
+	uint32 filtmin_r_pass2;
+	uint32 filtmin_a_pass2;
 	uint32 entries_r;
 	uint32 entries_a;
 	uint32 entries_r_pass2;
@@ -134,13 +142,15 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	   given the cutoff from the duplicate phase; this puts a
 	   lower bound on the matrix size */
 
-	filtmin = nfs_purge_duplicates(obj, &fb, obj->nfs_upper);
+	filtmin_r = filtmin_a = nfs_purge_duplicates(obj, &fb, 0);
 	if (obj->nfs_lower)
-		filtmin = obj->nfs_lower;
+		filtmin_r = obj->nfs_lower;
+	if (obj->nfs_upper)
+		filtmin_a = obj->nfs_upper;
 
 	/* calculate the initial excess to look for */
 
-	find_fb_size(&fb, filtmin, &entries_r, &entries_a);
+	find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
 
 	/* singleton removal happens in several phases. The first
 	   phase does the singleton removal and clique processing
@@ -151,7 +161,8 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	   for succeeding phases */
 
 	memset(&filter, 0, sizeof(filter));
-	filter.filtmin = filtmin;
+	filter.filtmin_r = filtmin_r;
+	filter.filtmin_a = filtmin_a;
 	filter.target_excess = (uint32)(1.7 * (entries_r + entries_a));
 	logprintf(obj, "ignoring smallest %u rational and %u "
 			"algebraic ideals\n", entries_r, entries_a);
@@ -198,7 +209,8 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	   sparse. This multi-step process is how the pros filter :) */
 
 	num_passes = 1;
-	filtmin_pass2 = filtmin;
+	filtmin_r_pass2 = filtmin_r;
+	filtmin_a_pass2 = filtmin_a;
 	entries_r_pass2 = entries_r;
 	entries_a_pass2 = entries_a;
 
@@ -224,7 +236,8 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 		   and we should lower it a little bit */
 
 		if (filter.max_ideal_degree < 22) {
-			filtmin = filtmin_pass2;
+			filtmin_r = filtmin_r_pass2;
+			filtmin_a = filtmin_a_pass2;
 			entries_r = entries_r_pass2;
 			entries_a = entries_a_pass2;
 			num_passes = 1;
@@ -233,11 +246,12 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 		/* reduce the bound on large ideals, so that there
 		   are more ideals explicitly tracked */
 
-		filtmin_pass2 = filtmin * (1.0 - 0.1 * num_passes);
+		filtmin_r_pass2 = filtmin_r * (1.0 - 0.1 * num_passes);
+		filtmin_a_pass2 = filtmin_a * (1.0 - 0.1 * num_passes);
 
 		/* find the new number of entries needed for a matrix */
 
-		find_fb_size(&fb, filtmin_pass2, 
+		find_fb_size(&fb, filtmin_r_pass2, filtmin_a_pass2,
 				&entries_r_pass2, &entries_a_pass2);
 		logprintf(obj, "ignoring smallest %u rational and %u "
 					"algebraic ideals\n", 
@@ -253,7 +267,8 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 		   pass, so the temporary files generated in previous passes
 		   are incrementally modified */
 
-		filter.filtmin = filtmin_pass2;
+		filter.filtmin_r = filtmin_r_pass2;
+		filter.filtmin_a = filtmin_a_pass2;
 		filter.target_excess = excess_fraction * 
 					(entries_r + entries_a);
 
@@ -297,7 +312,10 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 			free_relsets(&merge);
 		}
 
-		num_passes++;
+		if (++num_passes > 8) {
+			printf("error: too many filtering passes\n");
+			exit(-1);
+		}
 	}
 
 	nfs_merge_post(obj, &merge);

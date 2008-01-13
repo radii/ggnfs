@@ -33,7 +33,7 @@ extern "C" {
 /* version info */
 
 #define MSIEVE_MAJOR_VERSION 1
-#define MSIEVE_MINOR_VERSION 32
+#define MSIEVE_MINOR_VERSION 33
 
 /* The final output from the factorization is a linked
    list of msieve_factor structures, one for each factor
@@ -86,6 +86,22 @@ enum msieve_flags {
 	MSIEVE_FLAG_DEEP_ECM = 0x1000    /* perform nontrivial-size ECM */
 };
 	
+/* structure encapsulating the savefile used in a factorization */
+
+typedef struct {
+
+#if defined(WIN32) || defined(_WIN64)
+	HANDLE file_handle;
+	uint32 read_size;
+	uint32 eof;
+#else
+	FILE *fp;
+#endif
+	char *name;
+	char *buf;
+	uint32 buf_off;
+} savefile_t;
+
 /* One factorization is represented by a msieve_obj
    structure. This contains all the static information
    that gets passed from one stage of the factorization
@@ -97,16 +113,12 @@ typedef struct {
 	msieve_factor *factors;   /* linked list of factors found (in
 				     ascending order */
 	volatile uint32 flags;	  /* input/output flags */
-	char *savefile_name;      /* name of the savefile that will be
-				     used for this factorization */
-	FILE *savefile;		  /* current state of savefile */
+	savefile_t savefile;      /* data for savefile */
 	char *logfile_name;       /* name of the logfile that will be
 				     used for this factorization */
 	uint32 seed1, seed2;      /* current state of random number generator
 				     (updated as random numbers are created) */
 	char *nfs_fbfile_name;    /* name of factor base file */
-	char *savefile_buf;       /* circular buffer for savefile output */
-	uint32 savefile_buf_off;   /* current offset into savefile buffer */
 	time_t timestamp;          /* number of seconds factorization took */
 	uint32 max_relations;      /* the number of relations that the sieving
 	                              stage will try to find. The default (0)

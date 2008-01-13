@@ -31,7 +31,7 @@ static void mul_trans_one_med_block(packed_block_t *curr_block,
 
 	while (1) {
 		uint64 t;
-#if defined(__GNUC__) && defined(__x86_64__)
+#if (defined(__GNUC__) || defined(__ICL)) && defined(__x86_64__)
 		uint64 i = 0;
 		uint64 row = entries[0];
 		uint64 count = entries[1];

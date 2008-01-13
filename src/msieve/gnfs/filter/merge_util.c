@@ -51,6 +51,26 @@ void ideal_list_free(ideal_list_t *ideal_list) {
 }
 
 /*--------------------------------------------------------------------*/
+size_t get_merge_memuse(relation_set_t *relsets, uint32 num_relsets,
+			ideal_list_t *ideal_list) {
+
+	uint32 i;
+	size_t s = num_relsets * sizeof(relation_set_t) +
+		   ideal_list->num_ideals * sizeof(ideal_set_t);
+
+	for (i = 0; i < num_relsets; i++) {
+		relation_set_t *r = relsets + i;
+		s += sizeof(uint32) * (r->num_large_ideals +
+					r->num_relations);
+	}
+	for (i = 0; i < ideal_list->num_ideals; i++) {
+		s += sizeof(uint32) * 
+			ideal_list->list[i].num_relsets_alloc;
+	}
+	return s;
+}
+
+/*--------------------------------------------------------------------*/
 void heap_init(heap_t *heap) {
 
 	uint32 i;

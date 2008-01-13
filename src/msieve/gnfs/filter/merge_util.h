@@ -141,6 +141,9 @@ void load_next_relset_group(merge_aux_t *aux,
 void bury_inactive_ideal(relation_set_t *relset_array,
 			ideal_list_t *ideal_list, uint32 ideal);
 
+size_t get_merge_memuse(relation_set_t *relsets, uint32 num_relsets,
+			ideal_list_t *ideal_list);
+
 #ifdef __cplusplus
 }
 #endif

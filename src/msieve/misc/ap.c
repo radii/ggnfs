@@ -517,8 +517,7 @@ void ap_mul(ap_t *a, ap_t *b, ap_t *prod, fastmult_info_t *info) {
 				(cwords - i + dwords) * sizeof(uint32));
 	}
 	else {
-		fastmult(c->val, cwords, d->val, dwords, 
-				prod->val, prod_words, info);
+		fastmult(c->val, cwords, d->val, dwords, prod->val, info);
 	}
 
 	prod->nwords = num_nonzero_words(prod->val, prod_words);

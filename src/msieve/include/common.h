@@ -27,6 +27,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 extern "C" {
 #endif
 
+/*---------------- SAVEFILE RELATED DECLARATIONS ---------------------*/
+
+#define LINE_BUF_SIZE 300
+#define SAVEFILE_READ 0x01
+#define SAVEFILE_WRITE 0x02
+#define SAVEFILE_APPEND 0x04
+
+void savefile_init(savefile_t *s, char *filename);
+void savefile_free(savefile_t *s);
+void savefile_open(savefile_t *s, uint32 flags);
+void savefile_close(savefile_t *s);
+uint32 savefile_eof(savefile_t *s);
+uint32 savefile_exists(savefile_t *s);
+void savefile_rewind(savefile_t *s);
+void savefile_read_line(char *buf, size_t max_len, savefile_t *s);
+void savefile_write_line(savefile_t *s, char *buf);
+void savefile_flush(savefile_t *s);
+
 /*--------------PRIME SIEVE RELATED DECLARATIONS ---------------------*/
 
 /* many separate places in the code need a list
@@ -111,6 +129,8 @@ uint32 tinyqs(mp_t *n, mp_t *factor1, mp_t *factor2);
 
 uint32 factor_gnfs(msieve_obj *obj, mp_t *n, factor_list_t *factor_list);
 
+#define MIN_NFS_BITS 320
+
 /*--------------LINEAR ALGEBRA RELATED DECLARATIONS ---------------------*/
 
 /* Used to represent a list of relations */
@@ -157,18 +177,6 @@ void free_cycle_list(la_col_t *cycle_list, uint32 num_cycles);
 
 #define POSITIVE 0
 #define NEGATIVE 1
-
-/* For big factorizations, some people have reported errors
-   that indicate that the savefiles were corrupted. I have
-   sometimes noticed (in other programs) that high-speed 
-   formatted output to a text file will occaisionally get 
-   corrupted.
-
-   Hence, all writes to the savefile are manually buffered,
-   so that disk writes are always in large blocks that get
-   flushed immediately. */
-
-#define SAVEFILE_BUF_SIZE 65536
 
 /* emit logging information */
 

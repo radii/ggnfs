@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "filter.h"
 
 /* produce <savefile_name>.d, a binary file containing the
-   line numbers of relations in the savefile that are not 
-   duplicates.
+   line numbers of relations in the savefile that should *not*
+   graduate to the singleton removal (or are just plain invalid).
 
    This code has to touch all of the relations, and when the
    dataset is large avoiding excessive memory use is tricky.
@@ -32,7 +32,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Another option is to put the (a,b) values of relations into the
    hashtable, so that hash collisions can be resolved rigorously.
    Unfortunately this means we have to budget 12 bytes for each
-   unique relation, and there could be tens of millions of them.
+   unique relation, and there could be tens (hundreds!) of millions 
+   of them.
 
    The implementation here is a compromise: we do duplicate removal
    in two passes. The first pass maps relations into a hashtable
@@ -55,17 +56,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define LOG2_DUP_HASHTABLE1_SIZE 28   /* first pass hashtable size */
 #define LOG2_DUP_HASHTABLE2_SIZE 20   /* second pass hashtable size */
 
+static const uint8 hashmask[] = {0x01, 0x02, 0x04, 0x08,
+				 0x10, 0x20, 0x40, 0x80};
+
 static void purge_duplicates_pass2(msieve_obj *obj) {
 
-	FILE *savefile_fp;
-	FILE *good_relation_fp;
+	savefile_t *savefile = &obj->savefile;
+	FILE *bad_relation_fp;
 	FILE *collision_fp;
 	FILE *out_fp;
 	uint32 i;
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	uint32 num_duplicates;
 	uint32 num_relations;
-	uint32 next_relation;
+	uint32 next_bad_relation;
 	uint32 curr_relation;
 	uint8 *bit_table;
 	hashtable_t duplicates;
@@ -74,7 +78,7 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 
 	/* fill in the list of hash collisions */
 
-	sprintf(buf, "%s.hc", obj->savefile_name);
+	sprintf(buf, "%s.hc", savefile->name);
 	collision_fp = fopen(buf, "rb");
 	if (collision_fp == NULL) {
 		logprintf(obj, "error: dup2 can't open collision file\n");
@@ -93,18 +97,14 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 
 	/* set up for reading the list of relations */
 
-	savefile_fp = fopen(obj->savefile_name, "r");
-	if (savefile_fp == NULL) {
-		logprintf(obj, "error: dup2 can't open savefile\n");
-		exit(-1);
-	}
-	sprintf(buf, "%s.gr", obj->savefile_name);
-	good_relation_fp = fopen(buf, "rb");
-	if (good_relation_fp == NULL) {
+	savefile_open(savefile, SAVEFILE_READ);
+	sprintf(buf, "%s.br", savefile->name);
+	bad_relation_fp = fopen(buf, "rb");
+	if (bad_relation_fp == NULL) {
 		logprintf(obj, "error: dup2 can't open rel file\n");
 		exit(-1);
 	}
-	sprintf(buf, "%s.d", obj->savefile_name);
+	sprintf(buf, "%s.d", savefile->name);
 	out_fp = fopen(buf, "wb");
 	if (out_fp == NULL) {
 		logprintf(obj, "error: dup2 can't open output file\n");
@@ -115,9 +115,12 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 	num_duplicates = 0;
 	num_relations = 0;
 	curr_relation = (uint32)(-1);
-	fgets(buf, (int)sizeof(buf), savefile_fp);
-	fread(&next_relation, (size_t)1, sizeof(uint32), good_relation_fp);
-	while (!feof(savefile_fp) && !feof(good_relation_fp)) {
+	next_bad_relation = (uint32)(-1);
+	fread(&next_bad_relation, (size_t)1, 
+			sizeof(uint32), bad_relation_fp);
+	savefile_read_line(buf, sizeof(buf), savefile);
+
+	while (!savefile_eof(savefile)) {
 		
 		uint32 hashval;
 		int64 a;
@@ -129,14 +132,19 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 
 			/* no relation on this line */
 
-			fgets(buf, (int)sizeof(buf), savefile_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
-		if (++curr_relation < next_relation) {
+		if (++curr_relation == next_bad_relation) {
 
-			/* this relation isn't valid */
+			/* this relation isn't valid; save it and
+			   read in the next invalid relation line number */
 
-			fgets(buf, (int)sizeof(buf), savefile_fp);
+			fwrite(&curr_relation, (size_t)1, 
+					sizeof(uint32), out_fp);
+			fread(&next_bad_relation, (size_t)1, 
+					sizeof(uint32), bad_relation_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
 
@@ -151,7 +159,7 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 		hashval = (HASH1(key[0]) ^ HASH2(key[1])) >>
 				(32 - LOG2_DUP_HASHTABLE1_SIZE);
 
-		if (bit_table[hashval/8] & (1 << (hashval % 8))) {
+		if (bit_table[hashval/8] & hashmask[hashval % 8]) {
 
 			/* relation collides in the first hashtable;
 			   use the second hashtable to determine 
@@ -165,49 +173,40 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 				/* relation was seen for the first time;
 				   doesn't count as a duplicate */
 
-				fwrite(&curr_relation, (size_t)1, 
-						sizeof(uint32), out_fp);
 				num_relations++;
 			}
 			else {
 				/* relation was previously seen; this
 				   time it's a duplicate */
 
+				fwrite(&curr_relation, (size_t)1, 
+						sizeof(uint32), out_fp);
 				num_duplicates++;
 			}
 		}
 		else {
 			/* no collision; relation is unique */
 
-			fwrite(&curr_relation, (size_t)1, 
-					sizeof(uint32), out_fp);
 			num_relations++;
 		}
 
-		/* get next line number to look for, and
-		   next line of relation file */
-
-		fread(&next_relation, (size_t)1, 
-				sizeof(uint32), good_relation_fp);
-		fgets(buf, (int)sizeof(buf), savefile_fp);
+		savefile_read_line(buf, sizeof(buf), savefile);
 	}
 
 	logprintf(obj, "found %u duplicates and %u unique relations\n", 
 				num_duplicates, num_relations);
 	logprintf(obj, "memory use: %.1f MB\n", 
 			(double)((1 << (LOG2_DUP_HASHTABLE1_SIZE-3)) +
-			(sizeof(uint32) << LOG2_DUP_HASHTABLE2_SIZE) +
-			duplicates.match_array_alloc * sizeof(hash_t)) / 
-			1048576);
+			hashtable_sizeof(&duplicates)) / 1048576);
 
 	/* clean up and finish */
 
-	fclose(savefile_fp);
-	fclose(good_relation_fp);
+	savefile_close(savefile);
+	fclose(bad_relation_fp);
 	fclose(out_fp);
-	sprintf(buf, "%s.hc", obj->savefile_name);
+	sprintf(buf, "%s.hc", savefile->name);
 	remove(buf);
-	sprintf(buf, "%s.gr", obj->savefile_name);
+	sprintf(buf, "%s.br", savefile->name);
 	remove(buf);
 
 	free(bit_table);
@@ -219,11 +218,11 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 				uint32 max_relations) {
 
 	uint32 i;
-	FILE *savefile_fp;
-	FILE *good_relation_fp;
+	savefile_t *savefile = &obj->savefile;
+	FILE *bad_relation_fp;
 	FILE *collision_fp;
 	uint32 curr_relation;
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	uint32 num_relations;
 	uint32 num_collisions;
 	uint8 *hashtable;
@@ -239,18 +238,14 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 
 	logprintf(obj, "commencing duplicate removal, pass 1\n");
 
-	savefile_fp = fopen(obj->savefile_name, "r");
-	if (savefile_fp == NULL) {
-		logprintf(obj, "error: dup1 can't open savefile\n");
-		exit(-1);
-	}
-	sprintf(buf, "%s.gr", obj->savefile_name);
-	good_relation_fp = fopen(buf, "wb");
-	if (good_relation_fp == NULL) {
+	savefile_open(savefile, SAVEFILE_READ);
+	sprintf(buf, "%s.br", savefile->name);
+	bad_relation_fp = fopen(buf, "wb");
+	if (bad_relation_fp == NULL) {
 		logprintf(obj, "error: dup1 can't open relation file\n");
 		exit(-1);
 	}
-	sprintf(buf, "%s.hc", obj->savefile_name);
+	sprintf(buf, "%s.hc", savefile->name);
 	collision_fp = fopen(buf, "wb");
 	if (collision_fp == NULL) {
 		logprintf(obj, "error: dup1 can't open collision file\n");
@@ -265,8 +260,8 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 	curr_relation = (uint32)(-1);
 	num_relations = 0;
 	num_collisions = 0;
-	fgets(buf, (int)sizeof(buf), savefile_fp);
-	while (!feof(savefile_fp)) {
+	savefile_read_line(buf, sizeof(buf), savefile);
+	while (!savefile_eof(savefile)) {
 
 		int32 status;
 		uint32 hashval;
@@ -275,7 +270,7 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 
 			/* no relation on this line */
 
-			fgets(buf, (int)sizeof(buf), savefile_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
 
@@ -287,9 +282,15 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 
 		status = nfs_read_relation(buf, fb, &tmp_relation, 1);
 		if (status != 0) {
+
+			/* save the line number of bad relations (hopefully
+			   there are very very few of them) */
+
+			fwrite(&curr_relation, (size_t)1, 
+					sizeof(uint32), bad_relation_fp);
 			logprintf(obj, "error %d reading relation %u\n",
 					status, curr_relation);
-			fgets(buf, (int)sizeof(buf), savefile_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
 
@@ -307,14 +308,22 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		hashval = (HASH1(blob[0]) ^ HASH2(blob[1])) >>
 			   (32 - LOG2_DUP_HASHTABLE1_SIZE);
 
-		/* save the hash bucket if there's a collision */
+		/* save the hash bucket if there's a collision. We
+		   don't need to save any more collisions to this bucket,
+		   but future duplicates could cause the same bucket to
+		   be saved more than once. We can cut the number of
+		   redundant bucket reports in half by resetting the
+		   bit to zero */
 
-		if (hashtable[hashval / 8] & (1 << (hashval % 8))) {
+		if (hashtable[hashval / 8] & hashmask[hashval % 8]) {
 			fwrite(&hashval, (size_t)1, 
 					sizeof(uint32), collision_fp);
 			num_collisions++;
+			hashtable[hashval / 8] &= ~hashmask[hashval % 8];
 		}
-		hashtable[hashval / 8] |= 1 << (hashval % 8);
+		else {
+			hashtable[hashval / 8] |= hashmask[hashval % 8];
+		}
 
 		/* add the factors of tmp_relation to the counts of primes */
 		   
@@ -326,16 +335,14 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 				tmp_relation.num_factors_a;
 
 
-		/* save the relation number and get the next line */
+		/* get the next line */
 
-		fwrite(&curr_relation, (size_t)1, 
-				sizeof(uint32), good_relation_fp);
-		fgets(buf, (int)sizeof(buf), savefile_fp);
+		savefile_read_line(buf, sizeof(buf), savefile);
 	}
 
 	free(hashtable);
-	fclose(savefile_fp);
-	fclose(good_relation_fp);
+	savefile_close(savefile);
+	fclose(bad_relation_fp);
 	fclose(collision_fp);
 		
 	logprintf(obj, "found %u hash collisions in %u relations\n", 
@@ -346,10 +353,10 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		/* no duplicates; no second pass is necessary */
 
 		char buf2[256];
-		sprintf(buf, "%s.hc", obj->savefile_name);
+		sprintf(buf, "%s.hc", savefile->name);
 		remove(buf);
-		sprintf(buf, "%s.gr", obj->savefile_name);
-		sprintf(buf2, "%s.d", obj->savefile_name);
+		sprintf(buf, "%s.br", savefile->name);
+		sprintf(buf2, "%s.d", savefile->name);
 		if (rename(buf, buf2) != 0) {
 			logprintf(obj, "error: dup1 can't rename outfile\n");
 			exit(-1);

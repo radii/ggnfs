@@ -28,7 +28,7 @@ void print_relation(msieve_obj *obj, int64 a, uint32 b,
 			uint32 *large_prime_a) {
 	
 	uint32 i, j;
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	char *tmp = buf;
 
 	tmp += sprintf(buf, "%" PRId64 ",%u", a, b);
@@ -64,7 +64,7 @@ void print_relation(msieve_obj *obj, int64 a, uint32 b,
 		i++;
 	}
 	sprintf(tmp, "\n");
-	nfs_print_to_savefile(obj, buf);
+	savefile_write_line(&obj->savefile, buf);
 }
 
 /*------------------------------------------------------------------*/
@@ -134,11 +134,11 @@ double get_log_base(mp_poly_t *poly,
 uint32 read_last_line(msieve_obj *obj, mp_t *n) {
 
 	uint32 last_line = 0;
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	FILE *linefile;
 	mp_t read_n;
 
-	sprintf(buf, "%s.line", obj->savefile_name);
+	sprintf(buf, "%s.line", obj->savefile.name);
 	linefile = fopen(buf, "r");
 	if (linefile == NULL)
 		return last_line;
@@ -159,10 +159,10 @@ uint32 read_last_line(msieve_obj *obj, mp_t *n) {
 /*------------------------------------------------------------------*/
 void write_last_line(msieve_obj *obj, mp_t *n, uint32 b) {
 
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	FILE *linefile;
 
-	sprintf(buf, "%s.line", obj->savefile_name);
+	sprintf(buf, "%s.line", obj->savefile.name);
 	linefile = fopen(buf, "w");
 	if (linefile == NULL) {
 		printf("error: cannot open linefile '%s'\n", buf);
@@ -178,38 +178,54 @@ void write_last_line(msieve_obj *obj, mp_t *n, uint32 b) {
 uint32 add_free_relations(msieve_obj *obj, 
 			sieve_param_t *params, mp_t *n) {
 
-	uint32 i, j;
 	uint32 alg_degree;
-	uint32 last_p;
+	uint32 rat_degree;
 	factor_base_t fb;
 	char buf[256];
 	uint32 num_relations = 0;
+	prime_sieve_t prime_sieve;
 
-	/* generate or read the factor base */
+	/* read in the NFS polynomials */
 
-	if (read_factor_base(obj, n, params, &fb)) {
-		create_factor_base(obj, &fb, 1);
-		write_factor_base(obj, n, params, &fb);
+	memset(&fb, 0, sizeof(fb));
+	if (read_poly(obj, n, &fb.rfb.poly, &fb.afb.poly)) {
+		printf("error: failed to read NFS polynomials\n");
+		exit(-1);
 	}
 
 	alg_degree = fb.afb.poly.degree;
-	last_p = (uint32)(-1);
-	for (i = j = 0; i < fb.afb.num_entries; i++) {
-		uint32 p = fb.afb.entries[i].p;
-		if (p != last_p) {
-			j = 1;
-			last_p = p;
-			continue;
-		}
-		if (++j == alg_degree) {
-			sprintf(buf, "%u,0:\n", p);
-			nfs_print_to_savefile(obj, buf);
-			num_relations++;
+	rat_degree = fb.rfb.poly.degree;
+	init_prime_sieve(&prime_sieve, 100, params->afb_limit);
+
+	while (1) {
+		uint32 dummy_roots[MAX_POLY_DEGREE];
+		uint32 high_coeff;
+		uint32 num_roots;
+		uint32 p = get_next_prime(&prime_sieve);
+
+		if (p > params->afb_limit)
+			break;
+
+		num_roots = poly_get_zeros(dummy_roots, 
+					&fb.afb.poly,
+					p, &high_coeff, 1);
+
+		if (num_roots == alg_degree && high_coeff != 0) {
+
+			num_roots = poly_get_zeros(dummy_roots, 
+						&fb.rfb.poly,
+						p, &high_coeff, 1);
+
+			if (num_roots == rat_degree && high_coeff != 0) {
+				sprintf(buf, "%u,0:\n", p);
+				savefile_write_line(&obj->savefile, buf);
+				num_relations++;
+			}
 		}
 	}
 
 	logprintf(obj, "added %u free relations\n", num_relations);
-	nfs_flush_savefile(obj);
-	free_factor_base(&fb);
+	free_prime_sieve(&prime_sieve);
+	savefile_flush(&obj->savefile);
 	return num_relations;
 }

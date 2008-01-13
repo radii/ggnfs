@@ -197,20 +197,29 @@ static void check_relation(msieve_obj *obj,
 		}
 
 		/* give up on this relation if
+		     - f1r has a single factor, and that factor
+		       exceeds the rational large prime cutoff
+		     - f1r is more than 3 words long */
+
+		if (f1r.nwords > 3 ||
+		    (f1r.nwords == 1 && f1r.val[0] > rb->lp_cutoff_r))
+			return;
+
+		/* give up on this relation if
 		     - f2r has a single factor, and that factor
 		       exceeds the rational large prime cutoff
-		     - f2r has two factors and exceeds the square of the
+		     - f2r has two words and exceeds the square of the
 		       cutoff (meaning at least one of the two factors in
 		       f2r would exceed the large prime cutoff)
-		     - f2r has two factors and is smaller than the square
+		     - f2r has two words and is smaller than the square
 		       of the largest prime in rb->prime_product, meaning
 		       that f2r is prime and way too large
-		     - f2r has three factors. We don't know anything about
+		     - f2r has 3+ words. We don't know anything about
 		       f2r in this case, except that all factors exceed the
 		       largest prime in rb->prime_product, and it would be
 		       much too expensive to find out anything more */
 
-		if (f1r.nwords > 3 || f2r.nwords >= 3 ||
+		if (f2r.nwords >= 3 ||
 		    (f2r.nwords == 2 && 
 		     		(mp_cmp(&f2r, &rb->max_prime2) <= 0 ||
 		     		 mp_cmp(&f2r, &rb->lp_cutoff_r2) > 0)) ||
@@ -243,7 +252,11 @@ static void check_relation(msieve_obj *obj,
 				mp_div(&n, &f1a, &f2a);
 		}
 
-		if (f1a.nwords > 3 || f2a.nwords >= 3 ||
+		if (f1a.nwords > 3 ||
+		    (f1a.nwords == 1 && f1a.val[0] > rb->lp_cutoff_a))
+			return;
+
+		if (f2a.nwords >= 3 ||
 		    (f2a.nwords == 2 && 
 		     		(mp_cmp(&f2a, &rb->max_prime2) <= 0 ||
 		     		 mp_cmp(&f2a, &rb->lp_cutoff_a2) > 0)) ||
@@ -255,9 +268,6 @@ static void check_relation(msieve_obj *obj,
 		mp_clear(&f2a);
 	}
 
-	for (i = num_r = num_a = 0; i < MAX_LARGE_PRIMES; i++)
-		lp_r[i] = lp_a[i] = 1;
-
 	/* the relation isn't obviously bad; do more work
 	   trying to factor everything. Note that when relations 
 	   are expected to have three large primes then ~98% of 
@@ -265,8 +275,11 @@ static void check_relation(msieve_obj *obj,
 	
 	   Begin by performing compositeness tests on f2r and f2a,
 	   which are necessary if they are two words in size and
-	   f1r or f1a is not one (the latter indicates that the sieving
-	   already performed the compositeness test) */
+	   f1r or f1a is not one (the latter being true means
+	   that the sieving already performed the compositeness test) */
+
+	for (i = num_r = num_a = 0; i < MAX_LARGE_PRIMES; i++)
+		lp_r[i] = lp_a[i] = 1;
 
 	if (f2r.nwords == 2 && !mp_is_one(&f1r)) {
 		mp_t exponent, res;
@@ -295,10 +308,12 @@ static void check_relation(msieve_obj *obj,
 	}
 	else if (f1r.nwords == 2) {
 		i = squfof(&f1r);
-		if (i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_r)
 			return;
 		lp_r[num_r++] = i;
 		mp_divrem_1(&f1r, i, &f1r);
+		if (f1r.nwords > 1 || f1r.val[0] > rb->lp_cutoff_r)
+			return;
 		lp_r[num_r++] = f1r.val[0];
 	}
 
@@ -308,11 +323,11 @@ static void check_relation(msieve_obj *obj,
 	}
 	else if (f2r.nwords == 2) {
 		i = squfof(&f2r);
-		if (i > rb->lp_cutoff_r || i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_r)
 			return;
 		lp_r[num_r++] = i;
 		mp_divrem_1(&f2r, i, &f2r);
-		if (f2r.val[0] > rb->lp_cutoff_r)
+		if (f2r.nwords > 1 || f2r.val[0] > rb->lp_cutoff_r)
 			return;
 		lp_r[num_r++] = f2r.val[0];
 	}
@@ -323,10 +338,12 @@ static void check_relation(msieve_obj *obj,
 	}
 	else if (f1a.nwords == 2) {
 		i = squfof(&f1a);
-		if (i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_a)
 			return;
 		lp_a[num_a++] = i;
 		mp_divrem_1(&f1a, i, &f1a);
+		if (f1a.nwords > 1 || f1a.val[0] > rb->lp_cutoff_a)
+			return;
 		lp_a[num_a++] = f1a.val[0];
 	}
 
@@ -336,11 +353,11 @@ static void check_relation(msieve_obj *obj,
 	}
 	else if (f2a.nwords == 2) {
 		i = squfof(&f2a);
-		if (i > rb->lp_cutoff_a || i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_a)
 			return;
 		lp_a[num_a++] = i;
 		mp_divrem_1(&f2a, i, &f2a);
-		if (f2a.val[0] > rb->lp_cutoff_a)
+		if (f2a.nwords > 1 || f2a.val[0] > rb->lp_cutoff_a)
 			return;
 		lp_a[num_a++] = f2a.val[0];
 	}
@@ -363,12 +380,16 @@ static void check_relation(msieve_obj *obj,
 			large = &t0;
 		}
 
+		if (small->nwords > 1 || small->val[0] > rb->lp_cutoff_r)
+			return;
 		lp_r[num_r++] = small->val[0];
 		i = squfof(large);
-		if (i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_r)
 			return;
 		lp_r[num_r++] = i;
 		mp_divrem_1(large, i, large);
+		if (large->nwords > 1 || large->val[0] > rb->lp_cutoff_r)
+			return;
 		lp_r[num_r++] = large->val[0];
 	}
 
@@ -383,12 +404,16 @@ static void check_relation(msieve_obj *obj,
 			large = &t0;
 		}
 
+		if (small->nwords > 1 || small->val[0] > rb->lp_cutoff_a)
+			return;
 		lp_a[num_a++] = small->val[0];
 		i = squfof(large);
-		if (i <= 1)
+		if (i <= 1 || i > rb->lp_cutoff_a)
 			return;
 		lp_a[num_a++] = i;
 		mp_divrem_1(large, i, large);
+		if (large->nwords > 1 || large->val[0] > rb->lp_cutoff_a)
+			return;
 		lp_a[num_a++] = large->val[0];
 	}
 
@@ -514,15 +539,20 @@ void relation_batch_init(msieve_obj *obj, relation_batch_t *rb,
 	bits = ap_bits(&rb->prime_product);
 	logprintf(obj, "multiply complete, product has %u bits\n", bits);
 					
-	/* compute the cutoffs used by the recursion base-case */
+	/* compute the cutoffs used by the recursion base-case. Large
+	   primes have a maximum size specified as input arguments, 
+	   but numbers that can be passed to the SQUFOF routine are
+	   limited to size 2^62 */
 
 	rb->lp_cutoff_r = lp_cutoff_r;
+	lp_cutoff_r = MIN(lp_cutoff_r, 0x7fffffff);
 	mp_clear(&rb->lp_cutoff_r2);
 	rb->lp_cutoff_r2.nwords = 1;
 	rb->lp_cutoff_r2.val[0] = lp_cutoff_r;
 	mp_mul_1(&rb->lp_cutoff_r2, lp_cutoff_r, &rb->lp_cutoff_r2);
 
 	rb->lp_cutoff_a = lp_cutoff_a;
+	lp_cutoff_a = MIN(lp_cutoff_a, 0x7fffffff);
 	mp_clear(&rb->lp_cutoff_a2);
 	rb->lp_cutoff_a2.nwords = 1;
 	rb->lp_cutoff_a2.val[0] = lp_cutoff_a;

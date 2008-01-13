@@ -788,6 +788,41 @@ uint32 poly_get_zeros(uint32 *zeros, mp_poly_t *_f,
 }
 
 /*------------------------------------------------------------------*/
+uint32 poly_get_zeros_and_mult(uint32 *zeros, uint32 *mult,
+				mp_poly_t *_f, uint32 p,
+				uint32 *high_coeff) {
+
+	uint32 i;
+	uint32 num_roots;
+	poly_t f, g, r;
+
+	num_roots = poly_get_zeros(zeros, _f, p, high_coeff, 0);
+	if (num_roots == 0)
+		return num_roots;
+
+	poly_reduce_mod_p(f, _f, p);
+	for (i = 0; i < num_roots; i++)
+		mult[i] = 0;
+	if (f->degree == num_roots)
+		return num_roots;
+
+	for (i = 0; i < num_roots; i++) {
+
+		uint32 root = zeros[i];
+
+		g->degree = 2;
+		g->coef[0] = mp_modmul_1(root, root, p);
+		g->coef[1] = p - mp_modadd_1(root, root, p);
+		g->coef[2] = 1;
+
+		poly_mod(r, f, g, p);
+		if (r->degree == 0)
+			mult[i] = 1;
+	}
+	return num_roots;
+}
+
+/*------------------------------------------------------------------*/
 static void poly_xpow_pd(poly_t res, uint32 p, uint32 d, poly_t f) {
 
 	/* compute x^(p^d) mod f */

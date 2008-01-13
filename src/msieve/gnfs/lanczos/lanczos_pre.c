@@ -60,9 +60,18 @@ void count_matrix_nonzero(msieve_obj *obj,
 
 	uint32 i, j;
 	uint32 total_weight;
+	uint32 sparse_weight;
+	size_t mem_use;
 
-	for (i = total_weight = 0; i < ncols; i++)
-		total_weight += cols[i].weight;
+	mem_use = ncols * (sizeof(la_col_t) +
+		sizeof(uint32) * ((num_dense_rows + 31) / 32));
+
+	for (i = total_weight = sparse_weight = 0; i < ncols; i++) {
+		uint32 w = cols[i].weight;
+		total_weight += w;
+		sparse_weight += w;
+		mem_use += w * sizeof(uint32);
+	}
 
 	if (num_dense_rows > 0) {
 		for (i = 0; i < ncols; i++) {
@@ -74,9 +83,15 @@ void count_matrix_nonzero(msieve_obj *obj,
 		}
 	}
 
-	logprintf(obj, "matrix is %u x %u with weight %u (avg %5.2f/col)\n", 
-				nrows, ncols, total_weight, 
+	logprintf(obj, "matrix is %u x %u (%.1f MB) with "
+			"weight %u (%5.2f/col)\n", 
+				nrows, ncols, 
+				(double)mem_use / 1048576,
+				total_weight, 
 				(double)total_weight / ncols);
+	logprintf(obj, "sparse part has weight %u (%5.2f/col)\n", 
+				sparse_weight, 
+				(double)sparse_weight / ncols);
 }
 
 /*------------------------------------------------------------------*/

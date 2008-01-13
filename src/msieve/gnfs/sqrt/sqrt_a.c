@@ -488,6 +488,44 @@ static uint32 get_initial_inv_sqrt(msieve_obj *obj, mp_poly_t *mp_alg_poly,
 }
 
 /*-------------------------------------------------------------------*/
+#define DEFAULT_RBITS 20000000
+
+static uint32 get_recip_bits(uint32 dbits, uint32 nbits) {
+
+	/* determine the number of bits in the reciprocal
+	   used to compute num % den, assuming bit sizes
+	   nbits and dbits, respectively */
+
+	double fft_size;
+	uint32 fft_power, diff;
+	
+	/* if num is small or close to den in size, choose the 
+	   reciprocal size to get the remainder in a single pass */
+
+	if (dbits > nbits || nbits - dbits < DEFAULT_RBITS)
+		return DEFAULT_RBITS;
+
+	/* the more common case: num is larger than den, possibly
+	   much larger. We don't want to make the reciprocal the 
+	   size of num, since that can be huge. We can make it
+	   sort of small, at the expense of lots of extra runtime
+	   since remainders are calculated in several passes. A 
+	   good compromise is to determine the smallest power-of-two
+	   size FFT that will fit num, then choose the size of the
+	   reciprocal so that the FFT is the same size.  */
+
+	fft_size = (double)nbits / 16.0 + 4;
+	fft_power = (uint32)(ceil(log(fft_size) / M_LN2));
+	diff = (16 << fft_power) - nbits;
+	if (diff > 128)
+		diff -= 128;
+	if (diff > nbits - dbits)
+		diff = nbits - dbits;
+
+	return MAX(diff, DEFAULT_RBITS);
+}
+
+/*-------------------------------------------------------------------*/
 static uint32 get_final_sqrt(msieve_obj *obj, ap_poly_t *alg_poly,
 			ap_poly_t *prod, ap_poly_t *isqrt_mod_q, 
 			ap_t *q, fastmult_info_t *info) {
@@ -531,7 +569,8 @@ static uint32 get_final_sqrt(msieve_obj *obj, ap_poly_t *alg_poly,
 	for (num_iter = 0; ap_bits(q) < prod_max_bits / 2 + 4000; num_iter++)
 		ap_mul(q, q, q, info);
 
-	ap_recip(q, &recip, prod_max_bits - ap_bits(q), info);
+	rbits = get_recip_bits(ap_bits(q), prod_max_bits);
+	ap_recip(q, &recip, rbits, info);
 	ap_poly_mod_q(prod, q, prod, &recip, info);
 	ap_si2ap(i, POSITIVE, q);
 	ap_clear(&recip);
@@ -555,18 +594,10 @@ static uint32 get_final_sqrt(msieve_obj *obj, ap_poly_t *alg_poly,
 		qbits = ap_bits(q);
 
 		/* if needed, compute a reciprocal to use in 
-		   future mod operations. The precision of the
-		   reciprocal is capped to avoid computing very
-		   large FFTs, at the expense of needing more time
-		   to complete very large mod operations */
+		   future mod operations */
 
 		if (q->nwords > MAX_MP_WORDS) {
-			rbits = ap_bits(prod->coeff + 0);
-			if (qbits >= rbits)
-				rbits = 20000000;
-			else
-				rbits = MIN(rbits - qbits, 20000000);
-
+			rbits = get_recip_bits(qbits, ap_bits(prod->coeff + 0));
 			ap_recip(q, &recip, rbits, info);
 		}
 

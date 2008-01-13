@@ -29,9 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <fastmult.h>
 
-#define FFT_BASE 65536
-#define FFT_WORDS_PER_LIMB 2
-
 #ifndef M_PI
 #define M_PI  3.1415926535897932384626433832795029
 #endif
@@ -600,114 +597,189 @@ static void mul_hermitian(double *x, double *y, int32 size) {
 }
 
 /*------------------------------------------------------------------------*/
-static int32 get_log2_fftsize(int32 nwords) {
+static int32 get_log2_fhtsize(int32 nwords, int32 *log2_base) {
 
-	int32 i = 1;
+	int32 i;
+	int32 runlength;
+	int32 bits;
 
-	while ((1 << i) < nwords)
-		i++;
+	/* begin by assuming base 2^16 for the FHT multiply */
 
-	return i;
+	bits = 16;
+	runlength = 1;
+	while ((1 << runlength) < 2 * nwords)
+		runlength++;
+
+	/* if a base of 2^x for x = {17,18,19,20} would halve
+	   the runlength, and the absolute maximum size of elements
+	   of the product is not too much larger than the number
+	   of bits in a double-precision mantissa, then use a base
+	   larger than 2^16 */
+
+	for (i = 17; i <= 20; i++) {
+		if ( 2 * (i - 1) + (runlength - 1) <= 56 &&
+		     (int32)(32.0 * nwords / i + 1) < 
+		     			(1 << (runlength - 1))) {
+			*log2_base = i;
+			return runlength - 1;
+		}
+	}
+
+	*log2_base = bits;
+	return runlength;
 }
 
 /*------------------------------------------------------------------------*/
 static void packed_to_double(uint32 *p, int32 pwords,
-			 double *d, int32 fftsize) {
-	int32 i;
+			 double *d, int32 fftsize,
+			 int32 log2_base) {
+	int32 i, j;
+
+	uint64 accum = 0;		/* for operations on p */
+	uint32 curr_bits = 0;
+	uint32 shift = log2_base;
+	uint32 mask = (1 << shift) - 1;
+
+	int32 base = 1 << shift;	/* for operations on d */
+	int32 half_base = base / 2;
 	int32 word;
 	int32 borrow;
 
-	for (i = borrow = 0; i < pwords; i++) {
-		word = (int32)(p[i] % FFT_BASE) + borrow;
-		borrow = 0;
-		if (word >= FFT_BASE/2) {
-			word -= FFT_BASE;
-			borrow = 1;
-		}
-		d[2 * i] = (double)word;
+	/* pull 32 bits at a time out of p and deposit 'shift'
+	   bits at a time into d, converting to balanced form
+	   along the way */
 
-		word = (int32)(p[i] / FFT_BASE) + borrow;
+	i = j = borrow = 0;
+	while (i < pwords) {
+
+		if (curr_bits < shift) {
+			accum |= (uint64)(p[i++]) << curr_bits;
+			curr_bits += 32;
+		}
+
+		word = (int32)(accum & mask) + borrow;
 		borrow = 0;
-		if (word >= FFT_BASE/2) {
-			word -= FFT_BASE;
+		accum >>= shift;
+		curr_bits -= shift;
+
+		if (word >= half_base) {
+			word -= base;
 			borrow = 1;
 		}
-		d[2 * i + 1] = (double)word;
+		d[j++] = (double)word;
 	}
 
-	i = 2 * i;
-	d[i++] = borrow;
-	for (; i < fftsize; i++)
-		d[i] = 0.0;
+	/* empty the accumulator */
+
+	while (curr_bits) {
+		word = (int32)(accum & mask) + borrow;
+		borrow = 0;
+		accum >>= shift;
+		curr_bits -= MIN(curr_bits, shift);
+
+		if (word >= half_base) {
+			word -= base;
+			borrow = 1;
+		}
+		d[j++] = (double)word;
+	}
+	d[j++] = borrow;
+
+	/* pad with zeros */
+
+	for (; j < fftsize; j++)
+		d[j] = 0.0;
 }
 
 /*------------------------------------------------------------------------*/
-static void double_to_packed(uint32 *p, int32 max_pwords, int32 pwords, 
-				double *d, fastmult_info_t *info) {
+static void double_to_packed(uint32 *p, int32 pwords,
+				double *d, int32 log2_base,
+				fastmult_info_t *info) {
 
-	int32 i;
-	double recip_base = 1.0 / FFT_BASE;
+	int32 i, j;
+
+	double base = 1 << log2_base;	/* for operations on d */
+	double recip_base = 1.0 / base;
 	double carry = 0.0;
 	double round0 = info->round_constant[0];
 	double round1 = info->round_constant[1];
+	double dword;
 
-	for (i = 0; i < pwords; i++) {
-		double digit1, digit2;
+	uint64 accum = 0;		/* for operations on p */
+	uint32 curr_bits = 0;
+	uint32 shift = log2_base;
 
-		digit1 = d[2 * i] + carry + round0 - round1;
-		carry = digit1 * recip_base + round0 - round1;
-		digit1 = digit1 - FFT_BASE * carry;
-		if (digit1 < 0.0) {
-			digit1 += FFT_BASE;
+	/* pull 'shift' bits at a time out of d and deposit
+	   32 bits at a time into p, converting from balanced
+	   representation. Conversion stops when the expected
+	   number of words in p have been found */
+
+	i = j = 0;
+	while (j < pwords) {
+		dword = d[i++] + carry + round0 - round1;
+		carry = dword * recip_base + round0 - round1;
+		dword = dword - base * carry;
+		if (dword < 0.0) {
+			dword += base;
 			carry--;
 		}
 
-		digit2 = d[2 * i + 1] + carry + round0 - round1;
-		carry = digit2 * recip_base + round0 - round1;
-		digit2 = digit2 - FFT_BASE * carry;
-		if (digit2 < 0.0) {
-			digit2 += FFT_BASE;
-			carry--;
+		accum |= (uint64)((int32)dword) << curr_bits;
+		curr_bits += shift;
+		if (curr_bits >= 32) {
+			p[j++] = (uint32)accum;
+			accum >>= 32;
+			curr_bits -= 32;
 		}
+	}
 
-		if (i < max_pwords)
-			p[i] = (int32)digit1 + FFT_BASE * ((int32)digit2);
+	/* check that the carry out from the product is zero.
+	   The floating point array for holding the product
+	   was allocated with one extra word, which should
+	   cancel out the carry generated by the product being
+	   in balanced form */
+
+	dword = d[i] + carry + round0 - round1;
+	carry = dword * recip_base + round0 - round1;
+	dword = dword - base * carry;
+	if (carry != 0 || dword != 0) {
+		printf("error: overflow %lf carry %lf\n", dword, carry);
+		exit(-1);
 	}
 }
 
 /*------------------------------------------------------------------------*/
 static void fht_square(int32 power, uint32 *a, int32 awords,
-			uint32 *prod, int32 prod_words,
+			uint32 *prod, int32 log2_base, 
 			fastmult_info_t *info) {
 
 	int32 runlength = 1 << power;
 	double *factor1 = (double *)xmalloc(runlength * sizeof(double));
 
-	packed_to_double(a, awords, factor1, runlength);
+	packed_to_double(a, awords, factor1, runlength, log2_base);
 	fht_forward(factor1, info, power);
 	square_hermitian(factor1, runlength);
 	fht_inverse(factor1, info, power);
-	double_to_packed(prod, prod_words, 2 * awords + 1, factor1, info);
+	double_to_packed(prod, 2 * awords, factor1, log2_base, info);
 	free(factor1);
 }
 
 /*------------------------------------------------------------------------*/
 static void fht_mul(int32 power, uint32 *a, int32 awords,
-		uint32 *b, int32 bwords, 
-		uint32 *prod, int32 prod_words,
-		fastmult_info_t *info) {
+		uint32 *b, int32 bwords, uint32 *prod,
+		int32 log2_base, fastmult_info_t *info) {
 
 	int32 runlength = 1 << power;
 	double *factor1 = (double *)xmalloc(runlength * sizeof(double));
 	double *factor2 = (double *)xmalloc(runlength * sizeof(double));
 
-	packed_to_double(a, awords, factor1, runlength);
-	packed_to_double(b, bwords, factor2, runlength);
+	packed_to_double(a, awords, factor1, runlength, log2_base);
+	packed_to_double(b, bwords, factor2, runlength, log2_base);
 	fht_forward(factor1, info, power);
 	fht_forward(factor2, info, power);
 	mul_hermitian(factor1, factor2, runlength);
 	fht_inverse(factor1, info, power);
-	double_to_packed(prod, prod_words, awords + bwords + 1, factor1, info);
+	double_to_packed(prod, awords + bwords, factor1, log2_base, info);
 	free(factor1);
 	free(factor2);
 }
@@ -715,8 +787,7 @@ static void fht_mul(int32 power, uint32 *a, int32 awords,
 /*------------------------------------------------------------------------*/
 void fastmult(uint32 *a, uint32 awords,
 		uint32 *b, uint32 bwords,
-		uint32 *prod, uint32 prod_words,
-		fastmult_info_t *info) {
+		uint32 *prod, fastmult_info_t *info) {
 
 	/* the product can never be more than awords+bwords
 	   in size; however, we use balanced representation,
@@ -727,16 +798,18 @@ void fastmult(uint32 *a, uint32 awords,
 	   will mean that the top bit of the product wraps 
 	   around to the bottom, corrupting the multiply */
 
-	int32 power = get_log2_fftsize(FFT_WORDS_PER_LIMB * 
-					(int32)(awords + bwords + 1));
+	int32 log2_base;
+	int32 power;
+
+	power = get_log2_fhtsize((int32)(awords + bwords + 1),
+				&log2_base);
 
 	create_twiddle(info, power);
 	if (a == b && awords == bwords) {
-		fht_square(power, a, (int32)awords, 
-				prod, (int32)prod_words, info);
+		fht_square(power, a, (int32)awords, prod, log2_base, info);
 	}
 	else {
 		fht_mul(power, a, (int32)awords, b, (int32)bwords, 
-				prod, (int32)prod_words, info);
+				prod, log2_base, info);
 	}
 }

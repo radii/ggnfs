@@ -23,16 +23,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /* system-specific stuff ---------------------------------------*/
 
-#ifdef WIN32
-
+#if defined(WIN32)
 	#define WIN32_LEAN_AND_MEAN
+#endif
+
+#if defined(WIN32) || defined(_WIN64)
+
 	#include <windows.h>
 	#include <process.h>
 
 #else /* !WIN32 */
 
-	#include <sys/types.h>
-	#include <sys/stat.h>
 	#include <fcntl.h>
 	#include <unistd.h>
 	#include <errno.h>
@@ -49,6 +50,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <math.h>
 #include <stdarg.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #ifndef _MSC_VER
 #include <inttypes.h>
 #endif
@@ -87,12 +90,6 @@ extern "C" {
 	typedef int int32;
 	typedef int64_t int64;
 	#endif
-#endif
-
-#ifdef WIN32
-	typedef HANDLE thread_id_t;
-#else
-	typedef pthread_t thread_id_t;
 #endif
 
 /* useful functions ---------------------------------------------------*/

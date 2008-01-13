@@ -46,9 +46,6 @@ msieve_obj * msieve_obj_new(char *input_integer, uint32 flags,
 	obj->cache_size1 = cache_size1;
 	obj->cache_size2 = cache_size2;
 	obj->num_threads = num_threads;
-	obj->savefile_name = MSIEVE_DEFAULT_SAVEFILE;
-	if (savefile_name)
-		obj->savefile_name = savefile_name;
 	obj->logfile_name = MSIEVE_DEFAULT_LOGFILE;
 	if (logfile_name)
 		obj->logfile_name = logfile_name;
@@ -56,12 +53,7 @@ msieve_obj * msieve_obj_new(char *input_integer, uint32 flags,
 	if (nfs_fbfile_name)
 		obj->nfs_fbfile_name = nfs_fbfile_name;
 	
-	obj->savefile_buf = (char *)xmalloc((size_t)SAVEFILE_BUF_SIZE);
-	if (obj->savefile_buf == NULL) {
-		free(obj);
-		return NULL;
-	}
-	obj->savefile_buf[0] = 0;
+	savefile_init(&obj->savefile, savefile_name);
 	return obj;
 }
 
@@ -78,7 +70,7 @@ msieve_obj * msieve_obj_free(msieve_obj *obj) {
 		curr_factor = next_factor;
 	}
 
-	free(obj->savefile_buf);
+	savefile_free(&obj->savefile);
 	free(obj);
 	return NULL;
 }

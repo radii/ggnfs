@@ -250,7 +250,7 @@ void *countdown_thread(void *pminutes) {
 /*--------------------------------------------------------------------*/
 int main(int argc, char **argv) {
 
-	char buf[300];
+	char buf[400];
 	FILE *fb_file;
 	uint32 seed1, seed2;
 	char *savefile_name = MSIEVE_DEFAULT_SAVEFILE;
@@ -418,11 +418,12 @@ int main(int argc, char **argv) {
 	get_random_seeds(&seed1, &seed2);
 
 	if (deadline) {
-		thread_id_t thread_id;
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
+		HANDLE thread_id;
 		CreateThread(NULL, 0, countdown_thread, 
 				&deadline, 0, &thread_id);
 #else
+		pthread_t thread_id;
 		pthread_create(&thread_id, NULL, 
 				countdown_thread, &deadline);
 #endif

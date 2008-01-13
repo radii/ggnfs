@@ -85,13 +85,14 @@ typedef struct {
 
 	/* fields for thread pool synchronization */
 
-	thread_id_t thread_id;
 	enum thread_command command;
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN64)
+	HANDLE thread_id;
 	HANDLE run_event;
 	HANDLE finish_event;
 #else
+	pthread_t thread_id;
 	pthread_mutex_t run_lock;
 	pthread_cond_t run_cond;
 #endif
@@ -121,6 +122,8 @@ void packed_matrix_init(msieve_obj *obj,
 			uint32 num_dense_rows);
 
 void packed_matrix_free(packed_matrix_t *packed_matrix);
+
+size_t packed_matrix_sizeof(packed_matrix_t *packed_matrix);
 
 void mul_MxN_Nx64(packed_matrix_t *A, uint64 *x, uint64 *b);
 

@@ -86,6 +86,7 @@ MISC_SRCS = \
 	misc/mp.c \
 	misc/prime_delta.c \
 	misc/prime_sieve.c \
+	misc/savefile.c \
 	misc/squfof.c \
 	misc/tinyqs.c \
 	misc/util.c

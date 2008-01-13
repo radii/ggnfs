@@ -771,7 +771,7 @@ static void dump_lanczos_state(msieve_obj *obj,
 	char buf[256];
 	FILE *dump_fp;
 
-	sprintf(buf, "%s.chk", obj->savefile_name);
+	sprintf(buf, "%s.chk", obj->savefile.name);
 	dump_fp = fopen(buf, "wb");
 	if (dump_fp == NULL) {
 		printf("error: cannot open matrix checkpoint file\n");
@@ -811,7 +811,7 @@ static void read_lanczos_state(msieve_obj *obj,
 	char buf[256];
 	FILE *dump_fp;
 
-	sprintf(buf, "%s.chk", obj->savefile_name);
+	sprintf(buf, "%s.chk", obj->savefile.name);
 	dump_fp = fopen(buf, "rb");
 	if (dump_fp == NULL) {
 		printf("error: cannot open matrix checkpoint file\n");
@@ -951,6 +951,10 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 	scratch = (uint64 *)xmalloc(n * sizeof(uint64));
 	v0 = NULL;
 
+	logprintf(obj, "memory use: %.1f MB\n", (double)
+			((6 * n * sizeof(uint64) +
+			 packed_matrix_sizeof(packed_matrix))) / 1048576);
+
 	/* initialize */
 
 	iter = 0;
@@ -1023,6 +1027,8 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 
 		dim0 = find_nonsingular_sub(obj, vt_a_v[0], s[0], 
 					    s[1], dim1, winv[0]);
+		if (dim0 == 0)
+			break;
 
 		/* mask0 contains one set bit for every column
 		   that participates in the inverted submatrix

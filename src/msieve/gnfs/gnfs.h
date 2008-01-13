@@ -52,11 +52,6 @@ typedef struct {
 	signed_mp_t coeff[MAX_POLY_DEGREE + 1];
 } mp_poly_t;
 
-/* buffered output to the NFS savefile */
-
-void nfs_print_to_savefile(msieve_obj *obj, char *buf);
-void nfs_flush_savefile(msieve_obj *obj);
-
 /* evaluate the homogeneous form of poly(x). If poly has
    degree d, then res = (b ^ d) * poly(a / b) */
 
@@ -76,10 +71,13 @@ typedef struct {
 	uint32 afb_limit;   /* largest algebraic factor base prime */
 	uint32 rfb_lp_size;   /* size of rational large primes */
 	uint32 afb_lp_size;   /* size of algebraic large primes */
-	uint64 sieve_size; /* the size of the sieve (actual sieve is 2x this) */
+	uint64 sieve_size;  /* default length of sieve interval (actual 
+			       interval is 2x this size) */
+	int64 sieve_begin;  /* bounds of sieving interval; these default to */
+	int64 sieve_end;    /* plus-or-minus sieve_size */
 } sieve_param_t;
 
-/*------------------------ hashtable stuff ---------------------------*/
+/*------------------------ hashtable stuff -------------------------*/
 
 /* we use two separate hash functions for 2-word structures */
 
@@ -112,11 +110,12 @@ void hashtable_init(hashtable_t *h,
 
 void hashtable_close(hashtable_t *h);
 void hashtable_free(hashtable_t *h);
+size_t hashtable_sizeof(hashtable_t *h);
 
 /* return a pointer to the hashtable entry that matches
    blob[]. If there is no such entry, add blob to 
    the hashtable, make *present zero (if the pointer
-   if non-NULL) and return a pointer to the result */
+   is non-NULL) and return a pointer to the result */
 
 hash_t *hashtable_find(hashtable_t *h, void *blob, uint32 *present);
 
@@ -137,6 +136,15 @@ uint32 poly_get_zeros(uint32 *zeros,
 			uint32 p,
 			uint32 *high_coeff,
 			uint32 count_only);
+
+/* like poly_get_zeros, except mult[i] is nonzero if
+   zeros[i] is a multiple zero of _f mod p */
+
+uint32 poly_get_zeros_and_mult(uint32 *zeros, 
+			uint32 *mult,
+			mp_poly_t *_f, 
+			uint32 p,
+			uint32 *high_coeff);
 
 /* return 1 if poly cannot be expressed as the product 
    of some other polynomials with coefficients modulo p,
@@ -331,10 +339,12 @@ int32 nfs_read_relation(char *buf, factor_base_t *fb,
 			relation_t *r, uint32 compress);
 
 /* given a relation, find and list all of the rational
-   and algebraic ideals whose prime exceeds filtmin. If
-   this bound is zero then all ideals are listed */
+   ideals > filtmin_r and all of the algebraic ideals 
+   whose prime exceeds filtmin_a. If these bounds are 
+   zero then all ideals are listed */
 
-uint32 find_large_ideals(relation_t *rel, relation_lp_t *out, uint32 filtmin);
+uint32 find_large_ideals(relation_t *rel, relation_lp_t *out, 
+			uint32 filtmin_r, uint32 filtmin_a);
 
 /* Assuming a group of relations has been grouped together
    into a collection of cycles, read the collection of cycles

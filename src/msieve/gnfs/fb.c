@@ -150,7 +150,7 @@ int32 read_factor_base(msieve_obj *obj, mp_t *n,
 	int32 status = 0;
 	uint32 i;
 	FILE *fp;
-	char buf[256];
+	char buf[LINE_BUF_SIZE];
 	uint32 rfb_size = 0;
 	uint32 afb_size = 0;
 
@@ -197,7 +197,7 @@ int32 read_factor_base(msieve_obj *obj, mp_t *n,
 		}
 
 		tmp = buf;
-		while (!isdigit(*tmp))
+		while (!isdigit(*tmp) && *tmp != '-')
 			tmp++;
 		value = strtoul(tmp, NULL, 10);
 
@@ -213,8 +213,15 @@ int32 read_factor_base(msieve_obj *obj, mp_t *n,
 			params->rfb_lp_size = value;
 		else if (strstr(buf, "SALPMAX"))
 			params->afb_lp_size = value;
-		else if (strstr(buf, "SLINE"))
-			params->sieve_size = (uint64)atof(tmp);
+		else if (strstr(buf, "SMIN"))
+			params->sieve_begin = (int64)atof(tmp);
+		else if (strstr(buf, "SMAX"))
+			params->sieve_end = (int64)atof(tmp);
+		else if (strstr(buf, "SLINE")) {
+			int64 sieve_size = (int64)atof(tmp);
+			params->sieve_begin = -sieve_size;
+			params->sieve_end = sieve_size;
+		}
 
 		fgets(buf, (int)sizeof(buf), fp);
 	}
@@ -343,7 +350,8 @@ void write_factor_base(msieve_obj *obj, mp_t *n,
 
 	fprintf(fp, "SRLPMAX %u\n", params->rfb_lp_size);
 	fprintf(fp, "SALPMAX %u\n", params->afb_lp_size);
-	fprintf(fp, "SLINE %" PRIu64 "\n", params->sieve_size);
+	fprintf(fp, "SLINE %" PRIu64 "\n", 
+			(uint64)(params->sieve_end - params->sieve_begin) / 2);
 	fprintf(fp, "\n");
 
 	i = 0;

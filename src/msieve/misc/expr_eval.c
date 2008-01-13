@@ -402,8 +402,8 @@ int32 evaluate_expression(char *expr, mp_t *res) {
 		tmp++;
 	}
 	if (*tmp == 0) {
-		if (tmp - expr >= 235) {
-			printf("input integers must be 235 digits or less\n");
+		if (tmp - expr >= 255) {
+			printf("input integers must be 255 digits or less\n");
 			return INTEGER_OVERFLOW;
 		}
 		mp_str2mp(expr, res, 0);

@@ -487,6 +487,9 @@ void nfs_merge_post(msieve_obj *obj, merge_t *merge) {
 	}
 
 	logprintf(obj, "pruned %u relations\n", num_relations);
+	logprintf(obj, "memory use: %.1f MB\n", (double)
+			get_merge_memuse(relset_array, num_relsets,
+						&ideal_list) / 1048576);
 
 	/* print statistics on the final collection of cycles */
 

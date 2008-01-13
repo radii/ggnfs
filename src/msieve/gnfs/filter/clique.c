@@ -57,18 +57,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	   in the group has at least one of those ideals that only occur 
 	   in pairs, then deleting one of the relations means the 
 	   whole group can be deleted as well. In graph theory terms, 
-	   our collection of relations is a fully connected subgraph of 
-	   the complete dataset. It also has a shorter name: a clique.
+	   our collection of relations is a connected subgraph of 
+	   the complete dataset. If it was *fully* connected, i.e. every
+	   relation had an ideal in common with all other relations in the
+	   component, it would have a shorter name: a clique. Even though
+	   it is a misnomer to call the component a clique in all cases,
+	   with NFS filtering it is traditional to do so. We therefore
+	   call the process of finding and deleting connected components
+	   a 'clique removal' phase.
 
-	   Finding arbitrary cliques in a graph is a computationally
-	   infeasible problem. However, in this specific case we only
-	   want cliques that contain ideals of 'weight 2', and that 
-	   problem can be solved efficiently. We just need a hashtable
-	   for the ideals of weight 2, combined with a breadth-first
-	   traversal of the complete dataset. All the relations that form
-	   a clique are in a sense tied to each other, so if relations
-	   have to be deleted then it makes sense to concentrate on 
-	   deleting the 'heaviest' cliques.
+	   In this specific case we only want cliques that contain ideals 
+	   of 'weight 2', and that problem can be solved efficiently. We 
+	   just need a hashtable for the ideals of weight 2, combined with 
+	   a breadth-first traversal of the complete dataset. All the 
+	   relations that form a clique are in a sense tied to each other,
+	   so if relations have to be deleted then it makes sense to 
+	   concentrate on deleting the 'heaviest' cliques.
 
 	   A clique is 'heavy' if 1) it has many relations, and 2)
 	   those relations contain many ideals that have low weight.
@@ -100,7 +104,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	   elimination is very fast and memory efficient. Clique removal
 	   is also cool because it greatly rewards having more relations
 	   than you strictly need. The more you're willing to prune, 
-	   the better the final matrix will turn out to be. */
+	   the better the final matrix will turn out to be. 
+	   
+	   The above explanation applies to cliques containing ideals
+	   that appear in exactly two relations. When there is a really
+	   huge amount of initial excess, it is possible for the cliques
+	   to run out before the excess does :) To deal with this situation,
+	   this code is generalized to find cliques with ideals
+	   of weight > 2. This is not ordinarily a good idea, but when 
+	   there are no weight-2 ideals and there is still excess to burn,
+	   it is the best algorithm available for continuing to prune
+	   relations */
 
 /* representation of one clique */
 
@@ -250,6 +264,7 @@ static void delete_relations(filter_t *filter,
 uint32 nfs_purge_cliques(msieve_obj *obj, 
 			filter_t *filter,
 			uint32 clique_heap_size,
+			uint32 max_clique_relations,
 			uint32 num_excess_relations) {
 
 	uint32 i, j;
@@ -306,12 +321,12 @@ uint32 nfs_purge_cliques(msieve_obj *obj,
 		curr_relation = next_relation_ptr(curr_relation);
 	}
 
-	/* mark all the ideals with weight 2 as belonging
-	   to a clique, and set the head of their linked
-	   list of relations to empty */
+	/* mark all the ideals with small enough weight as 
+	   belonging to a clique, and set the head of their 
+	   linked list of relations to empty */
 
 	for (i = 0; i < num_ideals; i++) {
-		if (ideal_map[i].payload == 2) {
+		if (ideal_map[i].payload <= max_clique_relations) {
 			ideal_map[i].payload = 0;
 			ideal_map[i].clique = 1;
 		}
@@ -570,17 +585,23 @@ uint32 nfs_purge_cliques(msieve_obj *obj,
 				curr_clique->relation_array_word[j];
 		}
 	}
-	logprintf(obj, "removing %u relations and %u ideals in %u cliques\n", 
-					num_delete, num_ideals_delete, i);
 
-	/* don't need the cliques anymore */
+	/* don't bother deleteing cliques if there are too few of
+	   them; the rest of the filtering would hardly be affected */
+
+	if (i > 8000) {
+		logprintf(obj, "removing %u relations and %u ideals "
+				"in %u cliques\n", 
+				num_delete, num_ideals_delete, i);
+		delete_relations(filter, delete_array, num_delete);
+	}
+	else {
+		num_delete = 0;
+	}
 
 	for (i = 0; i < num_clique; i++)
 		free(clique_heap[i].relation_array_word);
 	free(clique_heap);
-
-	if (num_delete > 0)
-		delete_relations(filter, delete_array, num_delete);
 	free(delete_array);
 	return num_delete;
 }

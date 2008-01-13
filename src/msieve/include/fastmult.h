@@ -50,8 +50,7 @@ void fastmult_info_free(fastmult_info_t *info);
 
 void fastmult(uint32 *a, uint32 awords, 
 		uint32 *b, uint32 bwords,
-		uint32 *prod, uint32 prod_words,
-		fastmult_info_t *info);
+		uint32 *prod, fastmult_info_t *info);
 
 #ifdef __cplusplus
 }

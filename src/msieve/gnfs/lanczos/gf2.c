@@ -32,9 +32,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    (say 16) will be enough. The matrix-building code 
    is flexible enough so that this number may take 
    any positive value and everything else will 
-   just work */
+   just work 
+   
+   The size of the QCB is limited to allow caching
+   the quadratic characters */
 
 #define QCB_SIZE 32
+
+#if QCB_SIZE > 32
+#error "QCB size must be 32 or less"
+#endif
 
 /*------------------------------------------------------------------*/
 static int compare_ideals(const void *x, const void *y) {
@@ -162,16 +169,34 @@ static ideal_t *fill_small_ideals(factor_base_t *fb,
 }
 
 /*------------------------------------------------------------------*/
-static void fill_qcb(fb_entry_t *qcb, factor_base_t *fb,
-			uint32 min_qcb_ideal) {
+#define QCB_VALS(r) ((r)->rel_index)
+
+static void fill_qcb(msieve_obj *obj, mp_poly_t *apoly, 
+			relation_t *rlist, uint32 num_relations) {
 	uint32 i, j;
-	mp_poly_t *poly = &fb->afb.poly;
 	prime_sieve_t sieve;
+	fb_entry_t qcb[QCB_SIZE];
+	uint32 min_qcb_ideal;
+
+	/* find the largest algebraic factor across the whole set */
+
+	for (i = min_qcb_ideal = 0; i < num_relations; i++) {
+		relation_t *r = rlist + i;
+		uint32 *factors_a = r->factors + r->num_factors_r;
+		for (j = 0; j < r->num_factors_a; j++)
+			min_qcb_ideal = MAX(min_qcb_ideal, factors_a[j]);
+	}
+
+	/* choose the quadratic character base from the primes
+	   larger than any that appear in the list of relations */
+
+	logprintf(obj, "using %u quadratic characters above %u\n",
+				QCB_SIZE, min_qcb_ideal + 1);
 
 	/* construct the quadratic character base, starting
 	   with the primes above min_qcb_ideal */
 
-	init_prime_sieve(&sieve, min_qcb_ideal, 0xffffffff);
+	init_prime_sieve(&sieve, min_qcb_ideal + 1, 0xffffffff);
 
 	i = 0;
 	while (i < QCB_SIZE) {
@@ -179,11 +204,10 @@ static void fill_qcb(fb_entry_t *qcb, factor_base_t *fb,
 		uint32 num_roots, high_coeff;
 		uint32 p = get_next_prime(&sieve);
 
-		num_roots = poly_get_zeros(roots, poly, p, 
+		num_roots = poly_get_zeros(roots, apoly, p, 
 					&high_coeff, 0);
 
-		/* p cannot be a projective root of the
-		   algebraic poly */
+		/* p cannot be a projective root of the algebraic poly */
 
 		if (high_coeff == 0)
 			continue;
@@ -197,33 +221,15 @@ static void fill_qcb(fb_entry_t *qcb, factor_base_t *fb,
 	}
 
 	free_prime_sieve(&sieve);
-}
 
-/*------------------------------------------------------------------*/
-#define MAX_COL_IDEALS 1000
+	/* cache each relation's quadratic characters for later use */
 
-static uint32 combine_relations(la_col_t *col, relation_t *rlist,
-				ideal_t *merged_ideals,
-				fb_entry_t *qcb, uint32 *dense_rows,
-				uint32 num_dense_rows) {
+	for (i = 0; i < num_relations; i++) {
+		relation_t *rel = rlist + i;
+		int64 a = rel->a;
+		uint32 b = rel->b;
 
-	uint32 i, j, k;
-	uint32 num_merged = 0;
-	ideal_t tmp_ideals[MAX_COL_IDEALS];
-	uint32 num_tmp_ideals;
-
-	/* form the matrix column corresponding to a 
-	   collection of relations */
-
-	for (i = 0; i < col->cycle.num_relations; i++) {
-		relation_t *r = rlist + col->cycle.list[i];
-		relation_lp_t new_ideals;
-		int64 a = r->a;
-		uint32 b = r->b;
-
-		/* compute the quadratic characters for r, place
-		   in the first few dense rows */
-
+		QCB_VALS(rel) = 0;
 		for (j = 0; j < QCB_SIZE; j++) {
 			uint32 p = qcb[j].p;
 			uint32 r = qcb[j].r;
@@ -242,14 +248,39 @@ static uint32 combine_relations(la_col_t *col, relation_t *rlist,
 			   a fatal error */
 
 			if (symbol == -1)
-				dense_rows[j / 32] ^= 1 << (j % 32);
+				QCB_VALS(rel) |= 1 << (j % 32);
 			else if (symbol == 0)
 				printf("warning: zero character\n");
 		}
+	}
+}
+
+/*------------------------------------------------------------------*/
+#define MAX_COL_IDEALS 1000
+
+static uint32 combine_relations(la_col_t *col, relation_t *rlist,
+				ideal_t *merged_ideals, uint32 *dense_rows,
+				uint32 num_dense_rows) {
+
+	uint32 i, j, k;
+	uint32 num_merged = 0;
+	ideal_t tmp_ideals[MAX_COL_IDEALS];
+	uint32 num_tmp_ideals;
+
+	/* form the matrix column corresponding to a 
+	   collection of relations */
+
+	for (i = 0; i < col->cycle.num_relations; i++) {
+		relation_t *r = rlist + col->cycle.list[i];
+		relation_lp_t new_ideals;
+
+		/* fold in the quadratic characters for r */
+
+		dense_rows[0] ^= QCB_VALS(r);
 
 		/* if r is a free relation, modify the last dense row */
 
-		if (b == 0) {
+		if (r->b == 0) {
 			dense_rows[(num_dense_rows - 1) / 32] ^=
 					1 << ((num_dense_rows - 1) % 32);
 		}
@@ -257,7 +288,7 @@ static uint32 combine_relations(la_col_t *col, relation_t *rlist,
 		/* get the ideal decomposition of relation i, sort
 		   by size of prime */
 
-		if (find_large_ideals(r, &new_ideals, 0) > 
+		if (find_large_ideals(r, &new_ideals, 0, 0) > 
 						TEMP_FACTOR_LIST_SIZE) {
 			printf("error: overflow reading ideals\n");
 			exit(-1);
@@ -318,16 +349,20 @@ static uint32 combine_relations(la_col_t *col, relation_t *rlist,
 #define LOG2_IDEAL_HASHTABLE_SIZE 21
 #define MAX_DENSE_ROW_WORDS 32
 
-static void build_matrix_core(la_col_t *cycle_list, uint32 num_cycles,
-			relation_t *rlist, fb_entry_t *qcb, 
-			uint32 num_dense_rows, ideal_t *small_ideals, 
-			uint32 num_small_ideals, FILE *matrix_fp) {
+static void build_matrix_core(msieve_obj *obj, la_col_t *cycle_list, 
+			uint32 num_cycles, relation_t *rlist, 
+			uint32 num_relations, uint32 num_dense_rows, 
+			ideal_t *small_ideals, uint32 num_small_ideals, 
+			FILE *matrix_fp) {
 
 	uint32 i, j, k;
 	hashtable_t unique_ideals;
 	uint32 max_small_ideal;
 	uint32 dense_rows[MAX_DENSE_ROW_WORDS];
 	uint32 dense_row_words;
+	size_t mem_use;
+
+	logprintf(obj, "building initial matrix\n");
 
 	dense_row_words = (num_dense_rows + 31) / 32;
 	if (dense_row_words > MAX_DENSE_ROW_WORDS) {
@@ -359,10 +394,10 @@ static void build_matrix_core(la_col_t *cycle_list, uint32 num_cycles,
 		for (j = 0; j < dense_row_words; j++)
 			dense_rows[j] = 0;
 
-		/* merge the relations in the cycle and compute
-		   the quadratic characters */
+		/* merge the relations and quadratic characters
+		   in the cycle */
 
-		num_merged = combine_relations(c, rlist, merged_ideals, qcb, 
+		num_merged = combine_relations(c, rlist, merged_ideals, 
 						dense_rows, num_dense_rows);
 
 		/* assign a unique number to each ideal in 
@@ -408,13 +443,32 @@ static void build_matrix_core(la_col_t *cycle_list, uint32 num_cycles,
 				(size_t)dense_row_words, matrix_fp);
 	}
 
-	i = num_dense_rows + hashtable_getall(&unique_ideals, NULL);
-	hashtable_free(&unique_ideals);
+	/* save the matrix dimensions to disk */
 
+	i = num_dense_rows + hashtable_getall(&unique_ideals, NULL);
 	rewind(matrix_fp);
 	fwrite(&i, sizeof(uint32), (size_t)1, matrix_fp);
 	fwrite(&num_dense_rows, sizeof(uint32), (size_t)1, matrix_fp);
 	fwrite(&num_cycles, sizeof(uint32), (size_t)1, matrix_fp);
+
+	/* report memory use */
+
+	mem_use = num_relations * sizeof(relation_t) +
+			num_cycles * sizeof(la_col_t) +
+			hashtable_sizeof(&unique_ideals);
+
+	for (i = 0; i < num_cycles; i++) {
+		la_col_t *c = cycle_list + i;
+		mem_use += c->cycle.num_relations * sizeof(uint32);
+	}
+	for (i = 0; i < num_relations; i++) {
+		relation_t *r = rlist + i;
+		mem_use += (r->num_factors_r + r->num_factors_a) *
+				sizeof(uint32);
+	}
+	logprintf(obj, "memory use: %.1f MB\n", (double)mem_use / 1048576);
+
+	hashtable_free(&unique_ideals);
 }
 
 /*------------------------------------------------------------------*/
@@ -424,14 +478,11 @@ static void build_matrix(msieve_obj *obj, mp_t *n) {
 	   initial matrix, and form the quadratic characters
 	   for each column */
 
-	uint32 i, j;
 	uint32 num_relations;
 	relation_t *rlist;
 	uint32 num_cycles;
 	la_col_t *cycle_list;
 	uint32 num_dense_rows;
-	uint32 min_qcb_ideal;
-	fb_entry_t qcb[QCB_SIZE];
 	ideal_t *small_ideals;
 	uint32 num_small_ideals;
 	uint32 max_small_ideal;
@@ -439,7 +490,7 @@ static void build_matrix(msieve_obj *obj, mp_t *n) {
 	char buf[256];
 	factor_base_t fb;
 
-	sprintf(buf, "%s.mat", obj->savefile_name);
+	sprintf(buf, "%s.mat", obj->savefile.name);
 	matrix_fp = fopen(buf, "w+b");
 	if (matrix_fp == NULL) {
 		logprintf(obj, "error: can't open matrix file '%s'\n", buf);
@@ -475,28 +526,16 @@ static void build_matrix(msieve_obj *obj, mp_t *n) {
 	nfs_read_cycles(obj, &fb, &num_cycles, &cycle_list, 
 			&num_relations, &rlist, 1, 0);
 
-	/* find the largest algebraic factor across the whole set */
+	/* assign quadratic characters to each relation */
 
-	for (i = min_qcb_ideal = 0; i < num_relations; i++) {
-		relation_t *r = rlist + i;
-		uint32 *factors_a = r->factors + r->num_factors_r;
-		for (j = 0; j < r->num_factors_a; j++)
-			min_qcb_ideal = MAX(min_qcb_ideal, factors_a[j]);
-	}
-
-	/* choose the quadratic character base from the primes
-	   larger than any that appear in the list of relations */
-
-	logprintf(obj, "using %u quadratic characters above %u\n",
-				QCB_SIZE, min_qcb_ideal + 1);
-
-	fill_qcb(qcb, &fb, min_qcb_ideal + 1);
+	fill_qcb(obj, &fb.afb.poly, rlist, num_relations);
 
 	/* build the matrix columns, store to disk */
 
-	build_matrix_core(cycle_list, num_cycles, rlist, 
-			qcb, num_dense_rows, small_ideals, 
-			num_small_ideals, matrix_fp);
+	build_matrix_core(obj, cycle_list, num_cycles, rlist, 
+			num_relations, num_dense_rows, 
+			small_ideals, num_small_ideals, 
+			matrix_fp);
 
 	nfs_free_relation_list(rlist, num_relations);
 	free_cycle_list(cycle_list, num_cycles);
@@ -511,7 +550,7 @@ static void dump_cycles(msieve_obj *obj, la_col_t *cols, uint32 ncols) {
 	char buf[256];
 	FILE *cycle_fp;
 
-	sprintf(buf, "%s.cyc", obj->savefile_name);
+	sprintf(buf, "%s.cyc", obj->savefile.name);
 	cycle_fp = fopen(buf, "wb");
 	if (cycle_fp == NULL) {
 		logprintf(obj, "error: can't open cycle file\n");
@@ -540,7 +579,7 @@ static void dump_matrix(msieve_obj *obj,
 	char buf[256];
 	FILE *matrix_fp;
 
-	sprintf(buf, "%s.mat", obj->savefile_name);
+	sprintf(buf, "%s.mat", obj->savefile.name);
 	matrix_fp = fopen(buf, "wb");
 	if (matrix_fp == NULL) {
 		logprintf(obj, "error: can't open matrix file\n");
@@ -576,7 +615,7 @@ static void read_matrix(msieve_obj *obj,
 
 	nfs_read_cycles(obj, NULL, &ncols, &cols, NULL, NULL, 1, 0);
 
-	sprintf(buf, "%s.mat", obj->savefile_name);
+	sprintf(buf, "%s.mat", obj->savefile.name);
 	matrix_fp = fopen(buf, "rb");
 	if (matrix_fp == NULL) {
 		logprintf(obj, "error: can't open matrix file\n");
@@ -617,7 +656,7 @@ static void dump_dependencies(msieve_obj *obj,
 	/* we allow up to 64 dependencies, even though the
 	   average case will have (64 - POST_LANCZOS_ROWS) */
 
-	sprintf(buf, "%s.dep", obj->savefile_name);
+	sprintf(buf, "%s.dep", obj->savefile.name);
 	deps_fp = fopen(buf, "wb");
 	if (deps_fp == NULL) {
 		logprintf(obj, "error: can't open deps file\n");

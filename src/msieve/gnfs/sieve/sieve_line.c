@@ -199,8 +199,8 @@ uint32 do_line_sieving(msieve_obj *obj, sieve_param_t *params, mp_t *n,
 	memset(&job, 0, sizeof(job));
 	job.obj = obj;
 	job.fb = &fb;
-	job.min_a = -params->sieve_size;
-	job.max_a = params->sieve_size;
+	job.min_a = params->sieve_begin;
+	job.max_a = params->sieve_end;
 	job.min_b = 1;
 	job.max_b = 0xffffffff;     /* default is to sieve forever */
 
@@ -329,7 +329,7 @@ uint32 do_line_sieving(msieve_obj *obj, sieve_param_t *params, mp_t *n,
 	obj->flags &= ~MSIEVE_FLAG_SIEVING_IN_PROGRESS;
 
 	relation_batch_free(&job.relation_batch);
-	nfs_flush_savefile(obj);
+	savefile_flush(&obj->savefile);
 	free_one_sieve_fb(&job.sieve_rfb);
 	free_one_sieve_fb(&job.sieve_afb);
 	free_factor_base(&fb);

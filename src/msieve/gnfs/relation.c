@@ -91,17 +91,18 @@ int32 nfs_read_relation(char *buf, factor_base_t *fb,
 		uint32 roots[MAX_POLY_DEGREE];
 		uint32 high_coeff, num_roots;
 
-		if (a == 0)
+		p = (uint32)a;
+		if (p == 0)
 			return -2;
 
 		num_roots = poly_get_zeros(roots, &fb->rfb.poly,
-					(uint32)a, &high_coeff, 0);
+						p, &high_coeff, 0);
 		if (num_roots != fb->rfb.poly.degree || high_coeff == 0)
 			return -3;
-		factors[num_factors_r++] = a;
+		factors[num_factors_r++] = p;
 
 		num_roots = poly_get_zeros(roots, &fb->afb.poly,
-					(uint32)a, &high_coeff, 0);
+						p, &high_coeff, 0);
 		if (num_roots != fb->afb.poly.degree || high_coeff == 0)
 			return -4;
 		for (i = 0; i < num_roots; i++)
@@ -200,7 +201,8 @@ int32 nfs_read_relation(char *buf, factor_base_t *fb,
 
 /*--------------------------------------------------------------------*/
 uint32 find_large_ideals(relation_t *rel, 
-			relation_lp_t *out, uint32 filtmin) {
+			relation_lp_t *out, 
+			uint32 filtmin_r, uint32 filtmin_a) {
 	uint32 i;
 	uint32 num_ideals = 0;
 	uint32 num_factors_r;
@@ -214,7 +216,7 @@ uint32 find_large_ideals(relation_t *rel,
 	if (b == 0) {
 		uint32 p = rel->factors[0];
 
-		if (p > filtmin) {
+		if (p > filtmin_r) {
 			ideal_t *ideal = out->ideal_list + num_ideals;
 			ideal->i.r = p;
 			ideal->i.compressed_p = (p - 1) / 2;
@@ -225,7 +227,7 @@ uint32 find_large_ideals(relation_t *rel,
 			out->gf2_factors++;
 		}
 
-		if (p > filtmin) {
+		if (p > filtmin_a) {
 			for (i = 0; i < rel->num_factors_a; i++) {
 				ideal_t *ideal = out->ideal_list + 
 							num_ideals + i;
@@ -253,7 +255,7 @@ uint32 find_large_ideals(relation_t *rel,
 		/* if processing all the ideals, make up a
 		   separate unique entry for rational factors of -1 */
 
-		if (p == 0 && filtmin == 0) {
+		if (p == 0 && filtmin_r == 0) {
 			ideal_t *ideal = out->ideal_list + num_ideals;
 			ideal->i.compressed_p = 0x7fffffff;
 			ideal->i.rat_or_alg = RATIONAL_IDEAL;
@@ -262,7 +264,7 @@ uint32 find_large_ideals(relation_t *rel,
 			continue;
 		}
 
-		if (p > filtmin) {
+		if (p > filtmin_r) {
 
 			/* make a single unique entry for p, instead
 			   of finding the exact number r for which
@@ -293,7 +295,7 @@ uint32 find_large_ideals(relation_t *rel,
 
 	for (i = 0; i < (uint32)rel->num_factors_a; i++) {
 		uint32 p = rel->factors[num_factors_r + i];
-		if (p > filtmin) {
+		if (p > filtmin_a) {
 			ideal_t *ideal = out->ideal_list + num_ideals;
 			uint32 bmodp;
 
@@ -360,9 +362,9 @@ static void nfs_get_cycle_relations(msieve_obj *obj,
 				relation_t **rlist_out,
 				uint32 compress) {
 	uint32 i, j;
-	char buf[256];
-	FILE *relation_fp;
+	char buf[LINE_BUF_SIZE];
 	relation_t *rlist;
+	savefile_t *savefile = &obj->savefile;
 
 	hashtable_t unique_relidx;
 	uint32 num_unique_relidx;
@@ -398,11 +400,7 @@ static void nfs_get_cycle_relations(msieve_obj *obj,
 	logprintf(obj, "cycles contain %u unique relations\n", 
 				num_unique_relidx);
 
-	relation_fp = fopen(obj->savefile_name, "r");
-	if (relation_fp == NULL) {
-		logprintf(obj, "error: read_cycles can't open rel. file\n");
-		exit(-1);
-	}
+	savefile_open(savefile, SAVEFILE_READ);
 
 	/* read the list of relations */
 
@@ -410,8 +408,8 @@ static void nfs_get_cycle_relations(msieve_obj *obj,
 
 	i = (uint32)(-1);
 	j = 0;
-	fgets(buf, (int)sizeof(buf), relation_fp);
-	while (!feof(relation_fp) && j < num_unique_relidx) {
+	savefile_read_line(buf, sizeof(buf), savefile);
+	while (!savefile_eof(savefile) && j < num_unique_relidx) {
 		
 		int32 status;
 
@@ -419,14 +417,14 @@ static void nfs_get_cycle_relations(msieve_obj *obj,
 
 			/* no relation at this line */
 
-			fgets(buf, (int)sizeof(buf), relation_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
 		if (++i < relidx_list[j].payload[0]) {
 
 			/* relation not needed */
 
-			fgets(buf, (int)sizeof(buf), relation_fp);
+			savefile_read_line(buf, sizeof(buf), savefile);
 			continue;
 		}
 
@@ -455,12 +453,12 @@ static void nfs_get_cycle_relations(msieve_obj *obj,
 					(num_r + num_a) * sizeof(uint32));
 		}
 
-		fgets(buf, (int)sizeof(buf), relation_fp);
+		savefile_read_line(buf, sizeof(buf), savefile);
 	}
 
 	num_unique_relidx = *num_relations_out = j;
 	logprintf(obj, "read %u relations\n", j);
-	fclose(relation_fp);
+	savefile_close(savefile);
 	hashtable_free(&unique_relidx);
 
 	/* walk through the list of cycles and convert
@@ -521,7 +519,7 @@ void nfs_read_cycles(msieve_obj *obj,
 	relation_t *rlist;
 	uint64 mask = 0;
 
-	sprintf(buf, "%s.cyc", obj->savefile_name);
+	sprintf(buf, "%s.cyc", obj->savefile.name);
 	cycle_fp = fopen(buf, "rb");
 	if (cycle_fp == NULL) {
 		logprintf(obj, "error: read_cycles can't open cycle file\n");
@@ -529,7 +527,7 @@ void nfs_read_cycles(msieve_obj *obj,
 	}
 
 	if (dependency) {
-		sprintf(buf, "%s.dep", obj->savefile_name);
+		sprintf(buf, "%s.dep", obj->savefile.name);
 		dep_fp = fopen(buf, "rb");
 		if (dep_fp == NULL) {
 			logprintf(obj, "error: read_cycles can't "
