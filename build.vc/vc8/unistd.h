@@ -8,7 +8,6 @@
 #define strtoull   _strtoui64
 #define popen      _popen
 #define pclose     _pclose
-#define vsnprintf  _vsnprintf 
 #define strcasecmp _strcmpi
 
 #ifndef inline
