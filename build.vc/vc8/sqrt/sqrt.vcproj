@@ -168,8 +168,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/sqrt.pdb"
 				SubSystem="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool

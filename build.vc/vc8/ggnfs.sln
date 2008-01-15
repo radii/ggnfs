@@ -1,10 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C5B2EA76-3258-4716-BA00-8F75BF8A7839}"
-	ProjectSection(SolutionItems) = preProject
-		file_copy.bat = file_copy.bat
-	EndProjectSection
-EndProject
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ggnfslib", "ggnfslib\ggnfslib.vcproj", "{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gnfs-lasieve4I12e", "gnfs-lasieve4I12e\gnfs-lasieve4I12e.vcproj", "{4C204C23-29AA-4987-977C-ECD1F6C399DD}"
@@ -80,6 +75,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matbuild-tpie", "matbuild-tpie\matbuild-tpie.vcproj", "{09584DF7-7448-4BA9-B99A-FD65DB25A179}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7} = {1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C5B2EA76-3258-4716-BA00-8F75BF8A7839}"
+	ProjectSection(SolutionItems) = preProject
+		file_copy.bat = file_copy.bat
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "msieve", "msieve\msieve.vcproj", "{8E8D155A-99EA-46D5-9823-ADA2D725B5C3}"
