@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
-<VisualStudioProject
+<VisualStudioProject 
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="8.00"
 	Name="sqrt"
 	ProjectGUID="{985482DC-7D29-4658-B4F4-2978C314C48D}"
 	RootNamespace="sqrt"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -81,8 +80,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/sqrt.pdb"
 				SubSystem="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -102,6 +99,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -191,6 +191,9 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="if not exist ..\..\..\bin\$(OutDir) mkdir ..\..\..\bin\$(OutDir)&#x0D;&#x0A;copy /b $(OutDir)\$(ProjectName).exe ..\..\..\bin\$(OutDir)&#x0D;&#x0A;"
 			/>
@@ -254,8 +257,6 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -275,6 +276,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -341,8 +345,6 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -362,6 +364,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
