@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="pol51m0bx"
-	ProjectGUID="{CC20AECB-AF15-451C-8D78-F5DDACCECE99}"
-	RootNamespace="pol51m0bx"
+	Name="pol51optx"
+	ProjectGUID="{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}"
+	RootNamespace="pol51optx"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -51,7 +51,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage2"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_ASM_INTEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -79,7 +79,7 @@
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/pol51m0b.pdb"
+				ProgramDatabaseFile="$(OutDir)/pol51opt.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -138,7 +138,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage2"
 				PreprocessorDefinitions="_DEBUG;_CONSOLE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -166,7 +166,7 @@
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/pol51m0b.pdb"
+				ProgramDatabaseFile="$(OutDir)/pol51opt.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -224,7 +224,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_ASM_INTEL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -310,7 +310,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage2"
 				PreprocessorDefinitions="NDEBUG;_CONSOLE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -376,23 +376,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\check.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\assess.c"
 				>
 			</File>
 			<File
-				RelativePath="..\getopt.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\check.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\knapsack.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\dickman.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\knapsack_approx.c"
+				RelativePath="..\..\..\src\experimental\pol5\pol51opt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\pol51m0b.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\primes.c"
 				>
 			</File>
 			<File
@@ -400,11 +400,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\stage1.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\root_sieve.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\struct.c"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\roots.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\experimental\pol5\stage2\stage2.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\experimental\pol5\stage2\translate.c"
 				>
 			</File>
 		</Filter>
@@ -414,15 +422,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\getopt.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\pol5\if.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\include\poly_stage1.h"
+				RelativePath="..\..\..\src\experimental\pol5\include\poly_stage2.h"
 				>
 			</File>
 			<File
@@ -430,11 +434,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\stage1_impl.h"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\stage2_impl.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\stage1_inline.h"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\stage2_inline.h"
 				>
 			</File>
 		</Filter>
@@ -442,7 +446,7 @@
 			Name="Assembler Files"
 			>
 			<File
-				RelativePath="..\..\..\src\experimental\pol5\stage1\asm_hash5.asm"
+				RelativePath="..\..\..\src\experimental\pol5\stage2\asm_rs.asm"
 				>
 				<FileConfiguration
 					Name="Debug|x64"

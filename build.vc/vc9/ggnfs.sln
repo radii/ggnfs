@@ -89,6 +89,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pol51m0bx", "pol51m0bx\pol5
 		{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7} = {1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pol51optx", "pol51optx\pol51optx.vcproj", "{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7} = {1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -240,6 +245,14 @@ Global
 		{CC20AECB-AF15-451C-8D78-F5DDACCECE99}.Release|Win32.Build.0 = Release|Win32
 		{CC20AECB-AF15-451C-8D78-F5DDACCECE99}.Release|x64.ActiveCfg = Release|x64
 		{CC20AECB-AF15-451C-8D78-F5DDACCECE99}.Release|x64.Build.0 = Release|x64
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Debug|Win32.Build.0 = Debug|Win32
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Debug|x64.ActiveCfg = Debug|x64
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Debug|x64.Build.0 = Debug|x64
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Release|Win32.ActiveCfg = Release|Win32
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Release|Win32.Build.0 = Release|Win32
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Release|x64.ActiveCfg = Release|x64
+		{EB0A520A-3AF0-4B18-A7E9-46D0E699F1DA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
