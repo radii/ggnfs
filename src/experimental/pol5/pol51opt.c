@@ -1,20 +1,18 @@
 #include "if.h"
-#include "poly_stage1.h"
+#include "poly_stage2.h"
 
 #define START_MESSAGE \
 "----------------------------------------------------\n"\
-"|    pol51m0b GNFS polynomial selection program    |\n"\
+"|    pol51opt GNFS polynomial selection program    |\n"\
 "| This program is copyright (c) 2005, by Thorsten  |\n"\
 "| Kleinjung and Jens Franke, and is subject to the |\n"\
 "| terms of the GNU GPL version 2.                  |\n"\
 "| This program is part of gnfs4linux.              |\n"\
 "----------------------------------------------------\n"
 
-#define A5_SCALE_FACTOR 1000
-
 /*------------------------------------------------------------------------*/
 static char *
-get_options(int argc, char **argv, poly_stage1_t *data)
+get_options(int argc, char **argv, poly_stage2_t *data)
 {
 	char c;
 	int i = 0;
@@ -32,26 +30,32 @@ get_options(int argc, char **argv, poly_stage1_t *data)
 			base_name = argv[i++];
 			break;
 		case 'n':
-			if (sscanf(argv[i++], "%lf", &data->norm_max) != 1)
+			if (sscanf(argv[i++], "%lf", &data->max_norm_1) != 1)
 				complain("Bad argument to -n!\n");
 			break;
-		case 'p':
-			if (sscanf(argv[i++], "%u", &data->npr_in_p) != 1)
-				complain("Bad argument to -p!\n");
+		case 'N':
+			if (sscanf(argv[i++], "%lf", &data->max_norm_2) != 1)
+				complain("Bad argument to -n!\n");
 			break;
-		case 'a':
-			mpz_set_str(data->gmp_a5_begin, argv[i++], 10);
-			mpz_mul_ui(data->gmp_a5_begin, data->gmp_a5_begin, 
-					A5_SCALE_FACTOR);
+		case 'F':
+			if (sscanf(argv[i++], "%lf", &data->bound0) != 1)
+				complain("Bad argument to -n!\n");
+			break;
+		case 'f':
+			if (sscanf(argv[i++], "%lf", &data->bound1) != 1)
+				complain("Bad argument to -n!\n");
+			break;
+		case 'P':
+			if (sscanf(argv[i++], "%u", &data->p_bound) != 1)
+				complain("Bad argument to -n!\n");
 			break;
 		case 'A':
-			mpz_set_str(data->gmp_a5_end, argv[i++], 10);
-			mpz_mul_ui(data->gmp_a5_end, data->gmp_a5_end, 
-					A5_SCALE_FACTOR);
+			if (sscanf(argv[i++], "%lf", &data->area) != 1)
+				complain("Bad argument to -n!\n");
 			break;
-		case 'l':
-			if (sscanf(argv[i++], "%u", &data->p0_limit) != 1)
-				complain("Bad argument to -l!\n");
+		case 'e':
+			if (sscanf(argv[i++], "%lf", &data->min_e) != 1)
+				complain("Bad argument to -n!\n");
 			break;
 		case 'v':
 			verbose++;
@@ -64,18 +68,12 @@ get_options(int argc, char **argv, poly_stage1_t *data)
 
 	if (base_name == NULL)
 		complain("argument '-b base_name' is necessary\n");
-	if (data->npr_in_p < 4)
-		complain("argument '-p' must be >=4\n");
-	if (mpz_cmp_ui(data->gmp_a5_end, 0) == 0)
-		complain("argument '-A' not specified\n");
-
-	mpz_add_ui(data->gmp_a5_begin, data->gmp_a5_begin, 1);
 	return base_name;
 }
 
 /*------------------------------------------------------------------------*/
-void
-read_data(poly_stage1_t *data, char *infile)
+static void
+read_data(poly_stage2_t *data, char *infile)
 {
 	char buf[256];
 	FILE *fp;
@@ -99,18 +97,36 @@ read_data(poly_stage1_t *data, char *infile)
 
 /*------------------------------------------------------------------------*/
 static void
-open_outputfile(poly_stage1_t *data, char *infile)
+open_inputfile(poly_stage2_t *data, char *infile)
 {
 	char buf[256];
 
 	sprintf(buf, "%s.51.m", infile);
+	if ((data->infile = fopen(buf, "r")) == NULL)
+		complain("File not found: %s\n", buf);
+}
+
+/*------------------------------------------------------------------------*/
+static void
+open_outputfile(poly_stage2_t *data, char *infile)
+{
+	char buf[256];
+
+	sprintf(buf, "%s.cand", infile);
 	if ((data->outfile = fopen(buf, "a")) == NULL)
 		complain("Cannot open '%s'\n", buf);
 }
 
 /*------------------------------------------------------------------------*/
-void
-close_outputfile(poly_stage1_t *data)
+static void
+close_inputfile(poly_stage2_t *data)
+{
+	fclose(data->infile);
+}
+
+/*------------------------------------------------------------------------*/
+static void
+close_outputfile(poly_stage2_t *data)
 {
 	fclose(data->outfile);
 }
@@ -119,24 +135,25 @@ close_outputfile(poly_stage1_t *data)
 int
 main(int argc, char **argv)
 {
-	poly_stage1_t data;
-	char *infile_name;
+	poly_stage2_t data;
+	char *basename;
 
 	printf("%s\n", START_MESSAGE);
 
-	poly_stage1_init(&data);
+	poly_stage2_init(&data);
 
-	infile_name = get_options(argc, argv, &data);
+	basename = get_options(argc, argv, &data);
 
 	setbuf(stdout, NULL);
-	read_data(&data, infile_name);
-	open_outputfile(&data, infile_name);
-	setbuf(data.outfile, NULL);
+	read_data(&data, basename);
+	open_inputfile(&data, basename);
+	open_outputfile(&data, basename);
 
-	if (poly_stage1_run(&data))
+	if (poly_stage2_run(&data))
 		printf("success\n");
 
-	poly_stage1_free(&data);
+	poly_stage2_free(&data);
+	close_inputfile(&data);
 	close_outputfile(&data);
 	return 0;
 }
