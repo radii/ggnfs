@@ -2,6 +2,10 @@
 #include "profile.h"
 #include "if.h"
 
+#if defined( _MSC_VER )
+#  include <windows.h>
+#endif
+
 /*--------------------------------------------------------------------*/
 u64 read_clock(void) {
 
