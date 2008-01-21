@@ -201,7 +201,8 @@ read_a5pd(curr_poly_t *c, poly_stage2_t *data)
 /*-------------------------------------------------------------------------*/
 static void
 optimize(curr_poly_t *c, poly_stage2_t *data, 
-		root_sieve_t *rs, stage2_stat_t *stats)
+		root_sieve_t *rs, assess_t *assess,
+		stage2_stat_t *stats)
 {
 	int err;
 	double skewness;
@@ -229,8 +230,8 @@ optimize(curr_poly_t *c, poly_stage2_t *data,
 
 		if (pol_norm * exp(alpha_proj) > data->max_norm_1)
 			continue;
-		root_sieve_run(c, log_max_norm_2, data, rs, stats,
-				skewness, pol_norm, alpha_proj);
+		root_sieve_run(c, log_max_norm_2, data, rs, assess,
+				stats, skewness, pol_norm, alpha_proj);
 	}
 
 	profile_stop(PROF_ALL);
@@ -281,13 +282,15 @@ poly_stage2_run(poly_stage2_t *data)
 	stage2_stat_t stats;
 	curr_poly_t curr_poly;
 	root_sieve_t root_sieve;
+	assess_t assess;
 
 	stage2_stat_init(&stats);
 	curr_poly_init(&curr_poly);
 	root_sieve_init(&root_sieve);
-	init_assess(data->bound0, data->bound1, data->area, data->p_bound);
+	assess_init(&assess, data->bound0, data->bound1, 
+			data->area, data->p_bound);
 
-	optimize(&curr_poly, data, &root_sieve, &stats);
+	optimize(&curr_poly, data, &root_sieve, &assess, &stats);
 
 #ifdef DO_PROFILE
 	profile_done(&stats.profile);
@@ -306,21 +309,20 @@ poly_stage2_run(poly_stage2_t *data)
 	profile_print(&stats.profile, PROF_EVAL);
 	printf("\n      gmp/alpha1        ");
 	profile_print(&stats.profile, PROF_ALPHA1);
-	printf("\n      gmp/alpha2        ");
-	profile_print(&stats.profile, PROF_ALPHA2);
+	printf("\n      polroots         ");
+	profile_print(&stats.profile, PROF_MURPHY_ROOTS);
 	printf("\n      2. Optimization  ");
 	profile_print(&stats.profile, PROF_OPTIMIZE2);
 	printf("\n      3. Optimization  ");
 	profile_print(&stats.profile, PROF_OPTIMIZE3);
-	printf("\n        polroots         ");
-	profile_print(&stats.profile, PROF_ROOTS);
 	printf("\n        murphy-e sum     ");
-	profile_print(&stats.profile, PROF_MURPHY);
+	profile_print(&stats.profile, PROF_MURPHY_E);
 	printf("\n");
 #endif
 
 	stage2_stat_free(&stats);
 	curr_poly_free(&curr_poly);
 	root_sieve_free(&root_sieve);
+	assess_free(&assess);
 	return 1;
 }

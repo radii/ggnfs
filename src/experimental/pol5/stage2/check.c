@@ -30,8 +30,8 @@ write_polynomial_51(FILE * fi, int deg, mpz_t * coeff1, mpz_t * coeff2, mpz_t m,
 /*-------------------------------------------------------------------------*/
 void
 check(int x, int y, curr_poly_t *c, 
-	poly_stage2_t *data, stage2_stat_t *stats,
-	double skewness)
+	poly_stage2_t *data, assess_t *assess,
+	stage2_stat_t *stats, double skewness)
 {
 	int i;
 	double alpha, norm, murphye, alpha_max;
@@ -61,17 +61,17 @@ check(int x, int y, curr_poly_t *c,
 	optimize_2(c, skewness, &skewness, &norm);
 	profile_stop(PROF_OPTIMIZE2);
 
-	profile_start(PROF_ALPHA2);
+	profile_start(PROF_MURPHY_ROOTS);
 	alpha_max = log(data->max_norm_2 / norm);
-	if (compute_alpha(&alpha, 5, NULL, c->gmp_b, alpha_max)) {
-		profile_stop(PROF_ALPHA2);
+	if (murphy_alpha(&alpha, 5, assess, c->gmp_b, alpha_max)) {
+		profile_stop(PROF_MURPHY_ROOTS);
 		if (verbose > 2)
 			printf("failed\n");
 		return;
 	}
 	if (verbose > 2)
 		printf("alpha: %.3f\n", alpha);
-	profile_stop(PROF_ALPHA2);
+	profile_stop(PROF_MURPHY_ROOTS);
 
 	if (norm * exp(alpha) > data->max_norm_2) {
 		if (verbose > 2)
@@ -82,7 +82,8 @@ check(int x, int y, curr_poly_t *c,
 	if (verbose > 2)
 		printf("i: %d, j: %d\n", x, y);
 	profile_start(PROF_OPTIMIZE3);
-	optimize_3(c, data, skewness, &skewness, &norm, &murphye, &alpha);
+	optimize_3(c, data, assess, stats, skewness, 
+			&skewness, &norm, &murphye, &alpha);
 	profile_stop(PROF_OPTIMIZE3);
 	if (murphye < data->min_e) {
 		if (verbose > 1)

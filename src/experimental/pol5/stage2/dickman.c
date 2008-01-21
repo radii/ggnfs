@@ -1,7 +1,8 @@
 
 /* values of Dickman's rho function for 0.05<=x<=20, stepwidth=0.05 */
 
-double rho_table[400] = { 1,
+const double rho_table[400] = { 
+	1,
 	1,
 	1,
 	1,

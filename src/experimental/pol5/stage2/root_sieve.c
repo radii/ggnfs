@@ -1,6 +1,13 @@
 #include "stage2_impl.h"
 
-static const unsigned int primes[46] = {
+#define  MAX_PRIME_PROJ       100
+#define  MAX_PRIME_AFF        200
+#define  NPROJ_PRIMES          25
+#define  MAX_X       1000000	/* !!! */
+#define  MAX_Y           100	/* !!! */
+#define  SIEVELEN           8192
+
+static const unsigned int primes[NAFF_PRIMES] = {
 	2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
 	31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
 	73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
@@ -541,7 +548,7 @@ advancesieve(root_sieve_t *rs)
 void
 root_sieve_run(curr_poly_t *c, double log_max_norm_2, 
 		poly_stage2_t *data, root_sieve_t *rs,
-		stage2_stat_t *stats,
+		assess_t *assess, stage2_stat_t *stats,
 		double skewness, double pol_norm,
 		double alpha_proj)
 {
@@ -582,7 +589,7 @@ root_sieve_run(curr_poly_t *c, double log_max_norm_2,
 		profile_start(PROF_EVAL);
 		for (y = rs_bounds.ymin; y <= rs_bounds.ymax; y++) {
 			for (x = rs_bounds.xmin; x <= rs_bounds.xmax; x++) {
-				check(x, y, c, data, stats, skewness);
+				check(x, y, c, data, assess, stats, skewness);
 			}
 		}
 		profile_stop(PROF_EVAL);
@@ -636,7 +643,7 @@ root_sieve_run(curr_poly_t *c, double log_max_norm_2,
 							(int)cut, x + j);
 					}
 					check(x + j, y, c, data, 
-						stats, skewness);
+						assess, stats, skewness);
 				}
 			}
 			x += rs->sievelen;

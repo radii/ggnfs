@@ -1,33 +1,8 @@
-/* assess.c 
-
-   Copyright (C) 2005 T. Kleinjung.
-   This file is part of pol5, distributed under the terms of the
-   GNU General Public Licence and WITHOUT ANY WARRANTY.
-  
-  You should have received a copy of the GNU General Public License along
-  with this program; see the file COPYING.  If not, write to the Free
-  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-  2111-1307, USA.
-
-  CJM, 2/18/05: Hacked up for inclusion in GGNFS. It was originally written by
-  T. Kleinjung and/or Jens Franke.
-*/
-
 #include "stage2_impl.h"
 
-#define NSUMMANDS        1000
 #define NSMALLPRIMES      6542
 
-static double assess_bound0, assess_bound1, assess_area;
-static double *assess_optima;
-
-static unsigned int assess_primes[NSMALLPRIMES];
-static unsigned int assess_prime_bound;
-static double assess_alpha_max, assess_rat;
-static unsigned int *assess_mod, *assess_root, *assess_coeffmod;
-static int assess_mod_len, assess_root_len, assess_coeffmod_len;
-
-extern double rho_table[400];
+extern const double rho_table[400];
 
 /*----------------------------------------------------------------------*/
 static void
@@ -35,7 +10,8 @@ pol_mul_lin(unsigned int p, int deg, unsigned int *pol, unsigned int *modpol,
 	    unsigned int a)
 {
 	int i;
-	unsigned int coeff, pol2[7];
+	unsigned int coeff; 
+	unsigned int pol2[MAX_POLY_DEGREE + 2];
 
 	pol2[0] = 0;
 	for (i = 0; i <= deg; i++)
@@ -56,7 +32,8 @@ static void
 pol_sqr(unsigned int p, int deg, unsigned int *pol, unsigned int *modpol)
 {
 	int i, j;
-	unsigned int coeff, prod[12];
+	unsigned int coeff; 
+	unsigned int prod[2 * (MAX_POLY_DEGREE + 1)];
 
 	for (i = 0; i <= 2 * deg; i++)
 		prod[i] = 0;
@@ -65,12 +42,13 @@ pol_sqr(unsigned int p, int deg, unsigned int *pol, unsigned int *modpol)
 	for (i = 0; i < deg; i++)
 		for (j = i + 1; j <= deg; j++)
 			prod[i + j] += (((pol[i] * pol[j]) % p) << 1);
-	for (i = deg; i >= 0; i--)
+	for (i = deg; i >= 0; i--) {
 		if (prod[i + deg]) {
 			coeff = prod[i + deg];
 			for (j = 0; j <= deg; j++)
 				prod[i + j] += ((coeff * modpol[j]) % p);
 		}
+	}
 	for (i = 0; i <= deg; i++)
 		pol[i] = prod[i] % p;
 }
@@ -81,7 +59,8 @@ pol_exp(unsigned int p, int deg, unsigned int *pol, unsigned int *modpol,
 	unsigned int a, unsigned int ex)
 {
 	int i, n;
-	unsigned int ma, pol2[6], inv;
+	unsigned int ma, inv;
+	unsigned int pol2[MAX_POLY_DEGREE + 1];
 
 	if (modpol[deg] != p - 1) {
 		if (modpol[deg] == 0)
@@ -119,7 +98,9 @@ pol_gcd(unsigned int p, int deg, unsigned int *res, unsigned int *pol1,
 	unsigned int *pol)
 {
 	int i, d2, d3, diff;
-	unsigned int h, leadinv, pol2[6], pol3[6];
+	unsigned int h, leadinv; 
+	unsigned int pol2[MAX_POLY_DEGREE + 1];
+	unsigned int pol3[MAX_POLY_DEGREE + 1];
 
 	for (i = 0; i <= deg; i++) {
 		pol2[i] = pol[i];
@@ -238,7 +219,10 @@ pol_div_lin(unsigned int p, int *deg, unsigned int *coeff, unsigned int r)
 static unsigned int
 find_root(unsigned int p, int deg, unsigned int *coeff)
 {
-	unsigned int rpol[6], rpol1[6], rpol2[6], res, inv, a, p2;
+	unsigned int rpol[MAX_POLY_DEGREE + 1];
+	unsigned int rpol1[MAX_POLY_DEGREE + 1]; 
+	unsigned int rpol2[MAX_POLY_DEGREE + 1]; 
+	unsigned int res, inv, a, p2;
 	int i, rd, d;
 
 	for (i = 0; i <= deg; i++)
@@ -262,9 +246,10 @@ find_root(unsigned int p, int deg, unsigned int *coeff)
 		else
 			rpol1[1] = p - 1;
 		d = 0;
-		for (i = 0; i <= rd; i++)
+		for (i = 0; i <= rd; i++) {
 			if (rpol1[i])
 				d = 1;
+		}
 		if (d) {
 			d = pol_gcd(p, rd, rpol, rpol, rpol1);
 			rd = d;
@@ -282,8 +267,9 @@ find_root(unsigned int p, int deg, unsigned int *coeff)
 		d = pol_gcd(p, rd, rpol2, rpol1, rpol);
 		if (d) {
 			rd = d;
-			for (i = 0; i <= rd; i++)
+			for (i = 0; i <= rd; i++) {
 				rpol[i] = rpol2[i];
+			}
 		}
 	}
 	if (rd == 0)
@@ -319,37 +305,31 @@ find_pol_roots_homog(unsigned int p, int deg, unsigned int *polmod,
 {
 	unsigned int r;
 	int n, d, i;
+	unsigned int mod[MAX_POLY_DEGREE + 1];
 
-	if (assess_mod_len < deg + 1) {
-		assess_mod_len = deg + 1;
-		assess_mod =
-			(unsigned int *) xrealloc(assess_mod,
-						  assess_mod_len *
-						  sizeof(unsigned int));
-	}
 	for (i = 0; i <= deg; i++)
-		assess_mod[i] = polmod[i] % p;
+		mod[i] = polmod[i] % p;
 	d = deg;
 	n = 0;
-	while ((d) && (assess_mod[d] == 0)) {
+	while ((d) && (mod[d] == 0)) {
 		d--;
 		roots[n++] = p;
 	}
 	if (d == 0) {
-		if (assess_mod[0] == 0)
+		if (mod[0] == 0)
 			complain("find_pol_roots_homog: zero pol\n");
 		return n;
 	}
 	while (d) {
-		r = find_root(p, d, assess_mod);
+		r = find_root(p, d, mod);
 		if (r == p)
 			break;
-		if (pol_eval(p, d, assess_mod, r))
+		if (pol_eval(p, d, mod, r))
 			complain("find_pol_roots_homog\n");
 		do {
-			pol_div_lin(p, &d, assess_mod, r);
+			pol_div_lin(p, &d, mod, r);
 			roots[n++] = r;
-		} while (pol_eval(p, d, assess_mod, r) == 0);
+		} while (pol_eval(p, d, mod, r) == 0);
 	}
 	return n;
 }
@@ -364,6 +344,7 @@ brute_force(unsigned int p, int deg, mpz_t * gmp_coeff, unsigned int r)
 	unsigned int lifts[32], powers[32];
 	int ind, indmax, j;
 	double dp, lo, res;
+	unsigned int coeffmod[MAX_POLY_DEGREE + 1];
 
 	qmax = 1;
 	indmax = 0;
@@ -371,15 +352,15 @@ brute_force(unsigned int p, int deg, mpz_t * gmp_coeff, unsigned int r)
 		qmax *= p;
 		powers[indmax++] = qmax;
 	}
-	if (assess_mod_len < deg + 1) {
-		assess_mod_len = deg + 1;
-		assess_mod =
-			(unsigned int *) xrealloc(assess_mod,
-						  assess_mod_len *
-						  sizeof(unsigned int));
+	if (r == p) {	/* projective root; switch to poly(1/x) */
+		r = 0;
+		for (j = 0; j <= deg; j++)
+			coeffmod[j] = mpz_fdiv_ui(gmp_coeff[deg - j], qmax);
 	}
-	for (j = 0; j <= deg; j++)
-		assess_mod[j] = mpz_fdiv_ui(gmp_coeff[j], qmax);
+	else {
+		for (j = 0; j <= deg; j++)
+			coeffmod[j] = mpz_fdiv_ui(gmp_coeff[j], qmax);
+	}
 	dp = (double) p;
 	lo = log(dp) * dp / (dp + 1);
 	ind = 0;
@@ -391,7 +372,7 @@ brute_force(unsigned int p, int deg, mpz_t * gmp_coeff, unsigned int r)
 		if (ind < indmax - 1) {	/* lift root */
 			h = lifts[ind];
 			while (h < q * p) {
-				if (pol_eval(q * p, deg, assess_mod, h) == 0)
+				if (pol_eval(q * p, deg, coeffmod, h) == 0)
 					break;
 				h += q;
 			}
@@ -406,73 +387,7 @@ brute_force(unsigned int p, int deg, mpz_t * gmp_coeff, unsigned int r)
 			q0 = q / p;
 			h = lifts[ind] + q0;
 			while (h < q) {
-				if (pol_eval(q, deg, assess_mod, h) == 0)
-					break;
-				h += q0;
-			}
-			lifts[ind] = h;
-			if (h < q)
-				break;	/* found another zero */
-			ind--;
-		}
-		if (ind > 0)
-			continue;
-		break;		/* finished */
-	}
-	return res;
-}
-
-/*----------------------------------------------------------------------*/
-static double
-brute_force_proj(unsigned int p, int deg, mpz_t * gmp_coeff)
-{
-	unsigned int qmax, h, q, q0;
-	unsigned int lifts[32], powers[32];
-	int ind, indmax, j;
-	double dp, lo, res;
-
-	qmax = 1;
-	indmax = 0;
-	while (qmax < MAX_BF / p) {
-		qmax *= p;
-		powers[indmax++] = qmax;
-	}
-	if (assess_mod_len < deg + 1) {
-		assess_mod_len = deg + 1;
-		assess_mod =
-			(unsigned int *) xrealloc(assess_mod,
-						  assess_mod_len *
-						  sizeof(unsigned int));
-	}
-	for (j = 0; j <= deg; j++)
-		assess_mod[j] = mpz_fdiv_ui(gmp_coeff[deg - j], qmax);
-	dp = (double) p;
-	lo = log(dp) * dp / (dp + 1);
-	ind = 0;
-	lifts[0] = 0;
-	res = 0.;
-	while (1) {
-		q = powers[ind];
-		res += lo / ((double) q);
-		if (ind < indmax - 1) {	/* lift root */
-			h = lifts[ind];
-			while (h < q * p) {
-				if (pol_eval(q * p, deg, assess_mod, h) == 0)
-					break;
-				h += q;
-			}
-			if (h < q * p) {
-				ind++;
-				lifts[ind] = h;
-				continue;
-			}	/* did not find lift */
-		}		/* find next lift or go back */
-		while (ind >= 0) {
-			q = powers[ind];
-			q0 = q / p;
-			h = lifts[ind] + q0;
-			while (h < q) {
-				if (pol_eval(q, deg, assess_mod, h) == 0)
+				if (pol_eval(q, deg, coeffmod, h) == 0)
 					break;
 				h += q0;
 			}
@@ -490,85 +405,65 @@ brute_force_proj(unsigned int p, int deg, mpz_t * gmp_coeff)
 
 /*----------------------------------------------------------------------*/
 static void
-compute_coeffmod(unsigned int p, int deg, mpz_t * coeff)
+compute_coeffmod(unsigned int p, int deg, 
+		mpz_t *coeff, unsigned int *coeffmod)
 {
 	int i;
 
-	if (assess_coeffmod_len < deg + 1) {
-		assess_coeffmod_len = deg + 1;
-		assess_coeffmod =
-			(unsigned int *) xrealloc(assess_coeffmod,
-						  assess_coeffmod_len *
-						  sizeof(unsigned int));
-	}
 	for (i = 0; i <= deg; i++)
-		assess_coeffmod[i] = mpz_fdiv_ui(coeff[i], p);
+		coeffmod[i] = mpz_fdiv_ui(coeff[i], p);
 }
 
 /*----------------------------------------------------------------------*/
 /* returns 1 if alpha>alpha_targ */
 int
-compute_alpha(double *alpha, int deg, unsigned int **coeffmod,
-	      mpz_t * gmp_coeff, double alpha_targ)
+murphy_alpha(double *alpha, int deg, assess_t *assess,
+		mpz_t * gmp_coeff, double alpha_targ)
 {
 	double al, dp;
 	unsigned int p, r;
 	int i, j, n;
 	double al_prev, max_rest, rat_rest;
+	unsigned int roots[MAX_POLY_DEGREE + 1];
+	unsigned int coeffmod[MAX_POLY_DEGREE + 1];
 
 	al = 0.;
-	max_rest = assess_alpha_max;
-	rat_rest = assess_rat;
-	if (assess_root_len < deg + 1) {
-		assess_root_len = deg + 1;
-		assess_root =
-			(unsigned int *) xrealloc(assess_root,
-						  assess_root_len *
-						  sizeof(unsigned int));
-	}
+	max_rest = assess->alpha_max;
+	rat_rest = assess->alpha_random;
 	for (i = 0; i < NSMALLPRIMES; i++) {
 		al_prev = al;
-		p = assess_primes[i];
-		if (p > assess_prime_bound)
+		p = assess->prime_list[i];
+		if (p > assess->prime_bound)
 			break;
-		if (coeffmod == NULL) {
-			compute_coeffmod(p, deg, gmp_coeff);
-			n = find_pol_roots_homog(p, deg, assess_coeffmod,
-						 assess_root);
-		}
-		else
-			n = find_pol_roots_homog(p, deg, coeffmod[i],
-						 assess_root);
+		compute_coeffmod(p, deg, gmp_coeff, coeffmod);
+		n = find_pol_roots_homog(p, deg, coeffmod, roots);
 		j = 0;
 		dp = (double) p;
 		while (j < n) {
-			r = assess_root[j];
-			if ((j + 1 < n) && (r == assess_root[j + 1])) {	/* multiple zero */
-				if (r == p)
-					al -= brute_force_proj(p, deg,
-							       gmp_coeff);
-				else
-					al -= brute_force(p, deg, gmp_coeff, r);
+			r = roots[j];
+			if ((j + 1 < n) && (r == roots[j + 1])) {
+				/* multiple zero */
+				al -= brute_force(p, deg, gmp_coeff, r);
 			}
 			else {
 				al -= dp * log(dp) / (dp * dp - 1);
 			}
 			j++;
-			while ((j < n) && (assess_root[j] == r))
+			while ((j < n) && (roots[j] == r))
 				j++;
 		}
 		al += log(dp) / (dp - 1);
 		if (verbose > 3) {
 			printf("%u   %.3f %.3f:  ", p, al, al - al_prev);
 			for (j = 0; j < n; j++)
-				printf("%u ", assess_root[j]);
+				printf("%u ", roots[j]);
 			printf("\n");
 		}
 		if (p > 100) {
 			max_rest -= dp * log(dp) / (dp * dp - 1);
 			rat_rest -= log(dp) / (dp - 1);
-			if (al + rat_rest - max_rest * ((double) deg) >
-			    alpha_targ) {
+			if (al + rat_rest - 
+				max_rest * ((double) deg) > alpha_targ) {
 				return 1;
 			}
 		}
@@ -581,58 +476,44 @@ compute_alpha(double *alpha, int deg, unsigned int **coeffmod,
 
 /*----------------------------------------------------------------------*/
 void
-compute_alpha_exact(double *alpha, int deg, unsigned int **coeffmod,
+murphy_alpha_exact(double *alpha, int deg, assess_t *assess,
 		    mpz_t * gmp_coeff, unsigned int pb)
 {
 	double al, dp;
 	unsigned int p, r;
 	int i, j, n;
 	double al_prev;
+	unsigned int coeffmod[MAX_POLY_DEGREE + 1];
+	unsigned int roots[MAX_POLY_DEGREE + 1];
 
 	al = 0.;
-	if (assess_root_len < deg + 1) {
-		assess_root_len = deg + 1;
-		assess_root =
-			(unsigned int *) xrealloc(assess_root,
-						  assess_root_len *
-						  sizeof(unsigned int));
-	}
 	for (i = 0; i < NSMALLPRIMES; i++) {
 		al_prev = al;
-		p = assess_primes[i];
+		p = assess->prime_list[i];
 		if (p > pb)
 			break;
-		if (coeffmod == NULL) {
-			compute_coeffmod(p, deg, gmp_coeff);
-			n = find_pol_roots_homog(p, deg, assess_coeffmod,
-						 assess_root);
-		}
-		else
-			n = find_pol_roots_homog(p, deg, coeffmod[i],
-						 assess_root);
+		compute_coeffmod(p, deg, gmp_coeff, coeffmod);
+		n = find_pol_roots_homog(p, deg, coeffmod, roots);
 		j = 0;
 		dp = (double) p;
 		while (j < n) {
-			r = assess_root[j];
-			if ((j + 1 < n) && (r == assess_root[j + 1])) {	/* multiple zero */
-				if (r == p)
-					al -= brute_force_proj(p, deg,
-							       gmp_coeff);
-				else
-					al -= brute_force(p, deg, gmp_coeff, r);
+			r = roots[j];
+			if ((j + 1 < n) && (r == roots[j + 1])) {
+				/* multiple zero */
+				al -= brute_force(p, deg, gmp_coeff, r);
 			}
 			else {
 				al -= dp * log(dp) / (dp * dp - 1);
 			}
 			j++;
-			while ((j < n) && (assess_root[j] == r))
+			while ((j < n) && (roots[j] == r))
 				j++;
 		}
 		al += log(dp) / (dp - 1);
 		if (verbose > 3) {
 			printf("%u   %.3f %.3f:  ", p, al, al - al_prev);
 			for (j = 0; j < n; j++)
-				printf("%u ", assess_root[j]);
+				printf("%u ", roots[j]);
 			printf("\n");
 		}
 	}
@@ -681,9 +562,10 @@ prob(double r, double b)
 
 /*----------------------------------------------------------------------*/
 void
-murphy_e_core(double *me, int deg0, double *dbl_coeff0, int deg1,
-	  double *dbl_coeff1, double alpha0, double alpha1, double skewness,
-	  int nsm)
+murphy_e_score(double *me, int deg0, double *dbl_coeff0, 
+		int deg1, double *dbl_coeff1, 
+		double alpha0, double alpha1, 
+		double skewness, int nsm, assess_t *assess)
 {
 	int i, j;
 	double x, y, sx, sy, theta;
@@ -692,8 +574,9 @@ murphy_e_core(double *me, int deg0, double *dbl_coeff0, int deg1,
 	int interval, nop, nsum;
 	int deg[2];
 	double *dbl_coeff[2];
+	double optima[4 * MAX_POLY_DEGREE + 2];
 
-	sx = sqrt(assess_area * skewness);
+	sx = sqrt(assess->area * skewness);
 	sy = sx / skewness;
 	al0 = exp(alpha0);
 	al1 = exp(alpha1);
@@ -701,13 +584,20 @@ murphy_e_core(double *me, int deg0, double *dbl_coeff0, int deg1,
 	deg[1] = deg1;
 	dbl_coeff[0] = dbl_coeff0;
 	dbl_coeff[1] = dbl_coeff1;
-	nop = find_optima(deg, dbl_coeff, skewness, &assess_optima);
-	qsort(assess_optima, nop, sizeof(double), compare_doubles);
+
+	/* find the combined list of roots and turning points
+	   of both polynomials; these will be turned into 
+	   intervals that separately contribute to the score.
+	   The intervals will also include a smallest and largest
+	   point */
+
+	nop = find_poly_optima(deg, dbl_coeff, skewness, optima);
+	qsort(optima, nop, sizeof(double), compare_doubles);
 
 	e = 0;
 	for (interval = 1; interval < nop; interval++) {
-		left = assess_optima[interval - 1];
-		right = assess_optima[interval];
+		left = optima[interval - 1];
+		right = optima[interval];
 		theta_left = atan(left);
 		theta_right = atan(right);
 		theta_len = theta_right - theta_left;
@@ -735,8 +625,8 @@ murphy_e_core(double *me, int deg0, double *dbl_coeff0, int deg1,
 				v1 *= y;
 				v1 += xp * dbl_coeff1[j];
 			}
-			e0 += prob(al0 * v0, assess_bound0) * prob(al1 * v1,
-								   assess_bound1);
+			e0 += prob(al0 * v0, assess->bound0) * 
+				prob(al1 * v1, assess->bound1);
 		}
 		e0 /= nsum;
 		e += (e0 * theta_len);
@@ -747,46 +637,37 @@ murphy_e_core(double *me, int deg0, double *dbl_coeff0, int deg1,
 
 /*----------------------------------------------------------------------*/
 void
-murphy_e(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_coeff1,
-	 double alpha0, double alpha1, double skewness)
-{
-	murphy_e_core(me, deg0, dbl_coeff0, deg1, dbl_coeff1, alpha0, alpha1,
-		  skewness, NSUMMANDS);
-}
-
-/*----------------------------------------------------------------------*/
-void
-init_assess(double b0, double b1, double area, unsigned int pb)
+assess_init(assess_t *a, double b0, double b1, 
+		double area, unsigned int pb)
 {
 	int i;
 	double dp;
 
-	assess_bound0 = b0;
-	assess_bound1 = b1;
-	assess_area = area;
-	assess_prime_bound = pb;
+	a->bound0 = b0;
+	a->bound1 = b1;
+	a->area = area;
+	a->prime_bound = pb;
 	prime_table_init();
-	for (i = 0; i < NSMALLPRIMES; i++)
-		assess_primes[i] = get_next_prime();
-	if (assess_primes[NSMALLPRIMES - 1] != 65521)
-		Schlendrian("init_assess\n");
-	assess_alpha_max = 0.;
-	assess_rat = 0.;
+	a->prime_list = (unsigned int *)xmalloc(NSMALLPRIMES *
+						sizeof(unsigned int));
+	a->alpha_max = 0.;
+	a->alpha_random = 0.;
 	for (i = 0; i < NSMALLPRIMES; i++) {
-		if (assess_primes[i] < 100)
+		unsigned int p = get_next_prime();
+		a->prime_list[i] = p;
+		if (p < 100)
 			continue;
-		if (assess_primes[i] > assess_prime_bound)
+		if (p > a->prime_bound)
 			break;
-		dp = (double) (assess_primes[i]);
-		assess_alpha_max += dp * log(dp) / (dp * dp - 1);
-		assess_rat += log(dp) / (dp - 1);
+		dp = (double)p;
+		a->alpha_max += dp * log(dp) / (dp * dp - 1);
+		a->alpha_random += log(dp) / (dp - 1);
 	}
+}
 
-	assess_mod_len = 0;
-	assess_mod = NULL;
-	assess_root_len = 0;
-	assess_root = NULL;
-	assess_coeffmod_len = 0;
-	assess_coeffmod = NULL;
-	assess_optima = (double *) xmalloc(12 * sizeof(double));	/* degree 5+1 !! */
+/*----------------------------------------------------------------------*/
+void
+assess_free(assess_t *a)
+{
+	free(a->prime_list);
 }

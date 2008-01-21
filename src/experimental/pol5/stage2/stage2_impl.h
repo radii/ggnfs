@@ -13,13 +13,8 @@
 extern "C" {
 #endif
 
-#define  MAX_PRIME_PROJ       100
-#define  MAX_PRIME_AFF        200
-#define  NPROJ_PRIMES          25
-#define  NAFF_PRIMES           46
-#define  MAX_X       1000000	/* !!! */
-#define  MAX_Y           100	/* !!! */
-#define  SIEVELEN           8192
+#define NAFF_PRIMES 46
+#define MAX_POLY_DEGREE 5
 
 /*-----------------------------------------------------------------------*/
 /* profiling and statistics */
@@ -44,13 +39,12 @@ enum profile_counters {
 	PROF_INIT_SIEVE,
 	PROF_SIEVE,
 	PROF_ALPHA1,
-	PROF_ALPHA2,
 	PROF_EVAL,
 	PROF_INITIAL_OPTIMIZE,
 	PROF_OPTIMIZE2,
 	PROF_OPTIMIZE3,
-	PROF_ROOTS,
-	PROF_MURPHY,
+	PROF_MURPHY_ROOTS,
+	PROF_MURPHY_E,
 	PROF_MAX	/* must be last */
 };
 
@@ -79,14 +73,50 @@ void curr_poly_init(curr_poly_t *poly);
 void curr_poly_free(curr_poly_t *poly);
 
 /*-----------------------------------------------------------------------*/
+/* data for rating polynomial yield */
+
+typedef struct {
+	double bound0;
+	double bound1;
+	double area;
+	unsigned int *prime_list;
+	unsigned int prime_bound;
+	double alpha_max;
+	double alpha_random;
+} assess_t;
+
+void assess_init(assess_t *a, double b0, double b1, 
+		double area, unsigned int prime_bound);
+
+void assess_free(assess_t *a);
+
+void check(int x, int y, curr_poly_t *c, 
+		poly_stage2_t *data, assess_t *assess,
+		stage2_stat_t *stats, double skewness);
+
+int murphy_alpha(double *alpha, int deg, assess_t *assess,
+		mpz_t * gmp_coeff, double alpha_targ);
+
+void murphy_alpha_exact(double *alpha, int deg, assess_t *assess,
+		    mpz_t * gmp_coeff, unsigned int pb);
+
+void murphy_e_score(double *me, int deg0, double *dbl_coeff0, 
+		int deg1, double *dbl_coeff1, double alpha0, 
+		double alpha1, double skewness, int nsm, 
+		assess_t *assess);
+
+int find_poly_optima(int *deg, double **coeff, 
+			double skewness, double *optima);
+
+/*-----------------------------------------------------------------------*/
 /* routines for translating polynomials */
 
 void optimize_1(curr_poly_t *c, double *skewness, 
 		double *pol_norm, double *alpha_proj);
 void optimize_2(curr_poly_t *c, double skewness, 
 		double *new_skewness, double *norm_ptr);
-void optimize_3(curr_poly_t *c, poly_stage2_t *data, 
-		double skewness, double *new_skewness, 
+void optimize_3(curr_poly_t *c, poly_stage2_t *data, assess_t *assess,
+		stage2_stat_t *stats, double skewness, double *new_skewness, 
 		double *norm_ptr, double *eptr, double *alphaptr);
 
 /*-----------------------------------------------------------------------*/
@@ -131,26 +161,13 @@ void root_sieve_free(root_sieve_t *rs);
 double compute_proj_alpha(curr_poly_t *c);
 void root_sieve_run(curr_poly_t *c, double log_max_norm_2, 
 		poly_stage2_t *data, root_sieve_t *rs,
-		stage2_stat_t *stats, double skewness, 
-		double pol_norm, double alpha_proj);
+		assess_t *assess, stage2_stat_t *stats, 
+		double skewness, double pol_norm, double alpha_proj);
 
 #ifdef HAVE_ASM_INTEL
 void asm_root_sieve8(unsigned int **p1, unsigned int *p2, int l1,
 		     unsigned int *p4, int l2);
 #endif
-
-/*-----------------------------------------------------------------------*/
-/* routines for rating polynomial yield */
-
-void check(int x, int y, curr_poly_t *c, 
-		poly_stage2_t *data, stage2_stat_t *stats,
-		double skewness);
-void murphy_e_core(double *me, int deg0, double *dbl_coeff0, 
-		int deg1, double *dbl_coeff1, double alpha0, 
-		double alpha1, double skewness, int nsm);
-void murphy_e(double *me, int deg0, double *dbl_coeff0, 
-		int deg1, double *dbl_coeff1, double alpha0, 
-		double alpha1, double skewness);
 
 #ifdef __cplusplus
 }

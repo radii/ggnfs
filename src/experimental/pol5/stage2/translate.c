@@ -404,9 +404,9 @@ optimize_2(curr_poly_t *c, double skewness,
 
 /*-------------------------------------------------------------------------*/
 void
-optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
-		double *new_skewness, double *norm_ptr, 
-		double *eptr, double *alphaptr)
+optimize_3(curr_poly_t *c, poly_stage2_t *data, assess_t *assess,
+		stage2_stat_t *stats, double skewness, double *new_skewness, 
+		double *norm_ptr, double *eptr, double *alphaptr)
 {
 	int dk, i, niter;
 	double dbl_b[6];
@@ -425,7 +425,10 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 	s = skewness;
 	dbl_linb[1] = mpz_get_d(c->gmp_linb[1]);
 	dbl_linb[0] = mpz_get_d(c->gmp_linb[0]);
-	murphy_e(&e, 5, dbl_b, 1, dbl_linb, alpha, 0., s);
+	profile_start(PROF_MURPHY_E);
+	murphy_e_score(&e, 5, dbl_b, 1, dbl_linb, 
+			alpha, 0., s, 1000, assess);
+	profile_stop(PROF_MURPHY_E);
 	if (e < data->min_e) {
 		*new_skewness = s;
 		*eptr = e;
@@ -441,7 +444,10 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 			break;
 /* skewness */
 		s0 = s * ds;
-		murphy_e(&new_e, 5, dbl_b, 1, dbl_linb, alpha, 0., s0);
+		profile_start(PROF_MURPHY_E);
+		murphy_e_score(&new_e, 5, dbl_b, 1, dbl_linb, 
+				alpha, 0., s0, 1000, assess);
+		profile_stop(PROF_MURPHY_E);
 		if (new_e > e) {
 			s = s0;
 			e = new_e;
@@ -449,7 +455,10 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 		}
 		else {
 			s0 = s / ds;
-			murphy_e(&new_e, 5, dbl_b, 1, dbl_linb, alpha, 0., s0);
+			profile_start(PROF_MURPHY_E);
+			murphy_e_score(&new_e, 5, dbl_b, 1, dbl_linb, 
+					alpha, 0., s0, 1000, assess);
+			profile_stop(PROF_MURPHY_E);
 			if (new_e > e) {
 				s = s0;
 				e = new_e;
@@ -462,7 +471,10 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 /* translation */
 		translate_dbl(dbl_b0, dbl_b, dk);
 		dbl_linb[0] -= dk * dbl_linb[1];
-		murphy_e(&new_e, 5, dbl_b0, 1, dbl_linb, alpha, 0., s);
+		profile_start(PROF_MURPHY_E);
+		murphy_e_score(&new_e, 5, dbl_b0, 1, dbl_linb, 
+				alpha, 0., s, 1000, assess);
+		profile_stop(PROF_MURPHY_E);
 		dbl_linb[0] += dk * dbl_linb[1];
 		if (new_e > e) {
 			translate_gmp(c, c->gmp_b, 
@@ -474,7 +486,10 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 		else {
 			dbl_linb[0] += dk * dbl_linb[1];
 			translate_dbl(dbl_b0, dbl_b, -dk);
-			murphy_e(&new_e, 5, dbl_b0, 1, dbl_linb, alpha, 0., s);
+			profile_start(PROF_MURPHY_E);
+			murphy_e_score(&new_e, 5, dbl_b0, 1, dbl_linb, 
+					alpha, 0., s, 1000, assess);
+			profile_stop(PROF_MURPHY_E);
 			dbl_linb[0] -= dk * dbl_linb[1];
 			if (new_e > e) {
 				translate_gmp(c, c->gmp_b, c->gmp_linb, 
@@ -494,14 +509,23 @@ optimize_3(curr_poly_t *c, poly_stage2_t *data, double skewness,
 		niter++;
 	}
 
-	murphy_e_core(&e, 5, dbl_b0, 1, dbl_linb, alpha, 0., s, 10000);
+	profile_start(PROF_MURPHY_E);
+	murphy_e_score(&e, 5, dbl_b0, 1, dbl_linb, 
+			alpha, 0., s, 10000, assess);
+	profile_stop(PROF_MURPHY_E);
 	if (e >= data->min_e) {
 		if (data->p_bound < 2000) {
 			if (verbose > 2)
 				printf("(%f,%g) -> ", alpha, e);
-			compute_alpha_exact(&alpha, 5, NULL, c->gmp_b, 2000);
-			murphy_e_core(&e, 5, dbl_b0, 1, dbl_linb, alpha, 0., s,
-				  10000);
+
+			profile_start(PROF_MURPHY_ROOTS);
+			murphy_alpha_exact(&alpha, 5, assess, c->gmp_b, 2000);
+			profile_stop(PROF_MURPHY_ROOTS);
+
+			profile_start(PROF_MURPHY_E);
+			murphy_e_score(&e, 5, dbl_b0, 1, dbl_linb, 
+					alpha, 0., s, 10000, assess);
+			profile_stop(PROF_MURPHY_E);
 			if (verbose > 2)
 				printf("(%f,%g)\n", alpha, e);
 		}
