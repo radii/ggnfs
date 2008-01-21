@@ -16,4 +16,3 @@ Perl script when a number has more than 2 prime factors. This
 should be integrated, but I have some similar useful code I wrote
 a while back that should make it easier. So I need to merge the two
 and apply it.
-
