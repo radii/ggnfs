@@ -491,10 +491,11 @@ void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 	   of R-I.
 
 	   min_cycles is the minimum number of cycles that we absolutely
-	   must have in order to make a usable matrix; it is the combined
+	   must have in order to make a usable matrix. It is the combined
 	   number of ideals in the NFS rational and algebraic factor
-	   bases that were never tracked in the rest of the filtering phase. 
-	   Trying to produce exactly min_cycles cycles means that we will
+	   bases that were never tracked in the rest of the filtering phase,
+	   along with a little extra to allow discarding very heavy cycles.
+	   Producing a matrix with exactly min_cycles cycles means we will
 	   have to merge many ideals from I, which leads to a very dense
 	   matrix. On the other hand, R-I can be much larger than min_cycles,
 	   and we can instead attempt to produce a number of cycles close
@@ -557,7 +558,8 @@ void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 	   The effect of this method is that when there are many excess
 	   relations, the merge phase produces a usable but too-large matrix
 	   as quickly as possible, then gradually reduces its size until
-	   the number of nonzero matrix elements exceeds a threshold. */
+	   the number of nonzero matrix elements exceeds a threshold
+	   (or no more merges are possible). */
 
 	uint32 i;
 	relation_set_t *relset_array;

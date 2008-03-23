@@ -268,7 +268,7 @@ void mul_Nx64_64x64_acc(uint64 *v, uint64 *x,
 		     "pxor 4*256*8(%2,%%ecx,8), %%mm1      \n\t"
 		     "movzbl %%ah, %%ecx                   \n\t"
 		     "shrl $16, %%eax                      \n\t"
-		     "cmpl %5, %0                          \n\t"
+		     "cmpl %4, %0                          \n\t"
 		     "pxor 5*256*8(%2,%%ecx,8), %%mm1      \n\t"
 		     "movzbl %%al, %%ecx                   \n\t"
 		     "pxor 6*256*8(%2,%%ecx,8), %%mm1      \n\t"
@@ -278,8 +278,8 @@ void mul_Nx64_64x64_acc(uint64 *v, uint64 *x,
 		     "movq %%mm1, -8(%3,%0,8)              \n\t"
 		     "jne 0b                               \n\t"
 		     "emms                                 \n\t"
-			:"=r"(i)
-			:"r"(v), "r"(c), "r"(y), "0"(i), "g"(n)
+			:"+r"(i)
+			:"r"(v), "r"(c), "r"(y), "g"(n)
 			:"%eax", "%ecx", "%mm0", "%mm1", "memory");
 
 #elif defined(_MSC_VER) && !defined(_WIN64)
@@ -380,7 +380,7 @@ void mul_64xN_Nx64(uint64 *x, uint64 *y,
 		     "movq %%mm1, 4*256*8(%2,%%ecx,8)      \n\t"
 		     "movzbl %%ah, %%ecx                   \n\t"
 		     "shrl $16, %%eax                      \n\t"
-		     "cmpl %5, %0                          \n\t"
+		     "cmpl %4, %0                          \n\t"
 		     "movq %%mm0, %%mm1                    \n\t"
 		     "pxor 5*256*8(%2,%%ecx,8), %%mm1      \n\t"
 		     "movq %%mm1, 5*256*8(%2,%%ecx,8)      \n\t"
@@ -394,8 +394,8 @@ void mul_64xN_Nx64(uint64 *x, uint64 *y,
 		     "movq %%mm1, 7*256*8(%2,%%ecx,8)      \n\t"
 		     "jne 0b                               \n\t"
 		     "emms                                 \n\t"
-			:"=r"(i)
-			:"r"(x), "r"(c), "r"(y), "0"(i), "g"(n)
+			:"+r"(i)
+			:"r"(x), "r"(c), "r"(y), "g"(n)
 			:"%eax", "%ecx", "%mm0", "%mm1", "memory");
 
 #elif defined(_MSC_VER) && !defined(_WIN64)

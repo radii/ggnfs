@@ -38,98 +38,27 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 /*------------------------------------------------------------------------*/
-#ifndef NDEBUG
-	/* used to determine the floating point precision
-	   level, intended for x86 systems */
-
-#if defined(WIN32) 
-
-#include <float.h>
-typedef uint32 precision_t;
-static uint32 precision_is_ieee(void) {
-	precision_t prec = _control87(0, 0);
-	return  ((prec & _MCW_PC) == _PC_53) ? 1 : 0;
-}
-
-#elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
-
-#include <float.h>
-typedef uint16 precision_t;
-static uint32 precision_is_ieee(void) {
-	precision_t prec;
-	asm volatile ("fnstcw %0":"=m"(prec));
-	return ((prec & ~0x0300) == 0x0200) ? 1 : 0;
-}
-
-#else
-
-static uint32 precision_is_ieee(void) {
-	return 1;
-}
-
-#endif
-#endif  /* !NDEBUG */
-
-/*------------------------------------------------------------------------*/
-double ieee_round = 6755399441055744.0;
-double intel_round = 6755399441055744.0 * 2048.0;
-double round_test = 2.7;
-double round_correct = 3.0;
- 
-static void init_fast_rounding(fastmult_info_t *info) {
-
-	/* the two paths below are essentially redundant unless
-	   this is an x86 processor */
-
-#ifdef NDEBUG
-	/* as long as this isn't a debug build, we can
-	   determine the FPU precision experimentally */
-
-	double round_me;
- 
-	info->round_constant[0] = intel_round;
-	info->round_constant[1] = intel_round;
-	round_me = round_test;
-	round_me += info->round_constant[0];
-	round_me -= info->round_constant[1];
-	if (round_me == round_correct)
-		return;
-
-	info->round_constant[0] = ieee_round;
-	info->round_constant[1] = ieee_round;
-	round_me = round_test;
-	round_me += info->round_constant[0];
-	round_me -= info->round_constant[1];
-	if (round_me != round_correct) {
-		printf("error: can't initialize fast rounding\n");
-		exit(-1);
-	}
-
-#else
-	/* for debug builds, quantities are always spilled to
-	   registers so the precision would always look like
-	   IEEE. Instead, detect the FPU precision directly.
-	   We prefer the code path above because the compiler
-	   may be using SSE2 registers instead of the FPU stack,
-	   and this code would guess wrong in that case */
-
-	if (precision_is_ieee()) {
-		info->round_constant[0] = 6755399441055744.0;
-		info->round_constant[1] = 6755399441055744.0;
-	}
-	else {
-		info->round_constant[0] = 6755399441055744.0 * 2048.0;
-		info->round_constant[1] = 6755399441055744.0 * 2048.0;
-	}
-#endif
-
-}
-
-/*------------------------------------------------------------------------*/
 void fastmult_info_init(fastmult_info_t *info) {
 
 	memset(info, 0, sizeof(fastmult_info_t));
-	init_fast_rounding(info);
+
+	/* we use a tricky scheme for fast rounding of
+	   floating point numbers, and have to choose a
+	   constant that depends on the mantissa size of
+	   the floating point registers. This is 53 bits
+	   for all processors except x86 machines, where
+	   it can be 53 or 64 bits depending on the machine,
+	   compiler, OS, whether the code is built in debug 
+	   or release mode, and possibly on the alignment of 
+	   certain extrasolar planets. To avoid ambiguity, 
+	   force the precision to always be 53 bits */
+
+	if (!precision_is_ieee()) {
+		info->precision_changed = 1;
+		info->old_precision = set_precision();
+	}
+	info->round_constant[0] = 6755399441055744.0;
+	info->round_constant[1] = 6755399441055744.0;
 }
 
 /*------------------------------------------------------------------------*/
@@ -145,6 +74,10 @@ void fastmult_info_free(fastmult_info_t *info) {
 	for (i = 0; i <= num_huge_twiddle; i++) {
 		free(info->huge_twiddle[i].small);
 		free(info->huge_twiddle[i].large);
+	}
+
+	if (info->precision_changed) {
+		clear_precision(info->old_precision);
 	}
 	memset(info, 0, sizeof(fastmult_info_t));
 }

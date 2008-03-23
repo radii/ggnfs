@@ -202,6 +202,8 @@ static void get_sieve_params(uint32 bits, sieve_param_t *params) {
 	max_size = sizeof(prebuilt_params) / sizeof(sieve_param_t);
 	if (bits >= prebuilt_params[max_size - 1].bits) {
 		*params = prebuilt_params[max_size - 1];
+		params->sieve_begin = -params->sieve_size;
+		params->sieve_end = params->sieve_size;
 		return;
 	}
 

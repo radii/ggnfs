@@ -20,8 +20,9 @@
 
 CC = gcc
 WARN_FLAGS = -Wall -W -Wconversion
-OPT_FLAGS = -O3 -fomit-frame-pointer -DNDEBUG -D_FILE_OFFSET_BITS=64
+OPT_FLAGS = -O3 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64
 MACHINE_FLAGS = -DCPU_GENERIC
+LDFLAGS =
 
 ifeq ($(ARCH),pentium2)
 	MACHINE_FLAGS = -march=pentium2 -DCPU_PENTIUM2
@@ -63,6 +64,7 @@ ifeq ($(OSTYPE),win32)
 endif
 ifeq ($(OSTYPE),msys)
 	LIB_THREAD = 
+	LDFLAGS += -Wl,--large-address-aware
 endif
 
 CFLAGS = $(OPT_FLAGS) $(MACHINE_FLAGS) $(WARN_FLAGS) -Iinclude
@@ -135,7 +137,7 @@ NFS_OBJS = $(NFS_SRCS:.c=.no)
 all: $(MISC_OBJS) $(NFS_OBJS)
 	ar r libmsieve.a $(MISC_OBJS) $(NFS_OBJS)
 	ranlib libmsieve.a
-	$(CC) $(CFLAGS) demo.c -o msieve -I../../include \
+	$(CC) $(CFLAGS) $(LDFLAGS) demo.c -o msieve -I../../include \
 			libmsieve.a -lm $(LIB_THREAD)
 
 clean:

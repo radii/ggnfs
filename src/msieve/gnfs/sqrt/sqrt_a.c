@@ -490,11 +490,15 @@ static uint32 get_initial_inv_sqrt(msieve_obj *obj, mp_poly_t *mp_alg_poly,
 /*-------------------------------------------------------------------*/
 #define DEFAULT_RBITS 20000000
 
-static uint32 get_recip_bits(uint32 dbits, uint32 nbits) {
+static uint32 get_recip_bits(uint32 dbits, uint32 nbits,
+				uint32 max_bits) {
 
 	/* determine the number of bits in the reciprocal
 	   used to compute num % den, assuming bit sizes
-	   nbits and dbits, respectively */
+	   nbits and dbits, respectively. max_bits is the 
+	   largest size of nbits to expect in the future. 
+	   We can use this information to choose a reciprocal
+	   size that avoids wasting time on tiny problems */
 
 	double fft_size;
 	uint32 fft_power, diff;
@@ -503,7 +507,7 @@ static uint32 get_recip_bits(uint32 dbits, uint32 nbits) {
 	   reciprocal size to get the remainder in a single pass */
 
 	if (dbits > nbits || nbits - dbits < DEFAULT_RBITS)
-		return DEFAULT_RBITS;
+		return MIN(DEFAULT_RBITS, max_bits + 32);
 
 	/* the more common case: num is larger than den, possibly
 	   much larger. We don't want to make the reciprocal the 
@@ -522,7 +526,7 @@ static uint32 get_recip_bits(uint32 dbits, uint32 nbits) {
 	if (diff > nbits - dbits)
 		diff = nbits - dbits;
 
-	return MAX(diff, DEFAULT_RBITS);
+	return MAX(diff, MIN(DEFAULT_RBITS, max_bits + 32));
 }
 
 /*-------------------------------------------------------------------*/
@@ -569,7 +573,8 @@ static uint32 get_final_sqrt(msieve_obj *obj, ap_poly_t *alg_poly,
 	for (num_iter = 0; ap_bits(q) < prod_max_bits / 2 + 4000; num_iter++)
 		ap_mul(q, q, q, info);
 
-	rbits = get_recip_bits(ap_bits(q), prod_max_bits);
+	rbits = get_recip_bits(ap_bits(q), prod_max_bits,
+				prod_max_bits);
 	ap_recip(q, &recip, rbits, info);
 	ap_poly_mod_q(prod, q, prod, &recip, info);
 	ap_si2ap(i, POSITIVE, q);
@@ -597,7 +602,9 @@ static uint32 get_final_sqrt(msieve_obj *obj, ap_poly_t *alg_poly,
 		   future mod operations */
 
 		if (q->nwords > MAX_MP_WORDS) {
-			rbits = get_recip_bits(qbits, ap_bits(prod->coeff + 0));
+			rbits = get_recip_bits(qbits, 
+						ap_bits(prod->coeff + 0),
+						prod_max_bits);
 			ap_recip(q, &recip, rbits, info);
 		}
 
@@ -819,9 +826,7 @@ void alg_square_root(msieve_obj *obj, mp_poly_t *mp_alg_poly,
 				check_q, c, mp_alg_poly);
 	free(rlist);
 	if (i == 0) {
-		logprintf(obj, "error: relation product is incorrect; "
-				"if this is a debug binary, make sure that "
-				"NDEBUG is not defined\n");
+		logprintf(obj, "error: relation product is incorrect\n");
 		goto finished;
 	}
 

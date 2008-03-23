@@ -447,7 +447,6 @@ static void purge_singletons_final_core(msieve_obj *obj,
 
 	filter->num_relations = num_relations;
 	filter->num_ideals = num_ideals;
-	filter->max_ideal_degree = j;
 	filter->relation_array = relation_array = 
 			(relation_ideal_t *)xrealloc(relation_array,
 				(curr_relation - relation_array + 1) *
@@ -465,11 +464,121 @@ static void purge_singletons_final_core(msieve_obj *obj,
 }
 
 /*--------------------------------------------------------------------*/
+static size_t read_lp_file(msieve_obj *obj, filter_t *filter, FILE *fp,
+				size_t mem_use, 
+				uint32 max_ideal_weight) {
+	uint32 i, j, k;
+	size_t header_size;
+	relation_ideal_t tmp;
+	relation_ideal_t *relation_array;
+	uint32 curr_word;
+	size_t num_relation_alloc;
+	uint32 *counts;
+	uint32 num_relations = filter->num_relations;
+	uint32 num_ideals = filter->num_ideals;
+
+	/* read in the relations from fp, as well as the large
+	   ideals they contain. Do not save ideals that occur
+	   more than max_ideal_weight times in the dataset */
+
+	header_size = (sizeof(relation_ideal_t) - 
+			sizeof(tmp.ideal_list)) / sizeof(uint32);
+	counts = (uint32 *)xcalloc((size_t)num_ideals, sizeof(uint32));
+
+	/* first build a frequency table for the large ideals */
+
+	for (i = 0; i < num_relations; i++) {
+
+		fread(&tmp, sizeof(uint32), header_size, fp);
+
+		for (j = 0; j < tmp.ideal_count; j++) {
+			uint32 curr_ideal;
+
+			fread(&curr_ideal, sizeof(uint32), (size_t)1, fp);
+			counts[curr_ideal]++;
+		}
+	}
+
+	/* renumber the ideals to ignore the ones that occur
+	   too often */
+
+	for (i = j = 0; i < num_ideals; i++) {
+		if (counts[i] <= max_ideal_weight)
+			counts[i] = j++;
+		else
+			counts[i] = (uint32)(-1);
+	}
+	filter->target_excess += i - j;
+	filter->num_ideals = j;
+	logprintf(obj, "keeping %u ideals with weight <= %u, "
+			"new excess is %u\n",
+			j, max_ideal_weight, 
+			filter->target_excess);
+
+	/* reread the relation list, saving the sparse ideals */
+
+	rewind(fp);
+	num_relation_alloc = 10000;
+	curr_word = 0;
+	relation_array = (relation_ideal_t *)xmalloc(
+					num_relation_alloc *
+					sizeof(relation_ideal_t));
+	for (i = 0; i < num_relations; i++) {
+
+		relation_ideal_t *r;
+
+		/* make sure the relation array has room for the
+		   new relation. Be careful increasing the array
+		   size, since this is probably the largest array
+		   in the NFS code */
+
+		if (curr_word * sizeof(uint32) >=
+				(num_relation_alloc-1) * 
+				sizeof(relation_ideal_t)) {
+
+			num_relation_alloc = 1.4 * num_relation_alloc;
+			relation_array = (relation_ideal_t *)xrealloc(
+					relation_array, 
+					num_relation_alloc *
+					sizeof(relation_ideal_t));
+		}
+
+		r = (relation_ideal_t *)(
+			(uint32 *)relation_array + curr_word);
+		fread(r, sizeof(uint32), header_size, fp);
+
+		for (j = k = 0; j < r->ideal_count; j++) {
+
+			uint32 curr_ideal;
+
+			fread(&curr_ideal, sizeof(uint32), (size_t)1, fp);
+			curr_ideal = counts[curr_ideal];
+			if (curr_ideal != (uint32)(-1))
+				r->ideal_list[k++] = curr_ideal;
+		}
+		r->gf2_factors += j - k;
+		r->ideal_count = k;
+		curr_word += header_size + k;
+	}
+
+	/* finish up: trim the allocated relation array */
+
+	filter->relation_array = (relation_ideal_t *)xrealloc(
+						relation_array, 
+						curr_word * 
+						sizeof(uint32));
+	free(counts);
+	return MAX(mem_use, num_ideals * sizeof(uint32) +
+			    num_relation_alloc * 
+			    sizeof(relation_ideal_t));
+}
+
+/*--------------------------------------------------------------------*/
 static void purge_singletons_final(msieve_obj *obj, 
 				factor_base_t *fb,
 				filter_t *filter,
 				uint32 log2_hashtable_size,
-				uint32 have_bad_relation_list) {
+				uint32 max_ideal_weight) {
 
 	/* the last disk-based pass through the relation
 	   file; its job is to form a packed array of 
@@ -488,6 +597,7 @@ static void purge_singletons_final(msieve_obj *obj,
 	size_t mem_use;
 	uint32 tmp_factors[TEMP_FACTOR_LIST_SIZE];
 	relation_t tmp_relation;
+	uint32 have_bad_relation_list = (max_ideal_weight == 0);
 
 	tmp_relation.factors = tmp_factors;
 
@@ -596,22 +706,32 @@ static void purge_singletons_final(msieve_obj *obj,
 	savefile_close(savefile);
 	fclose(relation_fp);
 
-	/* finish up */
+	/* finish up; the disk-based pass simply reads all
+	   the large ideals from disk, but subsequent passes
+	   filter out large ideals that occur too often */
 
 	filter->num_relations = num_relations;
 	filter->num_ideals = hashtable_getall(&unique_ideals, NULL);
 	mem_use = hashtable_sizeof(&unique_ideals);
-	mem_use = MAX(mem_use, relation_array_words * sizeof(uint32));
-	logprintf(obj, "memory use: %.1f MB\n",
-			(double)mem_use / 1048576);
 	hashtable_free(&unique_ideals);
 
-	filter->relation_array = (relation_ideal_t *)xmalloc(
+	rewind(final_fp);
+	if (max_ideal_weight == 0) {
+		filter->relation_array = (relation_ideal_t *)xmalloc(
 						relation_array_words * 
 						sizeof(uint32));
-	rewind(final_fp);
-	fread(filter->relation_array, relation_array_words,
-			sizeof(uint32), final_fp);
+		fread(filter->relation_array, relation_array_words,
+				sizeof(uint32), final_fp);
+		mem_use = MAX(mem_use, 
+				relation_array_words * sizeof(uint32));
+	}
+	else {
+		mem_use = read_lp_file(obj, filter, final_fp, 
+					mem_use, max_ideal_weight);
+	}
+
+	logprintf(obj, "memory use: %.1f MB\n",
+			(double)mem_use / 1048576);
 	fclose(final_fp);
 	sprintf(buf, "%s.lp", savefile->name);
 	remove(buf);
@@ -641,12 +761,14 @@ static void dump_relations(msieve_obj *obj, filter_t *filter) {
 
 /*--------------------------------------------------------------------*/
 uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
-				filter_t *filter, uint32 disk_based) {
+				filter_t *filter, uint32 max_ideal_weight) {
 
 	uint32 clique_heap_size;
 	uint32 hash_mask = 0x0f0f0f0f;
 	uint32 log2_hashtable_size = 27;
+	uint32 disk_based = (max_ideal_weight == 0);
 	uint32 max_clique_relations;
+	uint32 target_excess;
 
 	logprintf(obj, "filtering rational ideals above %u\n", 
 					filter->filtmin_r);
@@ -700,10 +822,12 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 	}
 
 	purge_singletons_final(obj, fb, filter, 
-			log2_hashtable_size - 6, disk_based);
+			log2_hashtable_size - 6, max_ideal_weight);
 	purge_singletons_final_core(obj, filter);
 
-	/* convert the list of relations-to-skip into a list
+	/* save the relation list once it is free of singletons.
+	   If the disk-based pass above occurred, this will 
+	   convert the list of relations-to-skip into a list
 	   of relations-to-keep */
 
 	dump_relations(obj, filter);
@@ -713,13 +837,16 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 	   If there aren't enough relations, return a
 	   crude estimate of how many more would be needed */
 
+	target_excess = filter->target_excess;
+	if (!disk_based)
+		target_excess = FINAL_EXCESS_FRACTION * target_excess;
+
 	if (filter->num_relations < filter->num_ideals ||
-	    filter->num_relations - filter->num_ideals <
-	    			filter->target_excess) {
+	    filter->num_relations - filter->num_ideals < target_excess) {
 		uint32 relations_needed = 1000000;
 
 		if (filter->num_relations > filter->num_ideals) {
-			relations_needed = 3 * (filter->target_excess -
+			relations_needed = 3 * (target_excess -
 						(filter->num_relations - 
 					 	 filter->num_ideals));
 			relations_needed = MAX(relations_needed, 20000);
@@ -739,8 +866,8 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 	   passes to perform, allowing us to discover new
 	   cliques to prune */
 
-	clique_heap_size = ((filter->num_relations - filter->num_ideals) -
-				filter->target_excess) / 2;
+	clique_heap_size = ((filter->num_relations - 
+				filter->num_ideals) - target_excess) / 2;
 	clique_heap_size = MIN(clique_heap_size, 400000);
 	max_clique_relations = 2;
 
@@ -749,12 +876,12 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 		   appearing in exactly max_clique_relations relations */
 
 		while (filter->num_relations - filter->num_ideals >
-				filter->target_excess + 100) {
+				target_excess + 100) {
 			if (nfs_purge_cliques(obj, filter, clique_heap_size,
 					max_clique_relations,
 					(filter->num_relations - 
 					 filter->num_ideals) - 
-					filter->target_excess) == 0) {
+					target_excess) == 0) {
 				break;
 			}
 
@@ -773,13 +900,16 @@ uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 		   cliques to delete */
 
 		if (filter->num_relations - filter->num_ideals <=
-				filter->target_excess + 100000)
+					target_excess + 100000)
 			break;
 
 		logprintf(obj, "too much excess; switching to %u-cliques\n",
 					++max_clique_relations);
 	}
 
-	dump_relations(obj, filter);
+	/* do not save the list with cliques removed; if we have
+	   to rerun the singleton removal, then more excess relations
+	   may be required */
+
 	return 0;
 }

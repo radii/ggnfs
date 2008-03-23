@@ -473,8 +473,8 @@ static void start_worker_thread(thread_data_t *t)
 {
 	t->command = COMMAND_WAIT;
 #if defined(WIN32) || defined(_WIN64)
-	t->run_event = CreateEvent(NULL, 0, 0, NULL);
-	t->finish_event = CreateEvent(NULL, 0, 0, NULL);
+	t->run_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	t->finish_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 	t->thread_id = CreateThread(NULL, 0, worker_thread_main, t, 0, NULL);
 #else
 	pthread_mutex_init(&t->run_lock, NULL);

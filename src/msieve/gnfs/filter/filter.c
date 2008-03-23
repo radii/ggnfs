@@ -114,14 +114,10 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	merge_t merge;
 	uint32 filtmin_r;
 	uint32 filtmin_a;
-	uint32 filtmin_r_pass2;
-	uint32 filtmin_a_pass2;
 	uint32 entries_r;
 	uint32 entries_a;
-	uint32 entries_r_pass2;
-	uint32 entries_a_pass2;
 	uint32 extra_needed;
-	uint32 num_passes;
+	uint32 max_weight;
 	factor_base_t fb;
 
 	logprintf(obj, "\n");
@@ -152,171 +148,95 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
 	find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
 
-	/* singleton removal happens in several phases. The first
-	   phase does the singleton removal and clique processing
-	   for all the ideals larger than filtmin. In the first
-	   phase we demand a lot of excess relations. 
+	/* singleton removal happens in at least two phases. 
+	   Phase 1 does the singleton removal and clique 
+	   processing for all the ideals larger than filtmin, 
+	   regardless of ideal weight. In the first phase we 
+	   demand a lot of excess relations. 
 	   
 	   We avoid pruning too many cliques, to leave some room
-	   for succeeding phases */
+	   for phase 2+. Phase 2 always runs, even if there is 
+	   not enough excess for phase 1; the first pass is just
+	   to remove the majority of the excess, in case there
+	   are many more relations than necesary */
 
 	memset(&filter, 0, sizeof(filter));
 	filter.filtmin_r = filtmin_r;
 	filter.filtmin_a = filtmin_a;
-	filter.target_excess = (uint32)(1.7 * (entries_r + entries_a));
+	filter.target_excess = (uint32)(1.5 * (entries_r + entries_a));
 	logprintf(obj, "ignoring smallest %u rational and %u "
 			"algebraic ideals\n", entries_r, entries_a);
 
-	extra_needed = nfs_purge_singletons(obj, &fb, &filter, 1);
+	extra_needed = nfs_purge_singletons(obj, &fb, &filter, 0);
 
-	/* give up if there is not enough excess to form a matrix
-	   (we require 8% more excess than is strictly needed to
-	   construct a matrix) */
+	/* throw away the current relation list */
 
-	if (filter.num_relations < filter.num_ideals ||
-	    filter.num_relations - filter.num_ideals <
-	    		1.08 * (entries_r + entries_a)) {
-		free(filter.relation_array);
-		filter.relation_array = NULL;
-		return extra_needed;
-	}
+	free(filter.relation_array);
+	filter.relation_array = NULL;
 
-	/* We have excess relations to spare. This means the singleton
-	   removal can be repeated with a smaller factor base bound,
-	   so that more large ideals can be explicitly tracked. It also
-	   means we have more room to delete cliques. Unfortunately,
-	   it's not clear up front *how much* more room there is; the
-	   dataset must have a minimum amount of excess to form a matrix
-	   at all, but the only way to size up the dataset in a single
-	   pass is to assume an unmanageably low factor base bound,
-	   do the singleton removal, then sacrifice ideals until the
-	   minimum amount of matrix excess is achieved. That in turn
-	   probably requires too much memory.
+	/* perform the other filtering passes; these use a very small
+	   filtering bound, and rely on most unneeded relations
+	   having been deleted already. The set of relations remaining
+	   will be forwarded to the final merge phase */
 
-	   Instead, if the current dataset has sufficient excess, we
-	   iteratively lower the factor base bound a little (10% at 
-	   a time), then repeat the singleton and clique removal with 
-	   a lower (10% at a time) amount of desired excess.
+	filtmin_r = MIN(filtmin_r / 2, 750000);
+	filtmin_a = MIN(filtmin_a / 2, 750000);
+	find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
+	filter.filtmin_r = filtmin_r;
+	filter.filtmin_a = filtmin_a;
 
-	   We will keep information on ideals larger than filtmin_pass2, 
-	   not just ideals larger than filtmin. This technically means 
-	   the merge phase can produce an extremely small matrix, but 
-	   that matrix would be hopelessly dense.  Instead, the merge 
-	   code will use the extra information to skip merging ideals 
-	   that appear in many relations. The ignored ideals increase 
-	   the number of cycles that must be found, until the process 
-	   converges to a moderate size matrix that is still tolerably
-	   sparse. This multi-step process is how the pros filter :) */
+	for (max_weight = 20; max_weight < 40; max_weight += 5) {
 
-	num_passes = 1;
-	filtmin_r_pass2 = filtmin_r;
-	filtmin_a_pass2 = filtmin_a;
-	entries_r_pass2 = entries_r;
-	entries_a_pass2 = entries_a;
+		filter.target_excess = entries_r + entries_a;
+		extra_needed = nfs_purge_singletons(obj, &fb, 
+						&filter, max_weight);
 
-	while (1) {
-		double excess_fraction = (double)(filter.num_relations - 
-				filter.num_ideals) / (entries_r + entries_a);
-
-		logprintf(obj, "dataset has %3.1f%% excess relations\n",
-				100.0 * (excess_fraction - 1.0));
-
-		/* throw away the current relation list */
-
-		free(filter.relation_array);
-		filter.relation_array = NULL;
-
-		/* when singleton removal completes the code 
-		   remembers the maximum number of relations 
-		   an ideal appears in. When this number is large 
-		   (20-something or more) the dataset is sufficiently 
-		   dense that the heuristics below and in the merging 
-		   code work correctly. If it is smaller, then the
-		   current value of filtmin is set too conservatively,
-		   and we should lower it a little bit */
-
-		if (filter.max_ideal_degree < 22) {
-			filtmin_r = filtmin_r_pass2;
-			filtmin_a = filtmin_a_pass2;
-			entries_r = entries_r_pass2;
-			entries_a = entries_a_pass2;
-			num_passes = 1;
-		}
-
-		/* reduce the bound on large ideals, so that there
-		   are more ideals explicitly tracked */
-
-		filtmin_r_pass2 = filtmin_r * (1.0 - 0.1 * num_passes);
-		filtmin_a_pass2 = filtmin_a * (1.0 - 0.1 * num_passes);
-
-		/* find the new number of entries needed for a matrix */
-
-		find_fb_size(&fb, filtmin_r_pass2, filtmin_a_pass2,
-				&entries_r_pass2, &entries_a_pass2);
-		logprintf(obj, "ignoring smallest %u rational and %u "
-					"algebraic ideals\n", 
-					entries_r_pass2, entries_a_pass2);
-		excess_fraction = MAX(1.08, excess_fraction * (1.0 -
-					0.1 * num_passes));
-
-		/* repeat the in-memory singleton removal with the more
-		   stringent filtering bound. The number of large ideals 
-		   will increase, so if there was too much excess before
-		   there is less now. Any singletons or cliques removed
-		   in previous passes would still need to be removed in this
-		   pass, so the temporary files generated in previous passes
-		   are incrementally modified */
-
-		filter.filtmin_r = filtmin_r_pass2;
-		filter.filtmin_a = filtmin_a_pass2;
-		filter.target_excess = excess_fraction * 
-					(entries_r + entries_a);
-
-		extra_needed = nfs_purge_singletons(obj, &fb, &filter, 0);
-
-		/* preceed to the merge phase if there is only a small
-		   amount of excess left */
+		/* give up if there is not enough excess 
+		   to form a matrix */
 
 		if (filter.num_relations < filter.num_ideals ||
-		    filter.num_relations - filter.num_ideals <=
-				1.10 * (entries_r + entries_a)) {
-
-			logprintf(obj, "dataset has %3.1f%% excess relations\n",
-					100.0 * (
-					(double)(filter.num_relations - 
-					filter.num_ideals) / (entries_r + 
-					entries_a) - 1.0));
-
-			extra_needed = entries_r_pass2 + entries_a_pass2;
-			nfs_merge_init(obj, &filter);
-			nfs_merge_2way(obj, &filter, &merge);
-			nfs_merge_full(obj, &merge, extra_needed);
-
-			/* do not accept the collection of generated cycles
-			   unless the matrix they form is dense enough. It's
-			   unfortunate, but different datasets could look the
-			   same going into the merge phase but lead to very
-			   different matrix densities. The problem is that if
-			   the matrix is not dense enough experience shows
-			   that the linear algebra sometimes is unable to find
-			   nontrivial dependencies. This is especially common
-			   when the bound on large primes is much larger than
-			   is sensible. In fact, I haven't seen a matrix
-			   with average cycle weight under 50.0 get solved
-			   successfully */
-
-			if (merge.avg_cycle_weight > 60.0)
-				break;
-
-			logprintf(obj, "matrix not dense enough, retrying\n");
-			free_relsets(&merge);
+		    filter.num_relations - filter.num_ideals <
+						FINAL_EXCESS_FRACTION *
+						filter.target_excess) {
+			free(filter.relation_array);
+			filter.relation_array = NULL;
+			return extra_needed;
 		}
 
-		if (++num_passes > 8) {
-			printf("error: too many filtering passes\n");
-			exit(-1);
-		}
+		/* perform the merge phase */
+
+		extra_needed = filter.target_excess;
+		nfs_merge_init(obj, &filter);
+		nfs_merge_2way(obj, &filter, &merge);
+		nfs_merge_full(obj, &merge, extra_needed);
+
+		/* do not accept the collection of generated cycles
+		   unless the matrix they form is dense enough. It's
+		   unfortunate, but different datasets could look the
+		   same going into the merge phase but lead to very
+		   different matrix densities. The problem is that if
+		   the matrix is not dense enough experience shows
+		   that the linear algebra sometimes is unable to find
+		   nontrivial dependencies. This is especially common
+		   when the bound on large primes is much larger than
+		   is sensible. In fact, I haven't seen a matrix
+		   with average cycle weight under 50.0 get solved
+		   successfully */
+
+		if (merge.avg_cycle_weight > 60.0)
+			break;
+
+		logprintf(obj, "matrix not dense enough, retrying\n");
+		free_relsets(&merge);
 	}
+
+	if (max_weight == 40) {
+		printf("error: too many merge attempts\n");
+		exit(-1);
+	}
+
+	/* optimize the collection of cycles 
+	   and save the result */
 
 	nfs_merge_post(obj, &merge);
 	dump_cycles(obj, &merge);

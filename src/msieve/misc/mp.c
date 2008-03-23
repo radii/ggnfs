@@ -341,12 +341,11 @@ static void mp_addmul_1(mp_t *a, uint32 b, uint32 *x) {
 	    "addl %%eax, (%3,%5,4)	\n\t"
 	    "movl %%edx, %1		\n\t"
 	    "adcl $0, %1		\n\t"
-	    "incl %5			\n\t"
+	    "incl %0			\n\t"
 	    "jnz 0b			\n\t"
 	    "1:				\n\t"
-	    : "=r"(words), "=r"(carry)
-	    : "r"(a->val + words), "r"(x + words), 
-	      "m"(b), "0"(words), "1"(carry)
+	    : "+r"(words), "+r"(carry)
+	    : "r"(a->val + words), "r"(x + words), "m"(b)
 	    : "%eax", "%edx", "cc", "memory");
 
 	words = a->nwords;
@@ -420,12 +419,11 @@ static uint32 mp_submul_1(uint32 *a, uint32 b,
 	    "subl %%eax, (%3,%5,4)	\n\t"
 	    "movl %%edx, %1		\n\t"
 	    "adcl $0, %1		\n\t"
-	    "incl %5			\n\t"
+	    "incl %0			\n\t"
 	    "jnz 0b			\n\t"
 	    "1:				\n\t"
-	    : "=r"(words), "=r"(carry)
-	    : "r"(a + words), "r"(x + words), 
-	      "g"(b), "0"(words), "1"(carry)
+	    : "+r"(words), "+r"(carry)
+	    : "r"(a + words), "r"(x + words), "g"(b)
 	    : "%eax", "%edx", "cc", "memory");
 
 #elif defined( _MSC_VER ) && !defined( _WIN64 )
@@ -495,9 +493,8 @@ void mp_mul_1(mp_t *a, uint32 b, mp_t *x) {
 	    "incl %5			\n\t"
 	    "jnz 0b			\n\t"
 	    "1:				\n\t"
-	    : "=r"(words), "=r"(carry)
-	    : "r"(a->val + words), "r"(x->val + words), 
-	      "g"(b), "0"(words), "1"(carry)
+	    : "+r"(words), "+r"(carry)
+	    : "r"(a->val + words), "r"(x->val + words), "g"(b)
 	    : "%eax", "%edx", "cc", "memory");
 
 	 words = a->nwords;

@@ -154,7 +154,7 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 		a = (int64)strtod(buf, &next_field);
 		b = strtoul(next_field + 1, NULL, 10);
 		key[0] = (uint32)a;
-		key[1] = ((a >> 32) & 0xff) | (b << 8);
+		key[1] = ((a >> 32) & 0x1f) | (b << 5);
 
 		hashval = (HASH1(key[0]) ^ HASH2(key[1])) >>
 				(32 - LOG2_DUP_HASHTABLE1_SIZE);
@@ -214,6 +214,10 @@ static void purge_duplicates_pass2(msieve_obj *obj) {
 }
 
 /*--------------------------------------------------------------------*/
+#define LOG2_BIN_SIZE 17
+#define BIN_SIZE (1 << (LOG2_BIN_SIZE))
+#define TARGET_HITS_PER_PRIME 40.0
+
 uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 				uint32 max_relations) {
 
@@ -228,8 +232,8 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 	uint8 *hashtable;
 	uint32 blob[2];
 
-	double total_primes;
-	uint32 num_primes;
+	uint32 *prime_bins;
+	double bin_max;
 
 	uint32 tmp_factors[TEMP_FACTOR_LIST_SIZE];
 	relation_t tmp_relation;
@@ -251,12 +255,11 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		logprintf(obj, "error: dup1 can't open collision file\n");
 		exit(-1);
 	}
-	hashtable = (uint8 *)xcalloc(
-			(size_t)1 << (LOG2_DUP_HASHTABLE1_SIZE - 3), 
-			(size_t)1);
+	hashtable = (uint8 *)xcalloc((size_t)1 << 
+				(LOG2_DUP_HASHTABLE1_SIZE - 3), (size_t)1);
+	prime_bins = (uint32 *)xcalloc((size_t)1 << (32 - LOG2_BIN_SIZE),
+					sizeof(uint32));
 
-	total_primes = 0;
-	num_primes = 0;
 	curr_relation = (uint32)(-1);
 	num_relations = 0;
 	num_collisions = 0;
@@ -295,15 +298,15 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		}
 
 		/* relation is good; find the value to which it
-		   hashes. Note that only the bottom 40 bits of 'a'
-		   and the bottom 24 bits of 'b' figure into the hash,
+		   hashes. Note that only the bottom 35 bits of 'a'
+		   and the bottom 29 bits of 'b' figure into the hash,
 		   so that spurious hash collisions are possible
 		   (though highly unlikely) */
 
 		num_relations++;
 		blob[0] = (uint32)tmp_relation.a;
-		blob[1] = ((tmp_relation.a >> 32) & 0xff) |
-			  (tmp_relation.b << 8);
+		blob[1] = ((tmp_relation.a >> 32) & 0x1f) |
+			  (tmp_relation.b << 5);
 
 		hashval = (HASH1(blob[0]) ^ HASH2(blob[1])) >>
 			   (32 - LOG2_DUP_HASHTABLE1_SIZE);
@@ -329,11 +332,8 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		   
 		for (i = 0; i < tmp_relation.num_factors_r +
 				tmp_relation.num_factors_a; i++) {
-			total_primes += tmp_relation.factors[i];
+			prime_bins[tmp_relation.factors[i] / BIN_SIZE]++;
 		}
-		num_primes += tmp_relation.num_factors_r +
-				tmp_relation.num_factors_a;
-
 
 		/* get the next line */
 
@@ -367,11 +367,27 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 	}
 
 	/* the large prime cutoff for the rest of the filtering
-	   process is arbitrarily chosen as the 'center of mass'
-	   of the distribution of prime factors of relations.
-	   This seems to choose a reasonable bound, and has the
-	   advantage of depending only on the relations that are
-	   actually present */
+	   process should be chosen here. We don't want the bound
+	   to depend on an arbitrarily chosen factor base, since
+	   that bound maybe too large or much too small. The former
+	   would make filtering take too long, and the latter 
+	   could make filtering impossible.
 
-	return (uint32)(total_primes / num_primes);
+	   Conceptually, we want the bound to be the point below
+	   which large primes appear too often in the dataset. */
+
+	i = 1 << (32 - LOG2_BIN_SIZE);
+	bin_max = (double)BIN_SIZE * i /
+			log((double)BIN_SIZE * i);
+	for (i--; i > 2; i--) {
+		double bin_min = (double)BIN_SIZE * i /
+				log((double)BIN_SIZE * i);
+		double hits_per_prime = (double)prime_bins[i] /
+						(bin_max - bin_min);
+		if (hits_per_prime > TARGET_HITS_PER_PRIME)
+			break;
+		bin_max = bin_min;
+	}
+	free(prime_bins);
+	return BIN_SIZE * (i + 0.5);
 }

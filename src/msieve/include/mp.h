@@ -388,21 +388,22 @@ void mp_random_prime(uint32 bits, mp_t *res, uint32 *seed1, uint32 *seed2);
 uint32 mp_next_prime(mp_t *p, mp_t *res, uint32 *seed1, uint32 *seed2);
 
 
-	/* Modular addition/subtraction: compute a +- b mod p */
+	/* Modular addition/subtraction: compute a +- b mod p
+	   Note that the asm below has to be quite tricky to
+	   guarantee that an input operand is not placed in a
+	   register that is clobbered by the asm instructions */
 
 static INLINE uint32 mp_modsub_1(uint32 a, uint32 b, uint32 p) {
 
 #if (defined(__GNUC__) || defined(__ICL)) && \
 		defined(__i386__) && defined(HAVE_CMOV)
-	uint32 ans;
-	asm("xorl %%edx, %%edx	\n\t"
-	    "subl %2, %0	\n\t"
-	    "cmovbl %3, %%edx	\n\t"
-	    "addl %%edx, %0	\n\t"
-	 : "=r"(ans)
-	 : "0"(a), "g"(b), "g"(p) : "%edx", "cc");
+	uint32 t = 0, tr = a;
+	asm("subl %2, %0	\n\t"
+	    "cmovc %3, %1	\n\t"
+	    : "+&r"(tr), "+r"(t)
+	    : "g"(b), "g"(p) : "cc");
 
-	return ans;
+	return tr + t;
 
 #elif defined(_MSC_VER) && !defined(_WIN64) && defined(HAVE_CMOV)
 	uint32 ans;
@@ -428,7 +429,19 @@ static INLINE uint32 mp_modsub_1(uint32 a, uint32 b, uint32 p) {
 
 static INLINE uint32 mp_modadd_1(uint32 a, uint32 b, uint32 p) {
 
+#if (defined(__GNUC__) || defined(__ICL)) && \
+		defined(__i386__) && defined(HAVE_CMOV)
+	uint32 t = a - p, tr = a + b;
+
+	asm("addl %2, %1    \n\t"
+	    "cmovc %1, %0   \n\t"
+	    : "+r"(tr), "+&r"(t)
+	    : "g"(b) : "cc");
+
+	return tr;
+#else
 	return mp_modsub_1(a, p - b, p);
+#endif
 }
 
 	/* conversion to/from doubles. Note that the maximum

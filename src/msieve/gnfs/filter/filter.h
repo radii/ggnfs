@@ -88,8 +88,6 @@ typedef struct {
 	relation_ideal_t *relation_array;  /* relations after singleton phase */
 	uint32 num_relations;       /* current number of relations */
 	uint32 num_ideals;          /* current number of unique large ideals */
-	uint32 max_ideal_degree;    /* largest number of relations in which
-					an ideal occurs */
 	uint32 filtmin_r;           /* min. value a rational ideal needs 
 				       to be tracked during filtering */
 	uint32 filtmin_a;           /* min. value an algebraic ideal needs 
@@ -97,6 +95,11 @@ typedef struct {
 	uint32 target_excess;      /* how many more relations than ideals
 					are required for filtering to proceed */
 } filter_t;
+
+/* the multiple of the amount of excess needed for
+   merging to proceed */
+
+#define FINAL_EXCESS_FRACTION 1.16
 
 /* representation of a 'relation set', i.e. a group
    of relations that will all participate in the same
@@ -166,10 +169,11 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
    and fills in 'filter' with the large ideals of surviving 
    relations before writing the file.
 
-   If disk_based is zero, the process begins instead from
+   If max_ideal_weight is nonzero, the process begins instead from
    <savefile_name>.s; this allows singleton removal and clique 
    processing to refine a previously processed dataset but 
-   with new filtering parameters 
+   with new filtering parameters. All ideals that occur less than
+   max_ideal_weight times in the list of relations are tracked. 
    
    The return value is zero if all of this succeeds. The only
    reason it would fail is if there are not enough relations in
@@ -178,7 +182,7 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
    needed so that singleton removal is likely to succeed */
 
 uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
-			filter_t *filter, uint32 disk_based);
+			filter_t *filter, uint32 max_ideal_weight);
 
 /* perform clique removal on the current set of relations.
    see clique.c for explanations of the last three parameters */
