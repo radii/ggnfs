@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GGNFS; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ----------------------------------------------------------------------*/
-
 #include <mp_int.h>
 #include <ap.h>
 
@@ -531,6 +530,14 @@ static void ap_mod_1(ap_t *num, ap_t *den, ap_t *res) {
 	uint32 dwords = den->nwords;
 	big_mp_t n;
 	mp_t d, q, r;
+
+	ap_check_nwords(res, dwords);
+	if (dwords == 1) {
+		res->val[0] = mp_mod_1_core(num->val, nwords, den->val[0]);
+		res->nwords = (res->val[0]) ? 1 : 0;
+		res->sign = num->sign;
+		return;
+	}
 
 	mp_clear(&r);
 	mp_clear(&d);

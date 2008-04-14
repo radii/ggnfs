@@ -108,6 +108,8 @@ static void find_fb_size(factor_base_t *fb,
 }
 
 /*--------------------------------------------------------------------*/
+#define MAX_KEEP_WEIGHT 40
+
 uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
 	filter_t filter;
@@ -132,11 +134,7 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	/* delete duplicate relations, and determine the cutoff
 	   size of large primes used in the rest of the filtering.
 	   We do not just use the factor base, since it may be too 
-	   small or too large for this particular dataset
-	  
-	   Also determine the number of ideals that would be ignored
-	   given the cutoff from the duplicate phase; this puts a
-	   lower bound on the matrix size */
+	   small or too large for this particular dataset */
 
 	filtmin_r = filtmin_a = nfs_purge_duplicates(obj, &fb, 0);
 	if (obj->nfs_lower)
@@ -179,14 +177,18 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	   having been deleted already. The set of relations remaining
 	   will be forwarded to the final merge phase */
 
-	filtmin_r = MIN(filtmin_r / 2, 750000);
-	filtmin_a = MIN(filtmin_a / 2, 750000);
-	find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
-	filter.filtmin_r = filtmin_r;
-	filter.filtmin_a = filtmin_a;
+	filtmin_r = MIN(filtmin_r / 2, 900000);
+	filtmin_a = MIN(filtmin_a / 2, 900000);
 
-	for (max_weight = 20; max_weight < 40; max_weight += 5) {
+	for (max_weight = 20; max_weight < MAX_KEEP_WEIGHT; 
+					max_weight += 5) {
 
+		filtmin_r = 0.8 * filtmin_r;
+		filtmin_a = 0.8 * filtmin_a;
+		find_fb_size(&fb, filtmin_r, filtmin_a, 
+				&entries_r, &entries_a);
+		filter.filtmin_r = filtmin_r;
+		filter.filtmin_a = filtmin_a;
 		filter.target_excess = entries_r + entries_a;
 		extra_needed = nfs_purge_singletons(obj, &fb, 
 						&filter, max_weight);
@@ -203,7 +205,11 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 			return extra_needed;
 		}
 
-		/* perform the merge phase */
+		/* perform the merge phase. target_excess will be different
+		   from the value set above, because the singleton removal
+		   probably threw away many large ideals that occur
+		   too often to be worth tracking, which forces the target
+		   matrix size to increase */
 
 		extra_needed = filter.target_excess;
 		nfs_merge_init(obj, &filter);
@@ -230,7 +236,7 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 		free_relsets(&merge);
 	}
 
-	if (max_weight == 40) {
+	if (max_weight >= MAX_KEEP_WEIGHT) {
 		printf("error: too many merge attempts\n");
 		exit(-1);
 	}

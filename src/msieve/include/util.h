@@ -47,14 +47,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
 #include <stdarg.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifndef _MSC_VER
-#include <inttypes.h>
+	#include <inttypes.h>
 #endif
+#ifdef _MSC_VER
+	#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,10 +71,12 @@ extern "C" {
 	typedef __int16 int16;
 	typedef __int32 int32;
 	typedef __int64 int64;
+	typedef __int64 int64_t;
 	typedef unsigned __int8 uint8;
 	typedef unsigned __int16 uint16;
 	typedef unsigned __int32 uint32;
 	typedef unsigned __int64 uint64;
+	typedef unsigned __int64 uint64_t;
 
 	/* portable 64-bit formatting */
 	#define PRId64 "I64d"
@@ -100,6 +105,7 @@ extern "C" {
 #if defined(_MSC_VER)
 	#define INLINE __inline
 	#define getpid _getpid
+	#define rint floor
 #elif !defined(RS6K)
 	#define INLINE inline
 #else

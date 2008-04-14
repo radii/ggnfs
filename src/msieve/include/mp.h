@@ -211,24 +211,23 @@ void mp_divrem(mp_t *num, mp_t *denom, mp_t *quot, mp_t *rem);
 
 uint32 mp_divrem_1(mp_t *num, uint32 denom, mp_t *quot);
 
+	/* internal mod_1 routine, used with variable size numerator */
 
-	/* Divide an mp_t by a single word and return the
-	   remainder */
+static INLINE uint32 mp_mod_1_core(uint32 *num, 
+				uint32 nwords, uint32 denom) {
 
-static INLINE uint32 mp_mod_1(mp_t *num, uint32 denom) {
-	int32 i = num->nwords - 1;
+	int32 i = nwords - 1;
 	uint32 rem = 0;
 
-	if (num->val[i] < denom) {
-		rem = num->val[i--];
-	}
+	if (num[i] < denom)
+		rem = num[i--];
 
 #if (defined(__GNUC__) || defined(__ICL)) && \
 	(defined(__i386__) || defined(__x86_64__))
 	while (i >= 0) {
 		asm("divl %3"
 			: "=d"(rem)
-			: "0"(rem), "a"(num->val[i]), "r"(denom) : "cc" );
+			: "0"(rem), "a"(num[i]), "r"(denom) : "cc" );
 		i--;
 	}
 
@@ -242,7 +241,6 @@ static INLINE uint32 mp_mod_1(mp_t *num, uint32 denom) {
 		jl	L1
 		mov	ebx,denom
 		mov	esi,num
-		lea	esi,[esi]num.val
 		mov	edx,rem
 	L0:	mov	eax,[esi+4*ecx]
 		div	ebx
@@ -261,6 +259,13 @@ static INLINE uint32 mp_mod_1(mp_t *num, uint32 denom) {
 	}
 #endif
 	return rem;
+}
+
+	/* Divide an mp_t by a single word and return the
+	   remainder */
+
+static INLINE uint32 mp_mod_1(mp_t *num, uint32 denom) {
+	return mp_mod_1_core(num->val, num->nwords, denom);
 }
 
 	/* Calculate floor(i_th root of 'a'). The return value 

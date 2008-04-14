@@ -652,10 +652,11 @@ void mp_divrem_core(big_mp_t *num, mp_t *denom,
 	i = num->nwords;
 	j = denom->nwords;
 	if (mp_cmp((mp_t *)num, denom) < 0) {
-		mp_copy((mp_t *)num, rem);  /* copy high half of num only! */
+		mp_copy((mp_t *)num, rem);  /* copy low half of num only! */
 		return;
 	}
-	if (j <= 1) { 		/* remainder had better fit in an mp_t */
+	if (j <= 1) {
+ 		/* quotient and remainder had better fit in an mp_t */
 		rem->val[0] = mp_divrem_1((mp_t *)num, denom->val[0], quot);
 		if (rem->val[0] > 0)
 			rem->nwords = 1;
