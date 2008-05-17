@@ -246,10 +246,7 @@ int compare_row_off(const void *x, const void *y) {
 	return (int)xx->col_off - (int)yy->col_off;
 }
 
-static void matrix_thread_init(thread_data_t *t, la_col_t *A,
-			uint32 nrows, uint32 col_min, 
-			uint32 col_max, uint32 block_size,
-			uint32 num_dense_rows) {
+static void matrix_thread_init(thread_data_t *t) {
 
 	uint32 i, j, k, m;
 	uint32 num_row_blocks;
@@ -258,10 +255,23 @@ static void matrix_thread_init(thread_data_t *t, la_col_t *A,
 	packed_block_t *curr_stripe;
 	entry_idx_t *e;
 
+	la_col_t *A = t->initial_cols;
+	uint32 nrows = t->nrows_in;
+	uint32 col_min = t->col_min;
+	uint32 col_max = t->col_max;
+	uint32 block_size = t->block_size;
+	uint32 num_dense_rows = t->num_dense_rows;
+
+	/* each thread needs scratch space to store
+	   matrix products. The first thread doesn't need
+	   scratch space, it's provided by calling code */
+
+	if (t->my_oid > 0)
+		t->b = (uint64 *)xmalloc(t->ncols_in * sizeof(uint64));
+
 	/* pack the dense rows 64 at a time */
 
 	t->ncols = col_max - col_min + 1;
-	t->num_dense_rows = num_dense_rows;
 	dense_row_blocks = (num_dense_rows + 63) / 64;
 	if (dense_row_blocks) {
 		t->dense_blocks = (uint64 **)xmalloc(dense_row_blocks *
@@ -422,6 +432,24 @@ static void matrix_thread_init(thread_data_t *t, la_col_t *A,
 }
 
 /*-------------------------------------------------------------------*/
+static void matrix_thread_free(thread_data_t *t) {
+
+	uint32 i;
+
+	for (i = 0; i < (t->num_dense_rows + 63) / 64; i++)
+		free(t->dense_blocks[i]);
+	free(t->dense_blocks);
+
+	for (i = 0; i < t->num_blocks; i++) {
+		free(t->blocks[i].entries);
+		free(t->blocks[i].med_entries);
+	}
+	free(t->blocks);
+	if (t->my_oid > 0)
+		free(t->b);
+}
+
+/*-------------------------------------------------------------------*/
 #if defined(WIN32) || defined(_WIN64)
 static DWORD WINAPI worker_thread_main(LPVOID thread_data) {
 #else
@@ -440,15 +468,16 @@ static void *worker_thread_main(void *thread_data) {
 			pthread_cond_wait(&t->run_cond, &t->run_lock);
 		}
 #endif
-		if (t->command == COMMAND_END)
-			break;
-
 		/* do work */
 
 		if (t->command == COMMAND_RUN)
 			mul_packed_core(t);
 		else if (t->command == COMMAND_RUN_TRANS)
 			mul_trans_packed_core(t);
+		else if (t->command == COMMAND_INIT)
+			matrix_thread_init(t);
+		else if (t->command == COMMAND_END)
+			break;
 
 		/* signal completion */
 
@@ -461,6 +490,8 @@ static void *worker_thread_main(void *thread_data) {
 #endif
 	}
 
+	matrix_thread_free(t);
+
 #if defined(WIN32) || defined(_WIN64)
 	return 0;
 #else
@@ -469,24 +500,48 @@ static void *worker_thread_main(void *thread_data) {
 }
 
 /*-------------------------------------------------------------------*/
-static void start_worker_thread(thread_data_t *t)
-{
-	t->command = COMMAND_WAIT;
+static void start_worker_thread(thread_data_t *t, 
+				uint32 is_master_thread) {
+
+	/* create a thread that will handle matrix multiplies 
+	   for block k of the matrix. The last block does 
+	   not get its own thread (the current thread handles it) */
+
+	if (is_master_thread) {
+		matrix_thread_init(t);
+		return;
+	}
+
+	t->command = COMMAND_INIT;
 #if defined(WIN32) || defined(_WIN64)
-	t->run_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	t->run_event = CreateEvent(NULL, FALSE, TRUE, NULL);
 	t->finish_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 	t->thread_id = CreateThread(NULL, 0, worker_thread_main, t, 0, NULL);
+
+	WaitForSingleObject(t->finish_event, INFINITE); /* wait for ready */
 #else
 	pthread_mutex_init(&t->run_lock, NULL);
 	pthread_cond_init(&t->run_cond, NULL);
-	pthread_mutex_lock(&t->run_lock);
+
+	pthread_cond_signal(&t->run_cond);
+	pthread_mutex_unlock(&t->run_lock);
 	pthread_create(&t->thread_id, NULL, worker_thread_main, t);
+
+	pthread_mutex_lock(&t->run_lock); /* wait for ready */
+	while (t->command != COMMAND_WAIT)
+		pthread_cond_wait(&t->run_cond, &t->run_lock);
 #endif
 }
 
 /*-------------------------------------------------------------------*/
-static void stop_worker_thread(thread_data_t *t)
+static void stop_worker_thread(thread_data_t *t,
+				uint32 is_master_thread)
 {
+	if (is_master_thread) {
+		matrix_thread_free(t);
+		return;
+	}
+
 	t->command = COMMAND_END;
 #if defined(WIN32) || defined(_WIN64)
 	SetEvent(t->run_event);
@@ -560,11 +615,12 @@ void packed_matrix_init(msieve_obj *obj,
 	p->num_threads = num_threads = MIN(num_threads, MAX_THREADS);
 
 	/* compute the number of nonzero elements in the submatrix
-	   given to each thread */
+	   given to each thread; overestimate the number slightly
+	   so that we don't have one thread with almost no columns */
 
 	for (i = num_nonzero = 0; i < ncols; i++)
 		num_nonzero += A[i].weight;
-	num_nonzero_per_thread = num_nonzero / num_threads;
+	num_nonzero_per_thread = num_nonzero / num_threads + 1000;
 
 	/* divide the matrix into groups of columns, one group
 	   per thread, and pack each group separately */
@@ -574,38 +630,41 @@ void packed_matrix_init(msieve_obj *obj,
 		num_nonzero += A[i].weight;
 
 		if (i == ncols - 1 || num_nonzero >= num_nonzero_per_thread) {
-			matrix_thread_init(p->thread_data + k, A,
-						nrows, j, i, block_size,
-						num_dense_rows);
+			thread_data_t *t = p->thread_data + k;
 
-			/* each thread needs scratch space to store
-			   matrix products. The first thread doesn't need
-			   scratch space, it's provided by calling code */
-
-			if (k > 0) {
-				p->thread_data[k].b = (uint64 *)xmalloc(ncols * 
-							sizeof(uint64));
-			}
-
-			/* create a (suspended) thread that will handle
-			   matrix multiplies for block k of the matrix. 
-			   The last block does not get its own thread 
-			   (the current thread handles it) */
-
-			if (k < num_threads - 1)
-				start_worker_thread(p->thread_data + k);
-
+			t->my_oid = k++;
+			t->initial_cols = A;
+			t->col_min = j;
+			t->col_max = i;
+			t->nrows_in = nrows;
+			t->ncols_in = ncols;
+			t->block_size = block_size;
+			t->num_dense_rows = num_dense_rows;
 			j = i + 1;
-			k++;
 			num_nonzero = 0;
 		}
 	}
+
+	/* update the number of threads, in case it's 
+	   not what we estimated */
+
+	p->num_threads = k;
+
+	/* activate the threads one at a time. The last is the
+	   master thread (i.e. not a thread at all). Each thread
+	   packs its own portion of the matrix, so that memory
+	   allocation is local on NUMA architectures */
+
+	for (i = 0; i < p->num_threads - 1; i++)
+		start_worker_thread(p->thread_data + i, 0);
+
+	start_worker_thread(p->thread_data + i, 1);
 }
 
 /*-------------------------------------------------------------------*/
 void packed_matrix_free(packed_matrix_t *p) {
 
-	uint32 i, j;
+	uint32 i;
 
 	if (p->unpacked_cols) {
 		la_col_t *A = p->unpacked_cols;
@@ -615,27 +674,13 @@ void packed_matrix_free(packed_matrix_t *p) {
 		}
 	}
 	else {
-		for (i = 0; i < p->num_threads; i++) {
-			thread_data_t *t = p->thread_data + i;
+		/* stop the worker threads; each will free
+		   its own memory */
 
-			/* stop the worker thread for t, if one is running */
+		for (i = 0; i < p->num_threads - 1; i++)
+			stop_worker_thread(p->thread_data + i, 0);
 
-			if (i < p->num_threads - 1)
-				stop_worker_thread(t);
-
-			for (j = 0; j < (t->num_dense_rows + 63) / 64; j++)
-				free(t->dense_blocks[j]);
-			free(t->dense_blocks);
-
-			for (j = 0; j < t->num_blocks; j++) {
-				free(t->blocks[j].entries);
-				free(t->blocks[j].med_entries);
-			}
-			free(t->blocks);
-			if (i > 0) {
-				free(t->b);
-			}
-		}
+		stop_worker_thread(p->thread_data + i, 1);
 	}
 }
 

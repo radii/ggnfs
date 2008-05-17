@@ -229,7 +229,7 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 		   with average cycle weight under 50.0 get solved
 		   successfully */
 
-		if (merge.avg_cycle_weight > 60.0)
+		if (merge.avg_cycle_weight > 63.0)
 			break;
 
 		logprintf(obj, "matrix not dense enough, retrying\n");

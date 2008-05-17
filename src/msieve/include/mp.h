@@ -253,7 +253,7 @@ static INLINE uint32 mp_mod_1_core(uint32 *num,
 #else
 
 	while (i >= 0) {
-		uint64 acc = (uint64)rem << 32 | (uint64)num->val[i];
+		uint64 acc = (uint64)rem << 32 | (uint64)num[i];
 		rem = (uint32)(acc % denom);
 		i--;
 	}

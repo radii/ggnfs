@@ -475,7 +475,7 @@ static uint32 store_next_relset_group(merge_aux_t *aux,
 
 /*--------------------------------------------------------------------*/
 #define NUM_CYCLE_BINS 9
-#define TARGET_DENSITY 65.0
+#define TARGET_DENSITY 70.0
 
 void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 

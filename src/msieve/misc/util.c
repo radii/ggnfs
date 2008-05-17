@@ -223,6 +223,7 @@ void get_cache_sizes(uint32 *level1_size_out,
 			case 0x43:
 			case 0x7b:
 			case 0x7f:
+			case 0x80:
 			case 0x83:
 			case 0x86:
 				j2 = MAX(j2, 512*1024); break;
@@ -237,13 +238,22 @@ void get_cache_sizes(uint32 *level1_size_out,
 			case 0x45:
 			case 0x7d:
 			case 0x85:
-				j2 = MAX(j2, 2048*1024); break;
+				j2 = MAX(j2, 2*1024*1024); break;
+			case 0x48:
+				j2 = MAX(j2, 3*1024*1024); break;
 			case 0x29:
 			case 0x46:
 			case 0x49:
-				j2 = MAX(j2, 4096*1024); break;
+				j2 = MAX(j2, 4*1024*1024); break;
+			case 0x4a:
+				j2 = MAX(j2, 6*1024*1024); break;
 			case 0x47:
-				j2 = MAX(j2, 8192*1024); break;
+			case 0x4b:
+				j2 = MAX(j2, 8*1024*1024); break;
+			case 0x4c:
+				j2 = MAX(j2, 12*1024*1024); break;
+			case 0x4d:
+				j2 = MAX(j2, 16*1024*1024); break;
 			}
 		}
 		if (j1 > 0)
@@ -262,7 +272,8 @@ void get_cache_sizes(uint32 *level1_size_out,
 
 			if (max_special >= 0x80000006) {
 				CPUID(0x80000006, a, b, c, d);
-				cache_size2 = 1024 * (c >> 16);
+				cache_size2 = MAX(1024 * (c >> 16),
+						  512 * 1024 * (d >> 18));
 			}
 		}
 	}

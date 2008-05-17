@@ -33,7 +33,7 @@ extern "C" {
 /* the smallest number of columns that will be
    converted to packed format */
 
-#define MIN_NCOLS_TO_PACK 50000
+#define MIN_NCOLS_TO_PACK 30000
 
 /* the number of moderately dense rows that are
    packed less tightly */
@@ -63,6 +63,7 @@ typedef struct {
 } packed_block_t;
 
 enum thread_command {
+	COMMAND_INIT,
 	COMMAND_WAIT,
 	COMMAND_RUN,
 	COMMAND_RUN_TRANS,
@@ -73,6 +74,18 @@ enum thread_command {
    matrix multiplies */
 
 typedef struct {
+	/* items used during initialization */
+
+	uint32 my_oid;		/* number assigned to this thread */
+	la_col_t *initial_cols; /* unpacked matrix columns */
+	uint32 col_min;
+	uint32 col_max;		/* range of column indices to handle */
+	uint32 nrows_in;	/* number of rows in the matrix */
+	uint32 ncols_in;	/* number of columns in the matrix */
+	uint32 block_size;	/* used to pack the column entries */
+
+	/* items used during matrix multiplies */
+
 	uint32 ncols;		/* number of columns used by this thread */
 	uint32 num_dense_rows;  /* number of rows packed by dense_blocks */
 	uint64 **dense_blocks;  /* for holding dense matrix rows; 
@@ -85,7 +98,7 @@ typedef struct {
 
 	/* fields for thread pool synchronization */
 
-	enum thread_command command;
+	volatile enum thread_command command;
 
 #if defined(WIN32) || defined(_WIN64)
 	HANDLE thread_id;
@@ -100,7 +113,7 @@ typedef struct {
 } thread_data_t;
 
 #define MAX_THREADS 32
-#define MIN_NCOLS_TO_THREAD 250000
+#define MIN_NCOLS_TO_THREAD 200000
 
 /* struct representing a packed matrix */
 
