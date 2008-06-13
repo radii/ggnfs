@@ -571,6 +571,7 @@ void murphy_en(double *me, int deg0, double *dbl_coeff0, int deg1, double *dbl_c
   }
   e/=M_PI;
   *me=e;
+  free(assess_optima);
 }
 
 
