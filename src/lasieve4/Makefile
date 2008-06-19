@@ -38,7 +38,8 @@ list_asm_files = \
 ASMFILES=$(foreach asm_dir,$(ASMDIRS),$(list_asm_files))
 
 all : $(BINDIR)/gnfs-lasieve4I12e $(BINDIR)/gnfs-lasieve4I13e \
-      $(BINDIR)/gnfs-lasieve4I14e
+      $(BINDIR)/gnfs-lasieve4I14e $(BINDIR)/gnfs-lasieve4I15e \
+      $(BINDIR)/gnfs-lasieve4I16e $(BINDIR)/gnfs-lasieve4I17e
 
 asm/%:
 	$(MAKE) -C asm $*
