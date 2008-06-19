@@ -30,8 +30,8 @@ void rec_info_init(u32_t A1, u32_t ub1)
   A = A1;
   if (A % 2 != 0)
     complain("rec_info_init with odd range %u\n", A1);
-  if (ub1 > USHRT_MAX / 4)
-    complain("Recurrence init: ub=%u exceeds %u\n", ub1, USHRT_MAX / 4);
+  if (ub1 > (USHRT_MAX / 4 + 1))
+    complain("Recurrence init: ub=%u exceeds %u\n", ub1, (USHRT_MAX / 4 + 1));
   if (ub1 < 2)
     complain("Recurrence time %u too small\n", ub1);
   ub = ub1;

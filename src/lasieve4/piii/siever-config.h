@@ -20,7 +20,11 @@
 #include "ggnfs.h"
 #include "if.h"
 
+#if I_bits>15
+#define L1_BITS (I_bits-1)
+#else
 #define L1_BITS 14
+#endif
 #define ULONG_RI
 #define HAVE_CMOV
 #if __SSE__
