@@ -144,6 +144,18 @@ void bury_inactive_ideal(relation_set_t *relset_array,
 size_t get_merge_memuse(relation_set_t *relsets, uint32 num_relsets,
 			ideal_list_t *ideal_list);
 
+/* the largest number of relation sets to be merged
+   via the spanning tree algorithm */
+
+#define SPANNING_TREE_MAX_RELSETS 20
+
+/* functions for merging relation sets */
+
+void merge_two_relsets(relation_set_t *r1, relation_set_t *r2, 
+			relation_set_t *r_out, merge_aux_t *aux);
+
+uint32 estimate_new_weight(relation_set_t *r1, relation_set_t *r2);
+
 #ifdef __cplusplus
 }
 #endif

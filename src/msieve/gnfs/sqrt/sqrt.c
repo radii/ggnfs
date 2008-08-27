@@ -446,6 +446,11 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 			mp_modmul(&tmp2, &sqrt_a, n, &sqrt_a);
 		}
 
+		if (mp_cmp(&sqrt_r, &sqrt_a) == 0) {
+			logprintf(obj, "error: square roots are identical\n");
+			continue;
+		}
+
 		/* a final sanity check: square the rational and algebraic 
 		   square roots, expecting the same value modulo n */
 

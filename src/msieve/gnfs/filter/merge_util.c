@@ -484,3 +484,100 @@ void bury_inactive_ideal(relation_set_t *relset_array,
 	free(ideal_set->relsets);
 	memset(ideal_set, 0, sizeof(ideal_set_t));
 }
+
+/*--------------------------------------------------------------------*/
+void merge_two_relsets(relation_set_t *r1, relation_set_t *r2, 
+			relation_set_t *r_out, merge_aux_t *aux) {
+
+	uint32 i;
+	uint32 max_relations = r1->num_relations + r2->num_relations;
+	uint32 max_ideals = r1->num_large_ideals + r2->num_large_ideals - 2;
+
+	memset(r_out, 0, sizeof(relation_set_t));
+
+	r_out->num_small_ideals = r1->num_small_ideals + 
+				  r2->num_small_ideals;
+
+	/* combine the list of relations in r1 and r2
+	   using a merge operation */
+
+	if (max_relations >= MERGE_MAX_OBJECTS) {
+		printf("error: relation list too large\n");
+		exit(-1);
+	}
+
+	i = merge_relations(aux->tmp_relations,
+				r1->data, r1->num_relations,
+				r2->data, r2->num_relations);
+	if (i == 0) {
+		memset(r_out, 0, sizeof(relation_set_t));
+		return;
+	}
+	r_out->num_relations = i;
+
+	/* merge the ideal lists of r1 and r2 */
+
+	if (max_ideals >= MERGE_MAX_OBJECTS) {
+		printf("error: list of merged ideals too large\n");
+		exit(-1);
+	}
+
+	i = merge_relations(aux->tmp_ideals,
+				r1->data + r1->num_relations, 
+				r1->num_large_ideals,
+				r2->data + r2->num_relations, 
+				r2->num_large_ideals);
+
+	r_out->num_large_ideals = i;
+
+	/* save the merged lists */
+
+	r_out->data = (uint32 *)xmalloc(sizeof(uint32) *
+					(r_out->num_relations + 
+					 r_out->num_large_ideals));
+	memcpy(r_out->data, 
+	       aux->tmp_relations, 
+	       r_out->num_relations * sizeof(uint32));
+	memcpy(r_out->data + r_out->num_relations, 
+	       aux->tmp_ideals, 
+	       r_out->num_large_ideals * sizeof(uint32));
+}
+
+/*--------------------------------------------------------------------*/
+uint32 estimate_new_weight(relation_set_t *r1,
+			relation_set_t *r2) {
+
+	/* guess the total number of ideals derived from
+	   merging r1 and r2. This is much faster than
+	   actually merging r1 and r2, but must occur much
+	   more often */
+
+	uint32 i, j, k;
+	uint32 num_small;
+	uint32 num_ideals1 = r1->num_large_ideals;
+	uint32 num_ideals2 = r2->num_large_ideals;
+	uint32 *ilist1 = r1->data + r1->num_relations;
+	uint32 *ilist2 = r2->data + r2->num_relations;
+
+	/* count the number of large ideals that would
+	   be left if r1 and r2 were merged */
+
+	i = j = k = 0;
+	while (i < num_ideals1 && j < num_ideals2) {
+		uint32 ideal1 = ilist1[i];
+		uint32 ideal2 = ilist2[j];
+		if (ideal1 < ideal2) {
+			i++; k++;
+		}
+		else if (ideal1 > ideal2) {
+			j++; k++;
+		}
+		else {
+			i++; j++;
+		}
+	}
+
+	num_small = r1->num_small_ideals + r2->num_small_ideals;
+	return k + num_small + (num_ideals1 - i) + (num_ideals2 - j);
+}
+

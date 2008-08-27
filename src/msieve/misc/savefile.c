@@ -177,7 +177,11 @@ void savefile_read_line(char *buf, size_t max_len, savefile_t *s) {
 				&num_read, NULL);
 		s->read_size = num_read;
 		s->buf_off = 0;
-		if (num_read < SAVEFILE_BUF_SIZE)
+
+		/* set EOF only if previous lines have exhausted sbuf
+		   and there are no more bytes in the file */
+
+		if (num_read == 0)
 			s->eof = 1;
 	}
 	for (i = s->buf_off; i < s->read_size && 

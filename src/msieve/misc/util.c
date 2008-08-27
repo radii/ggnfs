@@ -85,6 +85,17 @@ read_clock(void) {
 }
 
 /*--------------------------------------------------------------------*/
+void set_idle_priority(void) {
+
+#if defined(WIN32) || defined(_WIN64)
+	SetPriorityClass(GetCurrentProcess(),
+			IDLE_PRIORITY_CLASS);
+#else
+	nice(100);
+#endif
+}
+
+/*--------------------------------------------------------------------*/
 /* safe default values */
 #define DEFAULT_L1_CACHE_SIZE (32 * 1024)
 #define DEFAULT_L2_CACHE_SIZE (512 * 1024)

@@ -105,7 +105,17 @@ extern "C" {
 #if defined(_MSC_VER)
 	#define INLINE __inline
 	#define getpid _getpid
-	#define rint floor
+
+static INLINE double rint(double x)
+{
+	 double i, r = modf(x, &i);
+	 if (r < 0.0) {
+		 r += 1.0; 
+		 i -= 1.0;
+	 }
+	 return (r > 0.5 || r == 0.5 && ((int)i & 1) ? i + 1.0 : i);
+}
+
 #elif !defined(RS6K)
 	#define INLINE inline
 #else
@@ -150,7 +160,7 @@ static INLINE void * xrealloc(void *iptr, size_t len) {
 void * aligned_malloc(size_t len, uint32 align);
 void aligned_free(void *newptr);
 uint64 read_clock(void);
-
+void set_idle_priority(void);
 
 #ifndef M_LN2
 #define M_LN2		0.69314718055994530942

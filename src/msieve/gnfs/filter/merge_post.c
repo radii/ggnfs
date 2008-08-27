@@ -46,8 +46,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    use a variant of Cavallar's minimum spanning tree algorithm to rigorously
    find the basis with smallest relation weight */
 
-#define SPANNING_TREE_MAX_RELSETS 20
-
 /*--------------------------------------------------------------------*/
 static int compare_uint32(const void *x, const void *y) {
 	uint32 *xx = (uint32 *)x;
@@ -67,88 +65,6 @@ static void copy_relset(relation_set_t *src, relation_set_t *dst) {
 	*dst = *src;
 	dst->data = (uint32 *)xmalloc(size * sizeof(uint32));
 	memcpy(dst->data, src->data, size * sizeof(uint32));
-}
-
-/*--------------------------------------------------------------------*/
-static uint32 merge_two_relsets(relation_set_t *r1,
-			relation_set_t *r2, relation_set_t *r_out,
-			merge_aux_t *aux) {
-
-	uint32 i;
-
-	memset(r_out, 0, sizeof(relation_set_t));
-
-	/* merge the relation numbers */
-
-	if (r1->num_relations + r2->num_relations >= MERGE_MAX_OBJECTS) {
-		printf("error (post): relation list too large\n");
-		exit(-1);
-	}
-
-	i = merge_relations(aux->tmp_relations,
-				r1->data, r1->num_relations,
-				r2->data, r2->num_relations);
-	r_out->num_relations = i;
-
-	/* merge the ideals (each representing a relation). This
-	   is redundant with the above, but we do it anyway to 
-	   make the process look like ordinary merging */
-
-	if (r1->num_large_ideals + r2->num_large_ideals >= MERGE_MAX_OBJECTS) {
-		printf("error (post): list of merged ideals too large\n");
-		exit(-1);
-	}
-
-	i = merge_relations(aux->tmp_ideals,
-				r1->data + r1->num_relations, 
-				r1->num_large_ideals,
-				r2->data + r2->num_relations, 
-				r2->num_large_ideals);
-	r_out->num_large_ideals = i;
-
-	/* save the merged relation set */
-
-	r_out->data = (uint32 *)xmalloc(sizeof(uint32) *
-					(r_out->num_relations + 
-					 r_out->num_large_ideals));
-	memcpy(r_out->data, 
-	       aux->tmp_relations, 
-	       r_out->num_relations * sizeof(uint32));
-	memcpy(r_out->data + r_out->num_relations, 
-	       aux->tmp_ideals, 
-	       r_out->num_large_ideals * sizeof(uint32));
-	return i;
-}
-
-/*--------------------------------------------------------------------*/
-static uint32 estimate_new_weight(relation_set_t *r1,
-				relation_set_t *r2) {
-
-	/* just like its counterpart, except we don't have to
-	   worry about counting small ideals */
-
-	uint32 i, j, k;
-	uint32 *ilist1 = r1->data + r1->num_relations;
-	uint32 *ilist2 = r2->data + r2->num_relations;
-	uint32 num_ideals1 = r1->num_large_ideals;
-	uint32 num_ideals2 = r2->num_large_ideals;
-
-	i = j = k = 0;
-	while (i < num_ideals1 && j < num_ideals2) {
-		uint32 ideal1 = ilist1[i];
-		uint32 ideal2 = ilist2[j];
-		if (ideal1 < ideal2) {
-			i++; k++;
-		}
-		else if (ideal1 > ideal2) {
-			j++; k++;
-		}
-		else {
-			i++; j++;
-		}
-	}
-
-	return k + (num_ideals1 - i) + (num_ideals2 - j);
 }
 
 /*--------------------------------------------------------------------*/

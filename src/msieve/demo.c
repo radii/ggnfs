@@ -99,6 +99,7 @@ void print_usage(char *progname) {
 	         "   -d <min>  deadline: if still sieving after <min>\n"
 		 "             minutes, shut down gracefully (default off)\n"
 		 "   -r <num>  stop after finding <num> relations\n"
+		 "   -p        run at idle priority\n"
 	         "   -v        verbose: write log information to screen\n"
 		 "             as well as to logfile\n"
 	         "   -t <num>  use at most <num> threads\n\n"
@@ -402,6 +403,11 @@ int main(int argc, char **argv) {
 					
 			case 'v':
 				flags |= MSIEVE_FLAG_LOG_TO_STDOUT;
+				i++;
+				break;
+
+			case 'p':
+				set_idle_priority();
 				i++;
 				break;
 

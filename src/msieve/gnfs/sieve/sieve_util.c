@@ -176,56 +176,59 @@ void write_last_line(msieve_obj *obj, mp_t *n, uint32 b) {
 
 /*------------------------------------------------------------------*/
 uint32 add_free_relations(msieve_obj *obj, 
-			sieve_param_t *params, mp_t *n) {
+			factor_base_t *fb, uint8 *free_bits) {
 
-	uint32 alg_degree;
-	uint32 rat_degree;
-	factor_base_t fb;
-	char buf[256];
+	uint32 i, j;
 	uint32 num_relations = 0;
-	prime_sieve_t prime_sieve;
+	uint32 alg_degree = fb->afb.poly.degree;
+	uint32 rat_degree = fb->rfb.poly.degree;
+	uint32 free_bytes = (FREE_RELATION_LIMIT / 2 + 7) / 8;
 
-	/* read in the NFS polynomials */
+	savefile_open(&obj->savefile, SAVEFILE_APPEND);
 
-	memset(&fb, 0, sizeof(fb));
-	if (read_poly(obj, n, &fb.rfb.poly, &fb.afb.poly)) {
-		printf("error: failed to read NFS polynomials\n");
-		exit(-1);
-	}
+	for (i = 0; i < free_bytes; i++) {
 
-	alg_degree = fb.afb.poly.degree;
-	rat_degree = fb.rfb.poly.degree;
-	init_prime_sieve(&prime_sieve, 100, params->afb_limit);
+		if (free_bits[i] == 0)
+			continue;
 
-	while (1) {
-		uint32 dummy_roots[MAX_POLY_DEGREE];
-		uint32 high_coeff;
-		uint32 num_roots;
-		uint32 p = get_next_prime(&prime_sieve);
+		for (j = 0; j < 8; j++) {
 
-		if (p > params->afb_limit)
-			break;
+			char buf[LINE_BUF_SIZE];
+			uint32 dummy_roots[MAX_POLY_DEGREE];
+			uint32 high_coeff;
+			uint32 num_roots;
+			uint32 p;
 
-		num_roots = poly_get_zeros(dummy_roots, 
-					&fb.afb.poly,
-					p, &high_coeff, 1);
+			if (!(free_bits[i] & (1 << j)))
+				continue;
 
-		if (num_roots == alg_degree && high_coeff != 0) {
+			/* bit 8*i+j could be a new free relation */
 
+			p = 2 * (8 * i + j) + 1;
 			num_roots = poly_get_zeros(dummy_roots, 
-						&fb.rfb.poly,
+						&fb->afb.poly,
 						p, &high_coeff, 1);
 
-			if (num_roots == rat_degree && high_coeff != 0) {
-				sprintf(buf, "%u,0:\n", p);
-				savefile_write_line(&obj->savefile, buf);
-				num_relations++;
+			if (num_roots == alg_degree && high_coeff != 0) {
+
+				num_roots = poly_get_zeros(dummy_roots, 
+							&fb->rfb.poly,
+							p, &high_coeff, 1);
+
+				if (num_roots == rat_degree && 
+						high_coeff != 0) {
+					sprintf(buf, "%u,0:\n", p);
+					savefile_write_line(&obj->savefile, 
+								buf);
+					num_relations++;
+				}
 			}
 		}
 	}
 
-	logprintf(obj, "added %u free relations\n", num_relations);
-	free_prime_sieve(&prime_sieve);
+	if (num_relations)
+		logprintf(obj, "added %u free relations\n", num_relations);
 	savefile_flush(&obj->savefile);
+	savefile_close(&obj->savefile);
 	return num_relations;
 }

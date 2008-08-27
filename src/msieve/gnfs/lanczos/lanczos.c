@@ -146,12 +146,19 @@ static uint64 * form_post_lanczos_matrix(msieve_obj *obj, uint32 *nrows,
 		/* move the rest of the bitfield and repack the (hopefully
 		   shorter) current column in the heap */
 		cols[i].weight = k;
-		cols[i].data = (uint32 *)xrealloc(curr_row, (k + 
+		if (k + final_dense_row_words > 0) {
+			cols[i].data = (uint32 *)xrealloc(curr_row, (k + 
 						final_dense_row_words) * 
 						sizeof(uint32));
-		mp_rshift(&tmp, POST_LANCZOS_ROWS, &tmp);
-		memcpy(cols[i].data + k, tmp.val, final_dense_row_words * 
+			mp_rshift(&tmp, POST_LANCZOS_ROWS, &tmp);
+			memcpy(cols[i].data + k, tmp.val, 
+						final_dense_row_words * 
 						sizeof(uint32));
+		}
+		else {
+			free(cols[i].data);
+			cols[i].data = NULL;
+		}
 	}
 
 	*nrows -= POST_LANCZOS_ROWS;
@@ -331,7 +338,7 @@ void mul_Nx64_64x64_acc(uint64 *v, uint64 *x,
 		       ^ c[ 4*256 + ((uint8)(word >> 32)) ]
 		       ^ c[ 5*256 + ((uint8)(word >> 40)) ]
 		       ^ c[ 6*256 + ((uint8)(word >> 48)) ]
-		       ^ c[ 7*256 + ((uint8)(word >> 56)       ) ];
+		       ^ c[ 7*256 + ((uint8)(word >> 56)) ];
 	}
 #endif
 }
@@ -389,9 +396,8 @@ void mul_64xN_Nx64(uint64 *x, uint64 *y,
 		     "pxor 6*256*8(%2,%%ecx,8), %%mm1      \n\t"
 		     "movq %%mm1, 6*256*8(%2,%%ecx,8)      \n\t"
 		     "movzbl %%ah, %%ecx                   \n\t"
-		     "movq %%mm0, %%mm1                    \n\t"
-		     "pxor 7*256*8(%2,%%ecx,8), %%mm1      \n\t"
-		     "movq %%mm1, 7*256*8(%2,%%ecx,8)      \n\t"
+		     "pxor 7*256*8(%2,%%ecx,8), %%mm0      \n\t"
+		     "movq %%mm0, 7*256*8(%2,%%ecx,8)      \n\t"
 		     "jne 0b                               \n\t"
 		     "emms                                 \n\t"
 			:"+r"(i)
@@ -444,9 +450,8 @@ void mul_64xN_Nx64(uint64 *x, uint64 *y,
 		pxor	mm1,[6*256*8+ebx+edx*8]
 		movq	[6*256*8+ebx+edx*8],mm1
 		movzx	edx,ah
-		movq	mm1,mm0
-		pxor	mm1,[7*256*8+ebx+edx*8]
-		movq	[7*256*8+ebx+edx*8],mm1
+		pxor	mm0,[7*256*8+ebx+edx*8]
+		movq	[7*256*8+ebx+edx*8],mm0
 		jne	L0
 		emms
 		pop	ebx

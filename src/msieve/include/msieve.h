@@ -33,7 +33,7 @@ extern "C" {
 /* version info */
 
 #define MSIEVE_MAJOR_VERSION 1
-#define MSIEVE_MINOR_VERSION 36
+#define MSIEVE_MINOR_VERSION 37
 
 /* The final output from the factorization is a linked
    list of msieve_factor structures, one for each factor

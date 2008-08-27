@@ -232,13 +232,18 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 	uint8 *hashtable;
 	uint32 blob[2];
 
+	uint8 *free_relation_bits;
+	uint32 *free_relations;
+	uint32 num_free_relations;
+	uint32 num_free_relations_alloc;
+
 	uint32 *prime_bins;
 	double bin_max;
 
 	uint32 tmp_factors[TEMP_FACTOR_LIST_SIZE];
-	relation_t tmp_relation;
+	relation_t tmp_rel;
 
-	tmp_relation.factors = tmp_factors;
+	tmp_rel.factors = tmp_factors;
 
 	logprintf(obj, "commencing duplicate removal, pass 1\n");
 
@@ -259,6 +264,16 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 				(LOG2_DUP_HASHTABLE1_SIZE - 3), (size_t)1);
 	prime_bins = (uint32 *)xcalloc((size_t)1 << (32 - LOG2_BIN_SIZE),
 					sizeof(uint32));
+
+	/* set up the structures for tracking free relations */
+
+	free_relation_bits = (uint8 *)xcalloc(
+				((size_t)(FREE_RELATION_LIMIT/2) + 7) / 8,
+				(size_t)1);
+	num_free_relations = 0;
+	num_free_relations_alloc = 5000;
+	free_relations = (uint32 *)xmalloc(num_free_relations_alloc *
+						sizeof(uint32));
 
 	curr_relation = (uint32)(-1);
 	num_relations = 0;
@@ -283,11 +298,11 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		if (max_relations && curr_relation >= max_relations)
 			break;
 
-		status = nfs_read_relation(buf, fb, &tmp_relation, 1);
+		status = nfs_read_relation(buf, fb, &tmp_rel, 1);
 		if (status != 0) {
 
 			/* save the line number of bad relations (hopefully
-			   there are very very few of them) */
+			   there are very few of them) */
 
 			fwrite(&curr_relation, (size_t)1, 
 					sizeof(uint32), bad_relation_fp);
@@ -304,9 +319,9 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		   (though highly unlikely) */
 
 		num_relations++;
-		blob[0] = (uint32)tmp_relation.a;
-		blob[1] = ((tmp_relation.a >> 32) & 0x1f) |
-			  (tmp_relation.b << 5);
+		blob[0] = (uint32)tmp_rel.a;
+		blob[1] = ((tmp_rel.a >> 32) & 0x1f) |
+			  (tmp_rel.b << 5);
 
 		hashval = (HASH1(blob[0]) ^ HASH2(blob[1])) >>
 			   (32 - LOG2_DUP_HASHTABLE1_SIZE);
@@ -328,11 +343,41 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 			hashtable[hashval / 8] |= hashmask[hashval % 8];
 		}
 
-		/* add the factors of tmp_relation to the counts of primes */
+		/* add the factors of tmp_rel to the counts of primes */
 		   
-		for (i = 0; i < tmp_relation.num_factors_r +
-				tmp_relation.num_factors_a; i++) {
-			prime_bins[tmp_relation.factors[i] / BIN_SIZE]++;
+		for (i = 0; i < tmp_rel.num_factors_r +
+				tmp_rel.num_factors_a; i++) {
+			prime_bins[tmp_rel.factors[i] / BIN_SIZE]++;
+		}
+
+		if (tmp_rel.b == 0) {
+			/* remember any free relations that are found */
+
+			if (num_free_relations == num_free_relations_alloc) {
+				num_free_relations_alloc *= 2;
+				free_relations = (uint32 *)xrealloc(
+						free_relations,
+						num_free_relations_alloc *
+						sizeof(uint32));
+			}
+			free_relations[num_free_relations++] =
+						(uint32)(tmp_rel.a);
+		}
+		else {
+			/* add free relations corresponding to the
+			   algebraic factors */
+
+			for (i = 0; i < tmp_rel.num_factors_a; i++) {
+				uint32 p = tmp_rel.factors[
+						tmp_rel.num_factors_r + i];
+
+				if (p <= MAX_PACKED_PRIME ||
+						p >= FREE_RELATION_LIMIT)
+					continue;
+
+				p = p / 2;
+				free_relation_bits[p / 8] |= hashmask[p % 8];
+			}
 		}
 
 		/* get the next line */
@@ -347,6 +392,22 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 		
 	logprintf(obj, "found %u hash collisions in %u relations\n", 
 				num_collisions, num_relations);
+
+	/* cancel out any free relations that are 
+	   already present in the dataset, then add
+	   any more that are left */
+
+	for (i = 0; i < num_free_relations; i++) {
+		uint32 p = free_relations[i];
+
+		if (p < FREE_RELATION_LIMIT) {
+			p = p / 2;
+			free_relation_bits[p / 8] &= ~hashmask[p % 8];
+		}
+	}
+	free(free_relations);
+	add_free_relations(obj, fb, free_relation_bits);
+	free(free_relation_bits);
 
 	if (num_collisions == 0) {
 

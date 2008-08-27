@@ -21,17 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "filter.h"
 #include "merge_util.h"
 
-/* the largest number of relation sets to be merged
-   via the spanning tree algorithm */
-
-#define SPANNING_TREE_MAX_RELSETS 20
-
-/* heuristic for the number of small ideals that are
-   removed from a merged relation set, when duplicate
-   relations are made to cancel each other */
-
-#define RELATION_CANCEL_BIAS 5
-
 /*--------------------------------------------------------------------*/
 /* structure representing the weights of all the cycles
    found in the merge phase. This includes an interface
@@ -98,138 +87,6 @@ static int compare_relsets(const void *x, const void *y) {
 	relation_set_t *xx = (relation_set_t *)x;
 	relation_set_t *yy = (relation_set_t *)y;
 	return (int)xx->num_small_ideals - (int)yy->num_small_ideals;
-}
-
-/*--------------------------------------------------------------------*/
-static void merge_two_relsets(relation_set_t *r1,
-				relation_set_t *r2, 
-				relation_set_t *r_out,
-				merge_aux_t *aux) {
-
-	uint32 i;
-	uint32 max_relations = r1->num_relations + r2->num_relations;
-	uint32 max_ideals = r1->num_large_ideals + r2->num_large_ideals - 2;
-
-	r_out->num_small_ideals = r1->num_small_ideals + 
-				  r2->num_small_ideals;
-
-	/* combine the list of relations in r1 and r2
-	   using a merge operation */
-
-	if (max_relations >= MERGE_MAX_OBJECTS) {
-		printf("error: relation list too large\n");
-		exit(-1);
-	}
-
-	i = merge_relations(aux->tmp_relations,
-				r1->data, r1->num_relations,
-				r2->data, r2->num_relations);
-	if (i == 0) {
-		memset(r_out, 0, sizeof(relation_set_t));
-		return;
-	}
-	r_out->num_relations = i;
-
-	/* if r1 and r2 contained duplicate relations, the ideals
-	   in those relations would cancel each other. The code
-	   below will handle the large ideals, but we don't track the
-	   small ideals and don't know how many such ideals will
-	   really disappear from r_out. Hence when there are duplicate
-	   relations we make a guess at the number of small ideals
-	   that are removed */
-
-	r_out->num_small_ideals -= MIN(r_out->num_small_ideals,
-					RELATION_CANCEL_BIAS * 
-						(max_relations - i));
-
-	/* merge the ideal lists of r1 and r2 */
-
-	if (max_ideals >= MERGE_MAX_OBJECTS) {
-		printf("error: list of merged ideals too large\n");
-		exit(-1);
-	}
-
-	i = merge_relations(aux->tmp_ideals,
-				r1->data + r1->num_relations, 
-				r1->num_large_ideals,
-				r2->data + r2->num_relations, 
-				r2->num_large_ideals);
-
-	r_out->num_large_ideals = i;
-
-	/* save the merged lists */
-
-	r_out->data = (uint32 *)xmalloc(sizeof(uint32) *
-					(r_out->num_relations + 
-					 r_out->num_large_ideals));
-	memcpy(r_out->data, 
-	       aux->tmp_relations, 
-	       r_out->num_relations * sizeof(uint32));
-	memcpy(r_out->data + r_out->num_relations, 
-	       aux->tmp_ideals, 
-	       r_out->num_large_ideals * sizeof(uint32));
-}
-
-/*--------------------------------------------------------------------*/
-static uint32 estimate_new_weight(relation_set_t *r1,
-				relation_set_t *r2) {
-
-	/* guess the total number of ideals derived from
-	   merging r1 and r2. This is much faster than
-	   actually merging r1 and r2, but must occur much
-	   more often */
-
-	uint32 i, j, k;
-	uint32 num_relations1 = r1->num_relations;
-	uint32 num_relations2 = r2->num_relations;
-	uint32 num_ideals1 = r1->num_large_ideals;
-	uint32 num_ideals2 = r2->num_large_ideals;
-	uint32 *ilist1 = r1->data + num_relations1;
-	uint32 *ilist2 = r2->data + num_relations2;
-
-	/* find the number of relations that are duplicated
-	   in r1 and r2 */
-
-	uint32 num_dup = 0;
-	uint32 num_small;
-	i = j = 0;
-	while (i < num_relations1 && j < num_relations2) {
-		uint32 rel1 = r1->data[i];
-		uint32 rel2 = r2->data[j];
-		if (rel1 < rel2) {
-			i++;
-		}
-		else if (rel1 > rel2) {
-			j++;
-		}
-		else {
-			i++; j++; num_dup += 2;
-		}
-	}
-
-	/* count the number of large ideals that would
-	   be left if r1 and r2 were merged */
-
-	i = j = k = 0;
-	while (i < num_ideals1 && j < num_ideals2) {
-		uint32 ideal1 = ilist1[i];
-		uint32 ideal2 = ilist2[j];
-		if (ideal1 < ideal2) {
-			i++; k++;
-		}
-		else if (ideal1 > ideal2) {
-			j++; k++;
-		}
-		else {
-			i++; j++;
-		}
-	}
-
-	/* combine all the figures into a single estimate */
-
-	num_small = r1->num_small_ideals + r2->num_small_ideals;
-	num_small -= MIN(num_small, RELATION_CANCEL_BIAS * num_dup);
-	return k + num_small + (num_ideals1 - i) + (num_ideals2 - j);
 }
 
 /*--------------------------------------------------------------------*/
@@ -452,9 +309,13 @@ static uint32 store_next_relset_group(merge_aux_t *aux,
 
 		*r = aux->tmp_relsets[i];
 
-		/* if there are too many relations in r, delete it */
+		/* if the merging wiped out r (i.e. it had a singleton 
+		   ideal), or there are too many relations in r, give up */
 
-		if (r->num_relations > MAX_RELSET_SIZE) {
+		if (r->num_relations == 0) {
+			continue;
+		}
+		else if (r->num_relations > MAX_RELSET_SIZE) {
 			free(r->data);
 			memset(r, 0, sizeof(relation_set_t));
 			continue;
@@ -501,7 +362,7 @@ void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 	   and we can instead attempt to produce a number of cycles close
 	   to R-I. This reduces the number of merges we would have to do,
 	   and leaves us with a very large but very light matrix. Between
-	   these two extremes there are a range of 'compromise' matrices.
+	   these two extremes there is a range of 'compromise' matrices.
 	   A compromise matrix will ignore some number S of the large ideals
 	   in I, and consist of a moderate number (min_cycles+S) of cycles
 	   that are moderately dense. The choice of S and resulting cycles
@@ -751,6 +612,9 @@ void nfs_merge_full(msieve_obj *obj, merge_t *merge, uint32 min_cycles) {
 			*new_r = *r;
 			new_r->num_small_ideals += new_r->num_large_ideals;
 			new_r->num_large_ideals = 0;
+			new_r->data = (uint32 *)xrealloc(new_r->data,
+							new_r->num_relations *
+							sizeof(uint32));
 		}
 		else {
 			free(r->data);

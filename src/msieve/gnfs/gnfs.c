@@ -32,25 +32,21 @@ static sieve_param_t prebuilt_params[] = {
 	{365,          3200000, 3200000, 1<<27, 1<<27, 16000000, 0, 0},
 	{372,          3500000, 3500000, 1<<27, 1<<27, 20000000, 0, 0},
 	{392,          4500000, 4500000, 1<<27, 1<<27, 24000000, 0, 0},
-	{405,          5000000, 5000000, 1<<27, 1<<27, 28000000, 0, 0},
-	{419,          5400000, 5400000, 1<<27, 1<<27, 32000000, 0, 0},
-
-	/* Compared to published sets of parameters for 512 bit input, 
-	   the following are highly suboptimal */
-
-	{433,          5800000, 5800000, 1<<28, 1<<28, 36000000, 0, 0},
-	{447,          6200000, 6200000, 1<<28, 1<<28, 40000000, 0, 0},
-	{463,          6600000, 6600000, 1<<28, 1<<28, 44000000, 0, 0},
-	{477,          7000000, 7000000, 1<<29, 1<<29, 48000000, 0, 0},
-	{492,          7400000, 7400000, 1<<29, 1<<29, 52000000, 0, 0},
-	{506,          7800000, 7800000, 1<<30, 1<<30, 56000000, 0, 0},
-	{520,          8200000, 8200000, 1<<30, 1<<30, 60000000, 0, 0},
+	{405,          6000000, 6000000, 1<<27, 1<<27, 28000000, 0, 0}, 
+	{416,          8000000, 8000000, 1<<27, 1<<27, 32000000, 0, 0}, 
+	{429,          11000000, 11000000, 1<<27, 1<<27, 36000000, 0, 0}, 
+	{443,          12000000, 12000000, 1<<28, 1<<28, 40000000, 0, 0}, 
+	{453,          15000000, 15000000, 1<<28, 1<<28, 44000000, 0, 0}, 
+	{463,          18000000, 18000000, 1<<28, 1<<28, 48000000, 0, 0}, 
+	{477,          21000000, 21000000, 1<<29, 1<<29, 52000000, 0, 0},
+	{492,          24000000, 24000000, 1<<29, 1<<29, 56000000, 0, 0},
+	{506,          27000000, 27000000, 1<<29, 1<<29, 60000000, 0, 0},
+	{520,          30000000, 30000000, 1<<29, 1<<29, 64000000, 0, 0},
 };
 
 static void get_sieve_params(uint32 bits, sieve_param_t *params);
 
-static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n, 
-				uint32 *have_free_relations);
+static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n);
 
 /*--------------------------------------------------------------------*/
 uint32 factor_gnfs(msieve_obj *obj, mp_t *n,
@@ -61,7 +57,6 @@ uint32 factor_gnfs(msieve_obj *obj, mp_t *n,
 	sieve_param_t params;
 	mp_poly_t rat_poly;
 	mp_poly_t alg_poly;
-	uint32 have_free_relations = 0;
 	uint32 relations_found = 0;
 	uint32 max_relations = 0;
 	uint32 factor_found = 0;
@@ -101,8 +96,7 @@ uint32 factor_gnfs(msieve_obj *obj, mp_t *n,
 		/* figure out how many relations to look for, and 
 		   quit early if that many have already been found */
 
-		relations_found = nfs_init_savefile(obj, n, 
-						&have_free_relations);
+		relations_found = nfs_init_savefile(obj, n);
 		if (obj->max_relations > 0) {
 			max_relations = relations_found + 
 						obj->max_relations;
@@ -147,19 +141,6 @@ uint32 factor_gnfs(msieve_obj *obj, mp_t *n,
 			return 0;
 
 		if (obj->flags & MSIEVE_FLAG_NFS_FILTER) {
-
-			/* if the savefile does not contain free relations,
-			   add them. We do this only if filtering is specified,
-			   to prevent multiple sieving machines from adding
-			   free relations multiple times */
-
-			if (!have_free_relations) {
-				savefile_open(&obj->savefile, SAVEFILE_APPEND);
-				relations_found += add_free_relations(
-							obj, &params, n);
-				savefile_close(&obj->savefile);
-				have_free_relations = 1;
-			}
 
 			max_relations = nfs_filter_relations(obj, n);
 			if (max_relations == 0)
@@ -428,15 +409,12 @@ hash_t *hashtable_find(hashtable_t *h, void *blob, uint32 *present) {
 }
 
 /*------------------------------------------------------------------*/
-static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n,
-				uint32 *free_rel) {
+static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n) {
 
 	char buf[LINE_BUF_SIZE];
 	uint32 relations_found = 0;
 	savefile_t *savefile = &obj->savefile;
 	uint32 update = 1;
-
-	*free_rel = 0;
 
 	/* open the savefile; if the file already
 	   exists and the first line contains n,
@@ -466,6 +444,12 @@ static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n,
 		savefile_flush(savefile);
 		savefile_close(savefile);
 	}
+	else {
+		/* we don't care how many relations are present,
+		   so don't waste time counting them */
+		return 0;
+	}
+
 
 	/* count the number of relations in the savefile;
 	   do not verify any of them */
@@ -480,16 +464,8 @@ static uint32 nfs_init_savefile(msieve_obj *obj, mp_t *n,
 		savefile_read_line(buf, sizeof(buf), savefile);
 
 		while (!savefile_eof(savefile)) {
-			if (isdigit(buf[0]) || buf[0] == '-') {
+			if (isdigit(buf[0]) || buf[0] == '-')
 				relations_found++;
-				if (*free_rel == 0) {
-					char *b = strchr(buf, ',');
-					if (b != NULL) {
-						if (atol(b + 1) == 0)
-							*free_rel = 1;
-					}
-				}
-			}
 			savefile_read_line(buf, sizeof(buf), savefile);
 		}
 

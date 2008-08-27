@@ -261,11 +261,11 @@ static void delete_relations(filter_t *filter,
 }
 
 /*--------------------------------------------------------------------*/
-uint32 nfs_purge_cliques(msieve_obj *obj, 
-			filter_t *filter,
-			uint32 clique_heap_size,
-			uint32 max_clique_relations,
-			uint32 num_excess_relations) {
+static uint32 purge_cliques_core(msieve_obj *obj, 
+				filter_t *filter,
+				uint32 clique_heap_size,
+				uint32 max_clique_relations,
+				uint32 num_excess_relations) {
 
 	uint32 i, j;
 	ideal_map_t *ideal_map;
@@ -604,4 +604,64 @@ uint32 nfs_purge_cliques(msieve_obj *obj,
 	free(clique_heap);
 	free(delete_array);
 	return num_delete;
+}
+
+/*--------------------------------------------------------------------*/
+void nfs_purge_cliques(msieve_obj *obj, filter_t *filter) {
+
+	uint32 clique_heap_size;
+	uint32 max_clique_relations = 2;
+
+	/* iteratively delete cliques until there are
+	   just enough excess relations for the merge 
+	   phase to run. We choose the number of cliques
+	   to delete so that there are always several
+	   passes to perform, allowing us to discover new
+	   cliques to prune */
+
+	clique_heap_size = ((filter->num_relations - 
+			filter->num_ideals) - filter->target_excess) / 2;
+	clique_heap_size = MIN(clique_heap_size, 400000);
+
+	while (1) {
+		/* iteratively delete relations containing ideals
+		   appearing in exactly max_clique_relations relations */
+
+		while (filter->num_relations - filter->num_ideals >
+				filter->target_excess + 100) {
+			if (purge_cliques_core(obj, filter, clique_heap_size,
+					max_clique_relations,
+					(filter->num_relations - 
+					 filter->num_ideals) - 
+					filter->target_excess) == 0) {
+				break;
+			}
+
+			/* the above got rid of relations; now get rid
+			   of the ideals from those relations and remove
+			   any additional singletons */
+
+			nfs_purge_singletons_core(obj, filter);
+		}
+
+		/* in the vast majority of cases, max_clique_relations = 2
+		   is enough to burn up all of the excess in the dataset.
+		   However, when there is a really huge amount of 
+		   initial excess, we may run out of cliques before 
+		   running out of excess. In that case, look for larger 
+		   cliques to delete */
+
+		if (filter->num_relations - filter->num_ideals <=
+					filter->target_excess + 100000)
+			break;
+
+		if (++max_clique_relations >= 8) {
+			printf("error: far too many relations, try "
+				"restarting the filtering with fewer\n");
+			exit(-1);
+		}
+
+		logprintf(obj, "too much excess; switching to %u-cliques\n",
+					max_clique_relations);
+	}
 }

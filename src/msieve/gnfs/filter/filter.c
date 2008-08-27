@@ -142,30 +142,21 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	if (obj->nfs_upper)
 		filtmin_a = obj->nfs_upper;
 
-	/* calculate the initial excess to look for */
-
-	find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
-
 	/* singleton removal happens in at least two phases. 
-	   Phase 1 does the singleton removal and clique 
-	   processing for all the ideals larger than filtmin, 
-	   regardless of ideal weight. In the first phase we 
-	   demand a lot of excess relations. 
+	   Phase 1 does the singleton removal for all the 
+	   ideals larger than filtmin, regardless of ideal weight.
 	   
-	   We avoid pruning too many cliques, to leave some room
-	   for phase 2+. Phase 2 always runs, even if there is 
-	   not enough excess for phase 1; the first pass is just
-	   to remove the majority of the excess, in case there
-	   are many more relations than necesary */
+	   Phase 2 always runs, even if there is not enough excess 
+	   for phase 1; the first pass is just to remove the 
+	   majority of the singletons */
 
 	memset(&filter, 0, sizeof(filter));
 	filter.filtmin_r = filtmin_r;
 	filter.filtmin_a = filtmin_a;
-	filter.target_excess = (uint32)(1.5 * (entries_r + entries_a));
-	logprintf(obj, "ignoring smallest %u rational and %u "
-			"algebraic ideals\n", entries_r, entries_a);
+	logprintf(obj, "reading rational ideals above %u\n", filtmin_r);
+	logprintf(obj, "reading algebraic ideals above %u\n", filtmin_a);
 
-	extra_needed = nfs_purge_singletons(obj, &fb, &filter, 0);
+	nfs_purge_singletons_initial(obj, &fb, &filter);
 
 	/* throw away the current relation list */
 
@@ -185,33 +176,50 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
 		filtmin_r = 0.8 * filtmin_r;
 		filtmin_a = 0.8 * filtmin_a;
-		find_fb_size(&fb, filtmin_r, filtmin_a, 
-				&entries_r, &entries_a);
+		find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
 		filter.filtmin_r = filtmin_r;
 		filter.filtmin_a = filtmin_a;
 		filter.target_excess = entries_r + entries_a;
-		extra_needed = nfs_purge_singletons(obj, &fb, 
-						&filter, max_weight);
+		logprintf(obj, "reading rational ideals above %u\n", 
+						filter.filtmin_r);
+		logprintf(obj, "reading algebraic ideals above %u\n", 
+						filter.filtmin_a);
+
+		nfs_purge_singletons(obj, &fb, &filter, max_weight);
+
+		/* make the clique removal more conservative by
+		   leaving some of the excess; this makes the merge 
+		   phase easier. Note that the singleton removal
+		   probably threw away many large ideals that occur
+		   too often to be worth tracking, which forces the 
+		   target matrix size to increase, so that target_excess 
+		   is larger now */
+
+		extra_needed = filter.target_excess;
+		filter.target_excess *= FINAL_EXCESS_FRACTION;
 
 		/* give up if there is not enough excess 
 		   to form a matrix */
 
 		if (filter.num_relations < filter.num_ideals ||
-		    filter.num_relations - filter.num_ideals <
-						FINAL_EXCESS_FRACTION *
-						filter.target_excess) {
+		    filter.num_relations - filter.num_ideals < 
+		    				filter.target_excess) {
+			uint32 relations_needed = 1000000;
+
+			if (filter.num_relations > filter.num_ideals) {
+				relations_needed = 3 * (filter.target_excess -
+						(filter.num_relations - 
+					 	 filter.num_ideals));
+				relations_needed = MAX(relations_needed, 20000);
+			}
 			free(filter.relation_array);
 			filter.relation_array = NULL;
-			return extra_needed;
+			return relations_needed;
 		}
 
-		/* perform the merge phase. target_excess will be different
-		   from the value set above, because the singleton removal
-		   probably threw away many large ideals that occur
-		   too often to be worth tracking, which forces the target
-		   matrix size to increase */
+		/* perform the merge phase */
 
-		extra_needed = filter.target_excess;
+		nfs_purge_cliques(obj, &filter);
 		nfs_merge_init(obj, &filter);
 		nfs_merge_2way(obj, &filter, &merge);
 		nfs_merge_full(obj, &merge, extra_needed);

@@ -234,10 +234,17 @@ uint32 do_line_sieving(msieve_obj *obj,
 			mp_t *n, uint32 start_relations,
 			uint32 max_relations);
 
-/* add free relations to the savefile for this factorization;
-   returns the number of relations added */
+/* the largest prime to be used in free relations */
 
-uint32 add_free_relations(msieve_obj *obj, sieve_param_t *params, mp_t *n);
+#define FREE_RELATION_LIMIT (1 << 28)
+
+/* add free relations to the savefile for this factorization;
+   the candidates to add are bit entries in free_bits (which is
+   compressed by a factor of 2). Returns the number of relations 
+   that were added */
+
+uint32 add_free_relations(msieve_obj *obj, factor_base_t *fb,
+			  uint8 *free_bits);
 
 /*---------------------- filtering stuff --------------------------------*/
 

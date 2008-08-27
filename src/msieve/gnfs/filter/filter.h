@@ -165,32 +165,26 @@ uint32 nfs_purge_duplicates(msieve_obj *obj, factor_base_t *fb,
 
 /* read '<savefile_name>.d' and create '<savefile_name>.s', a 
    binary file containing the line numbers of relations that
-   are not singletons. This also performs clique processing
-   and fills in 'filter' with the large ideals of surviving 
-   relations before writing the file.
-
-   If max_ideal_weight is nonzero, the process begins instead from
-   <savefile_name>.s; this allows singleton removal and clique 
-   processing to refine a previously processed dataset but 
-   with new filtering parameters. All ideals that occur less than
-   max_ideal_weight times in the list of relations are tracked. 
+   are not singletons. All ideals larger than the bounds specified
+   in 'filter' are tacked */
    
-   The return value is zero if all of this succeeds. The only
-   reason it would fail is if there are not enough relations in
-   the original dataset for filtering to proceed. In that case,
-   an estimate is returned of the number of additional relations
-   needed so that singleton removal is likely to succeed */
+void nfs_purge_singletons_initial(msieve_obj *obj, 
+			factor_base_t *fb, filter_t *filter);
 
-uint32 nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
+/* read and modify '<savefile_name>.s', to account for ideals
+   larger than the filtering bound in 'filter' and occurring in
+   at most max_ideal_weight relations (or all relations if zero) */
+   
+void nfs_purge_singletons(msieve_obj *obj, factor_base_t *fb,
 			filter_t *filter, uint32 max_ideal_weight);
 
-/* perform clique removal on the current set of relations.
-   see clique.c for explanations of the last three parameters */
+/* remove the singletons in a memory-resident set of relations */
 
-uint32 nfs_purge_cliques(msieve_obj *obj, filter_t *filter,
-			uint32 clique_heap_size, 
-			uint32 max_clique_relations,
-			uint32 excess_relations); 
+void nfs_purge_singletons_core(msieve_obj *obj, filter_t *filter);
+
+/* perform clique removal on the current set of relations */
+
+void nfs_purge_cliques(msieve_obj *obj, filter_t *filter);
 
 /* initialize the merge process */
 
