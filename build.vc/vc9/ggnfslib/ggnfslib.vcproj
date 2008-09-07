@@ -76,7 +76,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
@@ -222,7 +222,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>
@@ -296,7 +296,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>

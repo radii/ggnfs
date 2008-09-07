@@ -61,7 +61,7 @@
 				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
 			<Tool
@@ -75,7 +75,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -162,7 +162,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -246,7 +246,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
@@ -332,7 +332,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.2\build.vc8\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp-4.2.3\build.vc9\lib\$(OutDir)\gmp.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
