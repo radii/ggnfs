@@ -133,6 +133,7 @@ static uint32 rat_square_root(relation_t *rlist, uint32 num_relations,
 	hashtable_t h;
 	uint32 already_seen;
 	mp_t base, exponent, tmp;
+	uint32 status = 0;
 
 	/* count up the number of times each prime factor in
 	   rlist occurs */
@@ -140,14 +141,18 @@ static uint32 rat_square_root(relation_t *rlist, uint32 num_relations,
 	hashtable_init(&h, LOG2_IDEAL_HASHTABLE_SIZE, 10000, 1);
 	for (i = 0; i < num_relations; i++) {
 		relation_t *r = rlist + i;
+
+		if (r->refcnt % 2 == 0)
+			continue;
+
 		for (j = 0; j < r->num_factors_r; j++) {
 			hash_t *curr_ideal = hashtable_find(&h,
 						r->factors + j, 
 						&already_seen);
 			if (!already_seen)
-				curr_ideal->payload[1] = r->refcnt;
+				curr_ideal->payload[1] = 1;
 			else
-				curr_ideal->payload[1] += r->refcnt;
+				curr_ideal->payload[1]++;
 		}
 	}
 
@@ -161,8 +166,8 @@ static uint32 rat_square_root(relation_t *rlist, uint32 num_relations,
 	for (i = 1; i < h.match_array_size; i++) {
 		hash_t *curr_ideal = h.match_array + i;
 		if (curr_ideal->payload[1] % 2) {
-			hashtable_free(&h);
-			return 1;
+			status = 1;
+			break;
 		}
 		if (curr_ideal->payload[0]) {
 			base.val[0] = curr_ideal->payload[0];
@@ -173,7 +178,7 @@ static uint32 rat_square_root(relation_t *rlist, uint32 num_relations,
 	}
 
 	hashtable_free(&h);
-	return 0;
+	return status;
 }
 
 /*--------------------------------------------------------------------*/
@@ -183,14 +188,14 @@ static uint32 verify_alg_ideal_powers(relation_t *rlist,
 	uint32 i, j, k;
 	hashtable_t h;
 	uint32 already_seen;
-	uint32 full_num_relations = 0;
 	uint32 *counts = NULL;
 	uint32 count_alloc = 0;
+	uint32 num_odd;
 
 	/* the return value is the total number of relations
-	   counted, which will be larger than num_relations
-	   since each entry in rlist could occur more than once
-	   in a given NFS dependency */
+	   counted, which will be smaller than num_relations
+	   since only odd multiplicity relations appear, and
+	   even then only once */
 
 	/* count the multiplicity of each algebraic ideal (not
 	   just the prime to which the ideal corresponds) in
@@ -202,9 +207,12 @@ static uint32 verify_alg_ideal_powers(relation_t *rlist,
 	hashtable_init(&h, LOG2_IDEAL_HASHTABLE_SIZE, 10000, 
 			(uint32)(sizeof(ideal_t) / sizeof(uint32)));
 
-	for (i = 0; i < num_relations; i++) {
+	for (i = num_odd = 0; i < num_relations; i++) {
 		relation_t *r = rlist + i;
 		relation_lp_t rlp;
+
+		if (r->refcnt % 2 == 0)
+			continue;
 
 		find_large_ideals(r, &rlp, 0, 0);
 
@@ -229,26 +237,26 @@ static uint32 verify_alg_ideal_powers(relation_t *rlist,
 				       		count_alloc) * sizeof(uint32));
 				count_alloc = h.match_array_alloc;
 			}
-			counts[k] += r->refcnt;
+			counts[k]++;
 		}
 
-		full_num_relations += r->refcnt;
+		num_odd++;
 		if (r->b == 0)
-			(*num_free_relations) += r->refcnt;
+			(*num_free_relations)++;
 	}
 
 	/* verify each ideal occurs an even number of times */
 
 	for (i = 1; i < h.match_array_size; i++) {
 		if (counts[i] % 2) {
-			full_num_relations = 0;
+			num_odd = 0;
 			break;
 		}
 	}
 
 	hashtable_free(&h);
 	free(counts);
-	return full_num_relations;
+	return num_odd;
 }
 
 /*--------------------------------------------------------------------*/
@@ -329,7 +337,7 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 	/* for each dependency */
 
 	for (i = dep_lower; i <= dep_upper; i++) {
-		uint32 k, m;
+		uint32 k;
 		uint32 num_relations;
 		uint32 full_num_relations;
 		uint32 num_free_relations;
@@ -396,7 +404,7 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 						sizeof(abpair_t));
 		for (j = k = 0; j < num_relations; j++) {
 			relation_t *r = rlist + j;
-			for (m = 0; m < r->refcnt; m++) {
+			if (r->refcnt % 2) {
 				abpairs[k].a = r->a;
 				abpairs[k].b = r->b;
 				k++;
@@ -446,11 +454,6 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 			mp_modmul(&tmp2, &sqrt_a, n, &sqrt_a);
 		}
 
-		if (mp_cmp(&sqrt_r, &sqrt_a) == 0) {
-			logprintf(obj, "error: square roots are identical\n");
-			continue;
-		}
-
 		/* a final sanity check: square the rational and algebraic 
 		   square roots, expecting the same value modulo n */
 
@@ -467,9 +470,6 @@ uint32 nfs_find_factors(msieve_obj *obj, mp_t *n,
 		mp_add(&sqrt_r, &sqrt_a, &tmp1);
 		mp_gcd(&tmp1, n, &tmp1);
 		if (!mp_is_one(&tmp1) && mp_cmp(n, &tmp1) != 0) {
-
-			/* factor found; add it to the list of factors */
-
 			factor_found = 1;
 			if (factor_list_add(obj, factor_list, &tmp1) == 0)
 				break;

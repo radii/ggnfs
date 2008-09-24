@@ -103,7 +103,8 @@ void create_factor_base(msieve_obj *obj,
 		if (p > max_prime_r && p > max_prime_a)
 			break;
 
-		if (report_progress && num_found_r > next_report) {
+		if (report_progress && (num_found_r > next_report ||
+					num_found_a > next_report)) {
 			fprintf(stderr, "factor base: found "
 					"%u rational and %u "
 					"algebraic entries\r", 

@@ -80,7 +80,7 @@ static INLINE void clear_precision(precision_t old_prec) {
 #endif
 /*------------------------------------------------------------------------*/
 
-#define MAX_FHT_POWER 27
+#define MAX_FHT_POWER 28
 
 #define HUGE_TWIDDLE_CUTOFF 20
 

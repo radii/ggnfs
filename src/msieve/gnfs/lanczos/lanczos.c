@@ -921,9 +921,11 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 	uint64 mask0, mask1;
 
 	uint32 dim_solved = 0;
+	uint32 first_dim_solved = 0;
 	uint32 report_interval = 0;
 	uint32 next_report = 0;
 	uint32 next_dump = 0;
+	time_t first_time;
 
 	if (packed_matrix->num_threads > 1)
 		logprintf(obj, "commencing Lanczos iteration (%u threads)\n",
@@ -985,6 +987,7 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 	/* determine if the solver will run long enough that
 	   it would be worthwhile to report progress */
 
+	first_time = time(NULL);
 	if (n > 60000 &&
 	    obj->flags & (MSIEVE_FLAG_USE_LOGFILE |
 	    		  MSIEVE_FLAG_LOG_TO_STDOUT)) {
@@ -996,6 +999,7 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 			report_interval = 2000;
 		else
 			report_interval = 8000;
+		first_dim_solved = dim_solved;
 		next_report = dim_solved + report_interval;
 	}
 
@@ -1181,10 +1185,18 @@ static uint64 * block_lanczos_core(msieve_obj *obj,
 		dim_solved += dim0;
 		if (report_interval) {
 			if (dim_solved >= next_report) {
-				next_report = dim_solved + report_interval;
+				time_t curr_time = time(NULL);
+				double elapsed = difftime(curr_time, 
+							first_time);
+				uint32 eta = elapsed * (n - dim_solved) /
+						(dim_solved - first_dim_solved);
+
 				fprintf(stderr, "linear algebra completed %u "
-					"out of %u dimensions (%1.1f%%)\r",
-					dim_solved, n, 100.0 * dim_solved / n);
+					"of %u dimensions (%1.1f%%, ETA "
+					"%dh%2dm)    \r",
+					dim_solved, n, 100.0 * dim_solved / n,
+					eta / 3600, (eta % 3600) / 60);
+				next_report = dim_solved + report_interval;
 				fflush(stderr);
 			}
 		}

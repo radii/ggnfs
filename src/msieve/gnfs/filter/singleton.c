@@ -577,6 +577,7 @@ void nfs_purge_singletons_core(msieve_obj *obj,
 	
 	/* save the current state */
 
+	filter->max_ideal_weight = j;
 	filter->num_relations = num_relations;
 	filter->num_ideals = num_ideals;
 	filter->relation_array = relation_array = 

@@ -94,6 +94,8 @@ typedef struct {
 				       to be tracked during filtering */
 	uint32 target_excess;      /* how many more relations than ideals
 					are required for filtering to proceed */
+	uint32 max_ideal_weight;   /* the largest number of relations that
+				        contain the same ideal */
 } filter_t;
 
 /* the multiple of the amount of excess needed for

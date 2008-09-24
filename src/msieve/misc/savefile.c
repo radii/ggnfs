@@ -117,6 +117,7 @@ void savefile_open(savefile_t *s, uint32 flags) {
 #endif
 
 	s->buf_off = 0;
+	s->buf[0] = 0;
 }
 
 /*--------------------------------------------------------------------*/

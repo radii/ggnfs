@@ -576,10 +576,8 @@ static uint32 do_one_line(sieve_job_t *job, uint32 b_offset)
 			else
 				block_base += BLOCK_SIZE;
 
-			if (block_base >= max_a || 
-			    obj->flags & MSIEVE_FLAG_STOP_SIEVING) {
+			if (block_base >= max_a)
 				break;
-			}
 		}
 
 		if (obj->flags & MSIEVE_FLAG_STOP_SIEVING)

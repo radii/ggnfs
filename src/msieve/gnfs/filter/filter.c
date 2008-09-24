@@ -108,7 +108,7 @@ static void find_fb_size(factor_base_t *fb,
 }
 
 /*--------------------------------------------------------------------*/
-#define MAX_KEEP_WEIGHT 40
+#define MAX_KEEP_WEIGHT 45
 
 uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
@@ -168,14 +168,12 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 	   having been deleted already. The set of relations remaining
 	   will be forwarded to the final merge phase */
 
-	filtmin_r = MIN(filtmin_r / 2, 900000);
-	filtmin_a = MIN(filtmin_a / 2, 900000);
+	filtmin_r = MIN(filtmin_r / 2, 720000);
+	filtmin_a = MIN(filtmin_a / 2, 720000);
 
 	for (max_weight = 20; max_weight < MAX_KEEP_WEIGHT; 
 					max_weight += 5) {
 
-		filtmin_r = 0.8 * filtmin_r;
-		filtmin_a = 0.8 * filtmin_a;
 		find_fb_size(&fb, filtmin_r, filtmin_a, &entries_r, &entries_a);
 		filter.filtmin_r = filtmin_r;
 		filter.filtmin_a = filtmin_a;
@@ -217,9 +215,20 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 			return relations_needed;
 		}
 
-		/* perform the merge phase */
+		/* remove cliques; if the dataset is too sparse 
+		   afterwards, try again with higher target weight */
 
 		nfs_purge_cliques(obj, &filter);
+
+		if (filter.max_ideal_weight < 18) {
+			logprintf(obj, "dataset too sparse, retrying\n");
+			free(filter.relation_array);
+			filter.relation_array = NULL;
+			continue;
+		}
+
+		/* perform the merge phase */
+
 		nfs_merge_init(obj, &filter);
 		nfs_merge_2way(obj, &filter, &merge);
 		nfs_merge_full(obj, &merge, extra_needed);
@@ -242,6 +251,11 @@ uint32 nfs_filter_relations(msieve_obj *obj, mp_t *n) {
 
 		logprintf(obj, "matrix not dense enough, retrying\n");
 		free_relsets(&merge);
+
+		/* lower the filtering bound for next time */
+
+		filtmin_r = 0.8 * filtmin_r;
+		filtmin_a = 0.8 * filtmin_a;
 	}
 
 	if (max_weight >= MAX_KEEP_WEIGHT) {
