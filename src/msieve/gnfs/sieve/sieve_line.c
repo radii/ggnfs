@@ -266,7 +266,7 @@ uint32 do_line_sieving(msieve_obj *obj, sieve_param_t *params, mp_t *n,
 	   somewhere below the large prime bound */
 
 	i = MAX(job.sieve_rfb.LP1_max, job.sieve_afb.LP1_max);
-	i = MIN(1 << 28, i / 4);
+	i = MIN(3 << 27, i / 4);
 	
 	relation_batch_init(job.obj, &job.relation_batch,
 			MIN(fb.rfb.max_prime, fb.afb.max_prime),
