@@ -27,14 +27,14 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
 /**************************************************************/
 {
   float a0sq, a1sq, s;
-  i32_t iter = 0;
+  i32_t iter;
 
   a0sq = ((float) a0) * a0;
   a0sq += sigma * ((float) b0) * b0;
   a1sq = ((float) a1) * a1;
   a1sq += sigma * ((float) b1) * b1;
 
-  for (iter=0; iter<1024; iter++) { /* inf.loop prevention */
+  for (iter=1; iter<1024; iter++) { /* inf.loop prevention */
     s = ((float) a0) * a1;
     s += sigma * ((float) b0) * b1;
 
