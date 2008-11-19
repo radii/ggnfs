@@ -152,9 +152,9 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
   mpz_t tmp, tmp2, mpow;
 
   *adeg = *bdeg = 0;                                                    
-  *A = xmalloc(8*sizeof(**A)); /* plenty o' room. */
-  *B = xmalloc(8*sizeof(**B));
-  for (i=0; i<8; i++) {
+  *A = xmalloc(9*sizeof(**A)); /* plenty o' room. */
+  *B = xmalloc(9*sizeof(**B));
+  for (i=0; i<9; i++) {
     mpz_init_set_ui((*A)[i], 0);
     mpz_init_set_ui((*B)[i], 0);
   }
@@ -168,10 +168,10 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
         mpz_set_str(N, value, 10);
       } else if (strncmp(token, "m:", 2)==0) {
         mpz_set_str(m, value, 10);
-      } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '6')) {
+      } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '8')) {
         mpz_set_str((*A)[token[1]-'0'], value, 10);
         *adeg = MAX(*adeg, token[1]-'0');
-      } else if ((token[0]=='Y') && (token[1] >= '0') && (token[1] <= '6')) {
+      } else if ((token[0]=='Y') && (token[1] >= '0') && (token[1] <= '8')) {
         mpz_set_str((*B)[token[1]-'0'], value, 10);
         *bdeg = MAX(*bdeg, token[1]-'0');
       } else if (strncmp(token, "END_POLY", 8)==0) {
