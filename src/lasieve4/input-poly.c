@@ -147,7 +147,7 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t * adeg_ptr, mpz_t ** B,
 void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
                 i32_t *bdeg, mpz_t m, FILE *fp)
 /*******************************************************/
-{ char  token[256], value[256], thisLine[1024];
+{ char  token[256], value[512], thisLine[1024];
   int   i, j, cont=1;
   mpz_t tmp, tmp2, mpow;
 
@@ -161,7 +161,7 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
   while (cont) {
     thisLine[0] = 0;
     fgets(thisLine, 1023, fp);
-    if ((sscanf(thisLine, "%255s %255s", token, value)==2) &&
+    if ((sscanf(thisLine, "%255s %511s", token, value)==2) &&
                 (thisLine[0] != '#')) {
 	  token[sizeof(token)-1] = 0;
       if (strncmp(token, "n:", 2)==0) {
