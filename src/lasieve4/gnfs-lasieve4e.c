@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #if defined (_MSC_VER) && defined (_DEBUG)
 	#include <crtdbg.h>
@@ -88,6 +89,7 @@ static mpz_t *(g_poly[2]);
 double *(poly_f[2]), poly_norm[2];
 u32_t  g_poldeg[2], poldeg_max;
 u32_t  keep_factorbase;
+u32_t  g_resume;
 
 static mpz_t rational_rest, algebraic_rest;
 mpz_t factors[MAX_LPFACTORS];
@@ -2763,7 +2765,41 @@ void logTotalTime()
   fprintf(fp, "\tLatSieveTime: %ld\n", (long)t);
   fclose(fp);
 }
+
+/**************************************************/
+int parse_q_from_line(char *buf) {
+/**************************************************/
+  char *p, *tmp, *next_field;
+  u32_t q, i, side;
+  static int first=0;
+
+  for(p=tmp=buf; *p && isspace(*p); p++);
+  if(!*p) return 0; /* empty line, skip */
+
+  side = (special_q_side == RATIONAL_SIDE) ? 0 : 1;
+  for(i=0; *p; p++) {
+    if(*p==':') {
+      if(i++ == side) tmp = p; /* we will only scan this section for a q0 */
+    } else if(!(*p=='-' || *p==',' || isspace(*p) || isxdigit(*p))) {
+      if(first++ == 0) printf(" Warning! some corrupt lines in the original file\n");
+      return -1;
+    }
+  }
+  if(i!=2) {
+    printf(" Warning: an incomplete line in the original file; if just a few, it's ok, they will be skipped\n");
+    return -1;           /* must have two ':' some ',' and hexdigits */
+  }
   
+  do {
+    q = strtoul(tmp + 1, &next_field, 16);
+    if(q > first_spq && q < first_spq+sieve_count) {
+      sieve_count -= (q - first_spq);
+      first_spq = q;
+    }
+    tmp = next_field;
+  } while(tmp[0] == ',' && isxdigit(tmp[1]));
+  return 1;
+}  
 
 /**************************************************/
 int main(int argc, char **argv)
@@ -2808,6 +2844,7 @@ int main(int argc, char **argv)
     special_q_side = NO_SIDE;
     sigma = 0;
     keep_factorbase = 0;
+    g_resume = 0;
     base_name = NULL;
     first_spq = 0;
     sieve_count = 1;
@@ -2824,8 +2861,10 @@ int main(int argc, char **argv)
 #define NumRead16(x) if(sscanf(optarg, "%hu" ,(unsigned short*)&x)!=1) Usage()
 
     while ((option =
-            getopt(argc, argv, "FJ:L:M:N:P:S:ab:c:f:i:kn:o:rst:vz")) != -1) {
+            getopt(argc, argv, "FJ:L:M:N:P:RS:ab:c:f:i:kn:o:rst:vz")) != -1) {
       switch (option) {
+        case 'R':
+          g_resume = 1; break;
         case 'F':
           force_aFBcalc = 1; break;
         case 'J':
@@ -2975,6 +3014,9 @@ int main(int argc, char **argv)
 
   if (sieve_count != 0) {
     if (g_ofile_name == NULL) {
+      if (g_resume != 0) {
+        complain("Cannot resume without the file name\n");
+      }
       if (zip_output == 0) {
         asprintf(&g_ofile_name, "%s.lasieve-%u.%u-%u", base_name,
                  special_q_side, first_spq, last_spq);
@@ -2984,6 +3026,9 @@ int main(int argc, char **argv)
       }
     } else {
       if (strcmp(g_ofile_name, "-") == 0) {
+        if (g_resume != 0) {
+          complain("Cannot resume with stdout\n");
+        }
         if (zip_output == 0) {
           g_ofile = stdout;
           g_ofile_name = "to stdout";
@@ -2995,10 +3040,28 @@ int main(int argc, char **argv)
       }
     }
     if (zip_output == 0) {
+      if (g_resume != 0) {
+#define LINE_BUF_SIZE 300
+        char buf[LINE_BUF_SIZE]; int ret;
+
+        if ((g_ofile = fopen(g_ofile_name, "ab+")) == NULL)
+          complain("Cannot open %s for append: %m\n", g_ofile_name);
+        while(fgets(buf, LINE_BUF_SIZE, g_ofile)) {
+          ret = parse_q_from_line(buf);
+        }
+        if(ret < 0) fprintf(g_ofile, "\n"); /* encapsulating the last incomplete line */
+        printf(" Resuming with -f %d -c %d\n", first_spq, sieve_count);
+        goto done_opening_output;
+      }
+      if ((g_ofile = fopen(g_ofile_name, "rb")) != NULL)
+        complain(" Will not overwrite existing file %s for output; rename it, move it away, or use -R option (resume)\n", g_ofile_name);
       /* CJM: consider making this a "a". */
       if ((g_ofile = fopen(g_ofile_name, "wb")) == NULL)
         complain("Cannot open %s for output: %m\n", g_ofile_name);
     } else {
+      if (g_resume != 0) {
+        complain("Cannot resume gzipped file. gunzip, and retry without -z\n");
+      }
       if ((g_ofile = popen(g_ofile_name, "w")) == NULL)
         complain("Cannot exec %s for output: %m\n", g_ofile_name);
     }
