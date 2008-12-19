@@ -2740,6 +2740,8 @@ int parseJobFile(char *fName)
       } else if (strncmp(token, "m:", 2)==0) {
       } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '8')) {
       } else if ((token[0]=='Y') && (token[1] >= '0') && (token[1] <= '8')) {
+      } else if (strncmp(token, "type", 4)==0) {
+      } else if (strncmp(token, "lss:", 4)==0) {
       } else {
         printf("Warning: Ignoring input line:\n%s\n", thisLine);
       }
