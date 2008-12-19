@@ -2675,7 +2675,7 @@ printf("Too large!\n");
 int parseJobFile(char *fName)
 /**************************************************/
 { FILE *fp;
-  char token[256], value[256], thisLine[1024];
+  char token[256], value[512], thisLine[1024];
 
 
   sieve_min[0] = sieve_min[1]=0;
@@ -2693,7 +2693,7 @@ int parseJobFile(char *fName)
     if (strncmp(thisLine, "START_POLY", 10)==0) {
       while (!(feof(fp)) && strncmp(thisLine, "END_POLY", 8)) 
         fgets(thisLine, 1023, fp);
-    } else  if ((sscanf(thisLine, "%255s %255s", token, value)==2) && 
+    } else  if ((sscanf(thisLine, "%255s %511s", token, value)==2) && 
                 (thisLine[0] != '#')) {
 
 	  token[sizeof(token)-1] = 0;
@@ -2735,8 +2735,12 @@ int parseJobFile(char *fName)
                  (strncmp(token, "rlambda:", 8)==0)) {
         sieve_report_multiplier[1] = (float)atof(value);
       } 
-#ifdef _NO
-      else {
+#if 1
+        else if (strncmp(token, "n:", 2)==0) { /* redundant, but prevents frustration with e.g. lbpr: */
+      } else if (strncmp(token, "m:", 2)==0) {
+      } else if ((token[0]=='c') && (token[1] >= '0') && (token[1] <= '8')) {
+      } else if ((token[0]=='Y') && (token[1] >= '0') && (token[1] <= '8')) {
+      } else {
         printf("Warning: Ignoring input line:\n%s\n", thisLine);
       }
 #endif
