@@ -2770,7 +2770,7 @@ void logTotalTime()
 int parse_q_from_line(char *buf) {
 /**************************************************/
   char *p, *tmp, *next_field;
-  u32_t q, i, side;
+  u32_t q, q0, i, side;
   static int first=0;
 
   for(p=tmp=buf; *p && isspace(*p); p++);
@@ -2790,14 +2790,22 @@ int parse_q_from_line(char *buf) {
     return -1;           /* must have two ':' some ',' and hexdigits */
   }
   
+  q0 = first_spq;
   do {
     q = strtoul(tmp + 1, &next_field, 16);
-    if(q > first_spq && q < first_spq+sieve_count) {
-      sieve_count -= (q - first_spq);
-      first_spq = q;
-    }
+    if(q >= first_spq && q < first_spq+sieve_count)
+      q0 = q;
     tmp = next_field;
   } while(tmp[0] == ',' && isxdigit(tmp[1]));
+
+  /* I've seen cases when q0 is not the last reported in the comma-separated list */
+  /* However, the closer it is to the end of the line the more likely it was the true q0 */
+  /* In 99% cases it is the last value, but we don't want to depend on that */
+
+  if(q0 > first_spq && q0 < first_spq+sieve_count) {
+    sieve_count -= (q0 - first_spq);
+    first_spq = q0;
+  }
   return 1;
 }  
 
@@ -2974,8 +2982,10 @@ int main(int argc, char **argv)
 	  }
 
       if (FB_bound[special_q_side] > first_spq) {
-        complain("Special q lower bound %u below FB bound %g\n", 
-                  first_spq, FB_bound[special_q_side]);
+	FB_bound[special_q_side] = (float) first_spq-1;
+	printf(" Warning:  lowering FB_bound to %u.\n",first_spq-1);
+        /* complain("Special q lower bound %u below FB bound %g\n", 
+	   first_spq, FB_bound[special_q_side]); */
       }
     }
     if (g_poldeg[0] < g_poldeg[1])
