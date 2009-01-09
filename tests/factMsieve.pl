@@ -77,7 +77,8 @@ $ECHO_CMDLINE=1;
 $CHECK_POLY=1;
 # If this is zero, the lattice siever will sieve q-values on the algebraic side.
 # Otherwise, it will sieve rational q-values.
-$LATSIEVE_SIDE=0;
+$LATSIEVE_SIDE=1;
+# SB: rational for SNFS, algebraic for GNFS!!
 
 # If this is zero, the GGNFS polynomial selection code will be used (when needed).
 # But the Kleinjung/Franke code is better, so you should use it if you can.
@@ -390,6 +391,7 @@ sub loadDefaultParams {
   my $realDIGS=$_[0];
   my $realDEG=$_[1];
   my $type=$_[2];
+  $LATSIEVE_SIDE=0 if $type eq "gnfs"; # SB
   die("Could not find default parameter file $DEFAULT_PAR_FILE!\n") 
       unless (-e $DEFAULT_PAR_FILE);
   open(IF, $DEFAULT_PAR_FILE);
@@ -1270,7 +1272,8 @@ sub setup {
 
   # Should we resume from an earlier run? #
   $resume=-1;
-  if ((-e $RELSBIN.".0")||(-e $JOBNAME)) {
+  system("\"$CAT\" $JOBNAME.T1 > $JOBNAME") if (-e "$JOBNAME.T1");
+  if (-e $JOBNAME) {
     if ($PROMPTS) {
       print "-> It appears that an earlier attempt was interrupted in progress. Resume? (y/n) ";
       do {
@@ -1281,6 +1284,10 @@ sub setup {
       printf "\n";
     } else { $resume=1; }
   }
+      
+  # The below is approx. 0.2*(pi(LPBA) + pi(LPBR)).  
+  # It's so small because, for small LPBA, it really overestimates.
+  $MINRELS=int(0.2*1.442695*( (2**$LPBA)/$LPBA + (2**$LPBR)/$LPBR));
 
   ############################################
   # Setup the parameters for sieving ranges. #
@@ -1310,6 +1317,11 @@ sub setup {
 
       open(OF, ">$FBNAME");
       print OF "N $N\n";
+      print OF "SKEW $SKEW\n";
+      if(!$COEFHASH{Y1}) {
+        $COEFHASH{Y1}=1;
+        $COEFHASH{Y0}="-".$M;
+      }
       for my $i (reverse 0..$DEGREE) {
           print OF "A$i $COEFVALS{$i}\n";
       }
@@ -1320,10 +1332,6 @@ sub setup {
       printf(OF "SALPMAX %d\n",2**$LPBA);
       printf(OF "SRLPMAX %d\n",2**$LPBR);
       close(OF);
-      
-      # The below is approx. 0.2*(pi(LPBA) + pi(LPBR)).  
-      # It's so small because, for small LPBA, it really overestimates.
-      $MINRELS=int(0.2*1.442695*( (2**$LPBA)/$LPBA + (2**$LPBR)/$LPBR));
     }
     $Q0=$QSTART;
   } else {
@@ -1366,10 +1374,6 @@ sub classicalSieve {
   my $maxB = 0;
   my $lastline = 0;
 
-  open(OF, ">>$FBNAME");
-  print OF "SLINE $A\n";
-  close(OF);
-
   # First, scan the line file and find the largest b-value that was sieved.
   my $LINEFILE = $DATNAME.".line"; 
   if (-e $LINEFILE)  {
@@ -1382,6 +1386,11 @@ sub classicalSieve {
   }
   if ($maxB < $B0) { $maxB = $B0; }
   if ($maxB >= $B1) { return ;} 
+
+  open(OF, ">>$FBNAME");
+  print OF "SLINE $A\n";
+  close(OF);
+
   printf "-> Line file scanned: resuming classical sieve from b=$maxB.\n";
   $cmd="$NICE \"$MSIEVE\" -s $DATNAME -l $LOGFILE -i $ININAME -v -nf $FBNAME -t $NUM_CPUS -ns $maxB,$B1";
   print "=>$cmd\n" if($ECHO_CMDLINE);
@@ -1739,9 +1748,9 @@ print (" knowndiv: $KNOWNDIV\n") if $KNOWNDIV;
 @DIVISORS = sort {$a <=> $b} (@DIVISORS);
 $r = 1;
 while($_ = shift @DIVISORS) {
-printf(" r%d=%s\n", $r++, $_);
+  printf(" r%d=%s (pp%d)\n", $r++, $_, length($_));
 }
-
+$version = "Msieve-1.39" unless $version;
 printf("Version: $version\n");
 printf("Total time: %1.2f hours.\n", $totalT);
 printf("Scaled time: %1.2f units (timescale=%1.3lf).\n", $totalT*$TIMESCALE,$TIMESCALE);
