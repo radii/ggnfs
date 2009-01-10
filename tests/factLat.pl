@@ -1457,6 +1457,7 @@ while (!(-e $COLS)) {
   close(OF);
   # It's very important to call like this, so that if the user CTRL-C's,
   # or otherwise kills the process, we see it and terminate as well.
+  unlink($SIEVER_OUTPUTNAME);
   $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME -v -n$PNUM $sieveSideOpt $JOBNAME";
   print "=>$cmd\n" if($ECHO_CMDLINE);
   $res=system($cmd);

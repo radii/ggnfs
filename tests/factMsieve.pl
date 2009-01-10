@@ -1538,6 +1538,7 @@ while (!(-e $COLS)) {
   if ($NUM_THREADS==1) {
     # It's very important to call like this, so that if the user CTRL-C's,
     # or otherwise kills the process, we see it and terminate as well.
+    unlink($SIEVER_OUTPUTNAME);
     $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME -v -n$PNUM $sieveSideOpt $JOBNAME";
     print "=>$cmd\n" if($ECHO_CMDLINE);
     $res=system($cmd);
@@ -1555,6 +1556,7 @@ while (!(-e $COLS)) {
   else {
     @thd = (1 .. $NUM_THREADS);
     for ($j=1;$j<=$NUM_THREADS;$j++) {
+      unlink("$SIEVER_OUTPUTNAME.T$j");
       $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME.T$j -v -n$PNUM $sieveSideOpt $JOBNAME.T$j";
       print "=>$cmd\n" if($ECHO_CMDLINE);
       $thd[$j]=async{system($cmd)};
