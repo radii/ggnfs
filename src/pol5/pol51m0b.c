@@ -51,6 +51,7 @@
 
 #if defined (_MSC_VER) || defined (__MINGW32__) || defined (MINGW32)
 #include "getopt.h"
+#include "rint.h"
 #endif
 
 #define  MULTIPLIER            60   /* 2*2*3*5 */
