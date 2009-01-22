@@ -2932,6 +2932,28 @@ int main(int argc, char **argv)
           zip_output = 1; break;
       }
     }
+
+#define LINE_BUF_SIZE 300
+
+    if (g_resume != 0) {
+      char buf[LINE_BUF_SIZE];
+      int ret;
+      
+      if (zip_output != 0)
+	complain("Cannot resume gzipped file. gunzip, and retry without -z\n");
+      if (g_ofile_name == NULL)
+	complain("Cannot resume without the file name\n");
+      if (strcmp(g_ofile_name, "-") == 0)
+	complain("Cannot resume using stdout\n");
+      if ((g_ofile = fopen(g_ofile_name, "ab+")) == NULL)
+	complain("Cannot open %s for append: %m\n", g_ofile_name);
+      while(fgets(buf, LINE_BUF_SIZE, g_ofile)) {
+	ret = parse_q_from_line(buf);
+      }
+      if(ret < 0) fprintf(g_ofile, "\n"); /* encapsulating the last incomplete line */
+      printf(" Resuming with -f %d -c %d\n", first_spq, sieve_count);
+    }
+
     if (J_bits == UINT_MAX)
       J_bits = I_bits - 1;
     if (first_psp_side == 2)
@@ -3025,9 +3047,6 @@ int main(int argc, char **argv)
 
   if (sieve_count != 0) {
     if (g_ofile_name == NULL) {
-      if (g_resume != 0) {
-        complain("Cannot resume without the file name\n");
-      }
       if (zip_output == 0) {
         asprintf(&g_ofile_name, "%s.lasieve-%u.%u-%u", base_name,
                  special_q_side, first_spq, last_spq);
@@ -3037,9 +3056,6 @@ int main(int argc, char **argv)
       }
     } else {
       if (strcmp(g_ofile_name, "-") == 0) {
-        if (g_resume != 0) {
-          complain("Cannot resume with stdout\n");
-        }
         if (zip_output == 0) {
           g_ofile = stdout;
           g_ofile_name = "to stdout";
@@ -3052,16 +3068,6 @@ int main(int argc, char **argv)
     }
     if (zip_output == 0) {
       if (g_resume != 0) {
-#define LINE_BUF_SIZE 300
-        char buf[LINE_BUF_SIZE]; int ret;
-
-        if ((g_ofile = fopen(g_ofile_name, "ab+")) == NULL)
-          complain("Cannot open %s for append: %m\n", g_ofile_name);
-        while(fgets(buf, LINE_BUF_SIZE, g_ofile)) {
-          ret = parse_q_from_line(buf);
-        }
-        if(ret < 0) fprintf(g_ofile, "\n"); /* encapsulating the last incomplete line */
-        printf(" Resuming with -f %d -c %d\n", first_spq, sieve_count);
         goto done_opening_output;
       }
       if ((g_ofile = fopen(g_ofile_name, "rb")) != NULL)
@@ -3070,9 +3076,6 @@ int main(int argc, char **argv)
       if ((g_ofile = fopen(g_ofile_name, "wb")) == NULL)
         complain("Cannot open %s for output: %m\n", g_ofile_name);
     } else {
-      if (g_resume != 0) {
-        complain("Cannot resume gzipped file. gunzip, and retry without -z\n");
-      }
       if ((g_ofile = popen(g_ofile_name, "w")) == NULL)
         complain("Cannot exec %s for output: %m\n", g_ofile_name);
     }
