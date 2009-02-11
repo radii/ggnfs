@@ -40,7 +40,7 @@ $FORCECC="on"; # on | off | auto
 $SAVEPAIRS=0;
 $CLEANUP=0;
 $PROMPTS=0;
-$DOCLASSICAL=1;
+$DOCLASSICAL=0;
 $CHECK_BINARIES=1;
 $ECHO_CMDLINE=1;
 $CHECK_POLY=1;
@@ -90,15 +90,15 @@ $polySelTimeMultiplier=1.0;
 # you're fixing a bug or adding functionality.                 #
 ################################################################
 
-if($^O ne "MSWin32") {
-  $CAT="cat";
-  $GZIP="gzip";
-  $EXEC_SUFFIX="";
-}
-else {
+if (($^O eq "MSWin32") || ($^O eq "cygwin"))  {
   $CAT=$SYS_BIN_PATH."/cat.exe";
   $GZIP=$SYS_BIN_PATH."/gzip.exe";
   $EXEC_SUFFIX=".exe";
+}
+else {
+  $CAT="cat";
+  $GZIP="gzip";
+  $EXEC_SUFFIX="";
 }
 
 $LATSIEVER_L1=$GGNFS_BIN_PATH."/gnfs-lasieve4I12e".$EXEC_SUFFIX;
