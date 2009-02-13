@@ -90,7 +90,7 @@ $polySelTimeMultiplier=1.0;
 # you're fixing a bug or adding functionality.                 #
 ################################################################
 
-if (($^O eq "MSWin32") || ($^O eq "cygwin"))  {
+if ($^O eq "MSWin32") {
   $CAT=$SYS_BIN_PATH."/cat.exe";
   $GZIP=$SYS_BIN_PATH."/gzip.exe";
   $EXEC_SUFFIX=".exe";
