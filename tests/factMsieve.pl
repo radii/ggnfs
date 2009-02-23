@@ -528,7 +528,8 @@ sub runPol5 {
     $cmd="$NICE \"$POL51M0\" -b $pname -v -v -p $npr -n $normmax -a $H -A $HH > $pname.log";
     printf("=> $cmd\n");
     my $res=system($cmd);
-    die "Abnormal return value $res. Terminating...\n" if ($res);
+    if ($res) {$H=$HH; next;}	# lambda-comp and ull5-comp related errors can be simply skipped
+    #WAS: die "Abnormal return value $res. Terminating...\n" if ($res);
     $nerr=0;
     open(GR,"$pname.log");
     my @logout=<GR>;
@@ -1697,7 +1698,7 @@ $sieveT=0.0;
 $relprocT=0.0;
 open(INFO,$LOGFILE);
 while (<INFO>) {
-  chomp;
+  s/\s+$//;
   @_ = split;
   if ($_[0] eq "LatSieveTime:") { $sieveT += $_[1]; }
 #  if ($_[2] eq "RelProcTime:") { $relprocT += $_[3]; }
