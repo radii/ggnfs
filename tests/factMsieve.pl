@@ -1559,6 +1559,8 @@ while (!(-e $COLS)) {
     for ($j=1;$j<=$NUM_THREADS;$j++) {
       unlink("$SIEVER_OUTPUTNAME.T$j");
       $cmd="$NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME.T$j -v -n$PNUM $sieveSideOpt $JOBNAME.T$j";
+#     $cmd="taskset -c ".($j-1)." $NICE \"$LATSIEVER\" -k -o $SIEVER_OUTPUTNAME.T$j -v -n$PNUM $sieveSideOpt $JOBNAME.T$j";
+#           taskset can be used on Linux systems
       print "=>$cmd\n" if($ECHO_CMDLINE);
       $thd[$j]=async{system($cmd)};
     }
@@ -1701,9 +1703,9 @@ while (<INFO>) {
   s/\s+$//;
   @_ = split;
   if ($_[0] eq "LatSieveTime:") { $sieveT += $_[1]; }
-#  if ($_[2] eq "RelProcTime:") { $relprocT += $_[3]; }
-#  if ($_[2] eq "BLanczosTime:") { $matT = $_[3]; }
-#  if ($_[2] eq "sqrtTime:") { $sqrtT = $_[3]; }
+  if ($_[2] eq "RelProcTime:") { $relprocT += $_[3]; }
+  if ($_[2] eq "BLanczosTime:") { $matT = $_[3]; }
+  if ($_[2] eq "sqrtTime:") { $sqrtT = $_[3]; }
   if (/rational ideals/) { $rprimes=$_[6]." ".$_[7]." ".$_[5]; }
   if (/algebraic ideals/) { $aprimes=$_[6]." ".$_[7]." ".$_[5]; }
 #  if (/largePrimes:/) { $lprimes=$_[2].$_[3].' encountered'; }
