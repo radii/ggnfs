@@ -1703,9 +1703,9 @@ while (<INFO>) {
   s/\s+$//;
   @_ = split;
   if ($_[0] eq "LatSieveTime:") { $sieveT += $_[1]; }
-  if ($_[2] eq "RelProcTime:") { $relprocT += $_[3]; }
-  if ($_[2] eq "BLanczosTime:") { $matT = $_[3]; }
-  if ($_[2] eq "sqrtTime:") { $sqrtT = $_[3]; }
+  if (/RelProcTime: (\S+)/) { $relprocT += $1; }
+  if (/BLanczosTime: (\S+)/) { $matT += $1; }
+  if (/sqrtTime: (\S+)/) { $sqrtT += $1; }
   if (/rational ideals/) { $rprimes=$_[6]." ".$_[7]." ".$_[5]; }
   if (/algebraic ideals/) { $aprimes=$_[6]." ".$_[7]." ".$_[5]; }
 #  if (/largePrimes:/) { $lprimes=$_[2].$_[3].' encountered'; }
