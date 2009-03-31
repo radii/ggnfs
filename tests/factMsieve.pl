@@ -438,7 +438,8 @@ sub loadDefaultParams {
     }
   }
   close(IF);
-  $DIGS = ($type eq "gnfs") ? $realDIGS/0.7 : $realDIGS;
+  $DIGS = ($type eq "gnfs") ? $realDIGS/0.72 : $realDIGS;
+                   # 0.72 is inspired by T.Womack's crossover 28/29 for GNFS-144 among other considerations
   if($DIGS>=160) { # the table parameters are easily splined; the table may be not needed at all --SB.
     $RLIM=    $ALIM   = int(0.07*10**($DIGS/60.0)+0.5)*100000;
     $LPBR=    $LPBA   = int(21+$DIGS/25);
