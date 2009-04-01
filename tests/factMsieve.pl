@@ -1212,7 +1212,7 @@ sub readParams {
   if ($TYPE =~ /snfs/) {
     # We need the difficulty level of the number, which may be
     # noticably larger than the number of digits.
-    $SNFS_DIFFICULTY = (new Math::BigFloat $polyval)->babs->blog(10);
+    $SNFS_DIFFICULTY = (new Math::BigFloat $polyval)->babs->blog(10,6);
 
     printf "-> SNFS_DIFFICULTY is about $SNFS_DIFFICULTY.\n";
     loadDefaultParams($SNFS_DIFFICULTY->bstr(), $DEGREE, $TYPE);
@@ -1643,8 +1643,8 @@ while (!(-e $COLS)) {
     $stopTime = time;
     $totalTime = $stopTime - $startTime;
     
-    if(-e "MINRELS") {
-      open IN,"<MINRELS";
+    if(-e "MINRELS.txt") {
+      open IN,"<MINRELS.txt";
       my $q = <IN>;
       $q =~ /(\d+)/;
       $MINRELS=$1 if($1);
