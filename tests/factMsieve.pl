@@ -540,8 +540,8 @@ sub runPol5 {
     $cmd="$NICE \"$POL51M0\" -b $pname -v -v -p $npr -n $normmax -a $H -A $HH > $pname.log";
     printf("=> $cmd\n");
     my $res=system($cmd);
-    if ($res) {$H=$HH; next;}	# lambda-comp and ull5-comp related errors can be simply skipped
-    #WAS: die "Abnormal return value $res. Terminating...\n" if ($res);
+   if (!$res) { # lambda-comp related errors can be skipped and some polys are then found
+                # ull5-comp related are probably fatal, but let the elapsed time take care of them
     $nerr=0;
     open(GR,"$pname.log");
     my @logout=<GR>;
@@ -610,6 +610,7 @@ sub runPol5 {
     printf "-> =====================================================\n\n";
     unlink "$pname.log";
     unlink "$pname.51.m";
+   }
     my $nowTime = time;
     if ($nowTime - $startTime > $maxPSTime) {
       $terminate_job=1;
