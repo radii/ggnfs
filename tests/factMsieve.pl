@@ -1643,7 +1643,13 @@ while (!(-e $COLS)) {
     $stopTime = time;
     $totalTime = $stopTime - $startTime;
     
-
+    if(-e "MINRELS") {
+      open IN,"<MINRELS";
+      my $q = <IN>;
+      $q =~ /(\d+)/;
+      $MINRELS=$1 if($1);
+      close IN;
+    }
     $cmd="\"$CAT\" spairs.out >> $DATNAME";
     print "=>$cmd\n" if($ECHO_CMDLINE);
     system($cmd);
@@ -1767,7 +1773,7 @@ $r = 1;
 while($_ = shift @DIVISORS) {
   printf(" r%d=%s (pp%d)\n", $r++, $_, length($_));
 }
-$version = "Msieve-1.39" unless $version;
+$version = "Msieve-1.40" unless $version;
 printf("Version: $version\n");
 printf("Total time: %1.2f hours.\n", $totalT);
 printf("Scaled time: %1.2f units (timescale=%1.3lf).\n", $totalT*$TIMESCALE,$TIMESCALE);
