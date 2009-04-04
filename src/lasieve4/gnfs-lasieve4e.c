@@ -466,7 +466,7 @@ double sTime()
 { static struct  timeval  this_tv;
   static struct  timezone dumbTZ;
   double t;
-                                                                                                                                                                 
+
   gettimeofday(&this_tv, &dumbTZ);
   t = this_tv.tv_sec + 0.000001*this_tv.tv_usec;
   return t;
@@ -2846,7 +2846,6 @@ int main(int argc, char **argv)
   {
     i32_t option;
 
-    first_spq = 0;
     sieve_count = UINT_MAX;
     g_ofile_name = "spairs.out";
     zip_output = 0;
@@ -3209,6 +3208,12 @@ int main(int argc, char **argv)
 
 		assert(rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
         allocate = (size_t)rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
+
+#define TOO_THIN 200
+	if(i == n_schedules[s] - 1 && allocate<TOO_THIN) {
+	  printf("Warning: padding the last schedule (FB_bound[%d] is close to a power of two)\n",s);
+          allocate = TOO_THIN;
+        }
         allocate *= SE_SIZE;
 
 		assert(((double)allocate + n_i * ceil(pvl_max[s] / log(fbp_lb)) * SE_SIZE) <= ULONG_MAX);
