@@ -3206,14 +3206,10 @@ int main(int argc, char **argv)
           ns = 1 << (schedule_sizebits[i] - L1_BITS);
         schedules[s][i].n_strips = ns;
 
-		assert(rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
-        allocate = (size_t)rint(2 * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
-
-#define TOO_THIN 200
-	if(i == n_schedules[s] - 1 && allocate<TOO_THIN) {
-	  printf("Warning: padding the last schedule (FB_bound[%d] is close to a power of two)\n",s);
-          allocate = TOO_THIN;
-        }
+#define SCHED_PAD 32
+#define SCHED_TOL 1.2
+		assert(rint(SCHED_PAD + SCHED_TOL * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
+        allocate = (size_t)rint(SCHED_PAD + SCHED_TOL * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
         allocate *= SE_SIZE;
 
 		assert(((double)allocate + n_i * ceil(pvl_max[s] / log(fbp_lb)) * SE_SIZE) <= ULONG_MAX);
