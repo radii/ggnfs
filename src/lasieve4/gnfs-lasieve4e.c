@@ -3519,6 +3519,8 @@ void do_scheduling(struct schedule_struct *sched, u32_t ns, u32_t ot, u32_t s)
         if (sched->schedule[ll + 1][k] >= sched->schedule[0][k] + sched->alloc) {
           if (k == 0 && sched->schedule[ll + 1][k] < sched->schedule[0][k] + sched->alloc1)
             continue;
+          fprintf(stderr,"\rSCHED_PATHOLOGY k=%d excess=%d                      \n",
+		  k, sched->schedule[ll+1][k]-(sched->schedule[0][k]+sched->alloc));
           longjmp(termination_jb, SCHED_PATHOLOGY);
         }
     }
