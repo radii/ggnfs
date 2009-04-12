@@ -3205,9 +3205,15 @@ int main(int argc, char **argv)
         else
           ns = 1 << (schedule_sizebits[i] - L1_BITS);
         schedules[s][i].n_strips = ns;
-
+#if I_bits<15
+/* no change here, there were no sched.pathologies, and memory footprint is small */
+#define SCHED_PAD 0
+#define SCHED_TOL 2
+#else
+/* these values are experimental; report SCHED_PATHOLOGY to http://mersenneforum.org/showthread.php?t=11430 */
 #define SCHED_PAD 32
 #define SCHED_TOL 1.2
+#endif
 		assert(rint(SCHED_PAD + SCHED_TOL * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
         allocate = (size_t)rint(SCHED_PAD + SCHED_TOL * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb)));
         allocate *= SE_SIZE;
@@ -3519,8 +3525,9 @@ void do_scheduling(struct schedule_struct *sched, u32_t ns, u32_t ot, u32_t s)
         if (sched->schedule[ll + 1][k] >= sched->schedule[0][k] + sched->alloc) {
           if (k == 0 && sched->schedule[ll + 1][k] < sched->schedule[0][k] + sched->alloc1)
             continue;
-          fprintf(stderr,"\rSCHED_PATHOLOGY k=%d excess=%d                      \n",
-		  k, sched->schedule[ll+1][k]-(sched->schedule[0][k]+sched->alloc));
+/* report SCHED_PATHOLOGY to http://mersenneforum.org/showthread.php?t=11430 */
+          fprintf(stderr,"\rSCHED_PATHOLOGY q0=%u k=%d excess=%d                      \n",
+		  (unsigned int)special_q, k, sched->schedule[ll+1][k]-(sched->schedule[0][k]+sched->alloc));
           longjmp(termination_jb, SCHED_PATHOLOGY);
         }
     }
