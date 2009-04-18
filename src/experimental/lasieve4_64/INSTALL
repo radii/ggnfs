@@ -1,0 +1,16 @@
+
+follow these steps to build the binaries on a 64-bit machine.
+These should build and run on Athlon64, or Core2 cpus.
+
+cd athlon64
+make liblasieve.a
+make liblasieveI11.a
+make liblasieveI12.a
+make liblasieveI13.a
+make liblasieveI14.a
+make liblasieveI15.a
+make liblasieveI16.a
+cp *.a ..
+cd ..
+make
+
