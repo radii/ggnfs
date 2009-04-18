@@ -7,7 +7,7 @@
 # Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-CFLAGS= -O3 -march=amdfam10 -mtune=amdfam10
+CFLAGS= -O3 -march=k8 -mtune=k8 -I.
 #CFLAGS= -g
 
 CC=gcc

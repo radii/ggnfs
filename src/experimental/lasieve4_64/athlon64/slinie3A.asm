@@ -85,10 +85,6 @@ slinie3_ende:
 	popq %rbx
 	ret
 ifelse(j_per_strip,1,`divert`'',`divert(-1)')dnl
-dnl In this case, it is possible to keep the sieve interval in a register
-dnl since the register keeping the root is not needed.
-define(sieve_interval_arg,sieve_interval)dnl
-define(`sieve_interval',root)dnl
 function_head(slinie3)
 	cmpq aux_ptr,aux_ptr_ub
 	pushq %rbx
@@ -96,11 +92,15 @@ function_head(slinie3)
 	jbe slinie3_ende
 	subq $8,aux_ptr_ub
 slinie3_fbi_loop:
+	movzwq proot_src,auxreg
 	movzwq prime_src,prime
-	movzwq root_src,sieve_ptr
+	movzwq root_src,root
+	subq prime,auxreg
 	movb log_src,sieve_log
+	movq auxreg,proot	
 	movq sieve_interval,sieve_ptr_ub
-	leaq (sieve_interval,sieve_ptr),sieve_ptr
+	movq root,sieve_ptr
+	leaq (sieve_ptr_ub,sieve_ptr),sieve_ptr
 	addq $n_i,sieve_ptr_ub
 	movb (sieve_ptr,prime),sv0
 	subq prime,sieve_ptr_ub
