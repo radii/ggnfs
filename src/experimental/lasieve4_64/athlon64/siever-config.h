@@ -27,6 +27,7 @@ u16_t**tdsieve_sched2buf(u16_t*,u16_t*,unsigned char*,u16_t**,u16_t**);
 #if 1
 void MMX_TdAllocate(int,size_t,size_t);
 u16_t*MMX_TdInit(int,u16_t*,u16_t*,u32_t*,int);
+u32_t*MMX_Td(u32_t *pbuf,int side,u16_t strip_i);
 void MMX_TdUpdate(int,int);
 #define MMX_TD
 #define MMX_REGW 8

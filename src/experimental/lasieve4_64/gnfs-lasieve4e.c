@@ -593,7 +593,7 @@ int main(int argc, char **argv)
     }
 #endif
     //skip_blanks_comments(&input_line,&input_line_alloc,input_data);
-    close(input_data);
+    fclose(input_data);
     { FILE *fp;
     char token[256], value[512], thisLine[1024];
     
