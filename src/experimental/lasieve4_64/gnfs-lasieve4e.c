@@ -694,7 +694,7 @@ int main(int argc, char **argv)
 	//first_spq,FB_bound[special_q_side]);
       }
     }
-    fclose(input_data);
+    //fclose(input_data);
     if(poldeg[0]<poldeg[1])poldeg_max= poldeg[1];
     else poldeg_max= poldeg[0];
     
