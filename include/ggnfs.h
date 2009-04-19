@@ -186,8 +186,8 @@ typedef  int64_t i64_t;
    the relation factorizations occurring in the
    first x of entries of the factor base(s).
 */
-#define CLIENT_SKIP_R_PRIMES 50
-#define CLIENT_SKIP_A_PRIMES 50
+#define CLIENT_SKIP_R_PRIMES 170
+#define CLIENT_SKIP_A_PRIMES 170
 
 #define MAXFNAMESIZE  127
 
