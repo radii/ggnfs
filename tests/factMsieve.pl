@@ -497,7 +497,7 @@ sub loadPolselParamsPol5 {
   if($NO_DEF_NM_PARAM || $d<100) {
     $d=$realDIGS;
     $search_a5step=1;
-    $npr      = $d<=110 ? 4 : int($d/13-4.5); # or maybe even 3?
+    $npr      = int($d/13-4.5); $npr=4 if $npr<4;
     $normmax  = sprintf("%.3G", 10**(0.163  * $d - 1.4794));
     $normmax1 = sprintf("%.3G", 10**(0.1522 * $d - 1.6969));
     $normmax2 = sprintf("%.3G", 10**(0.142  * $d - 2.6429));
@@ -938,7 +938,7 @@ sub checkParams {
     open(OF, ">.rels");
     print OF "N\n";
     close(OF);
-    $CAT = "" unless system("\"$CAT\" .rels > .lprels"); # we will use perl then
+    $CAT = "" if system("\"$CAT\" .rels > .lprels"); # we will use perl then
     unlink '.lprels';
     unlink '.rels';
   }
