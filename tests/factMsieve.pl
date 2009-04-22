@@ -121,7 +121,7 @@ sub concat {			# for CAT-less people
   } else {
     open FFROM, "<$from";
     open FTO, "$add$to";
-    while(<IN>) {
+    while(<FFROM>) {
       print FTO $_;
     }
     close FFROM;
