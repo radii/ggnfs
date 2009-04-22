@@ -69,6 +69,7 @@ if ($NUM_THREADS != 1) {
 $SYS_BIN_PATH="";
 # $SYS_BIN_PATH="/bin";
 
+$NO_DEF_NM_PARAM=0;
 $CLEANUP=0;
 $PROMPTS=0;
 $DOCLASSICAL=0;
@@ -111,6 +112,21 @@ else {
   $CAT="cat";
   $GZIP="gzip";
   $EXEC_SUFFIX="";
+}
+
+sub concat {			# for CAT-less people
+  ($from, $add, $to) = @_;
+  if($CAT) {
+    system("\"$CAT\" $from $add $to");
+  } else {
+    open FFROM, "<$from";
+    open FTO, "$add$to";
+    while(<IN>) {
+      print FTO $_;
+    }
+    close FFROM;
+    close FTO;
+  }
 }
 
 $LATSIEVER_L1=$GGNFS_BIN_PATH."/gnfs-lasieve4I12e".$EXEC_SUFFIX;
@@ -478,6 +494,18 @@ sub loadPolselParamsPol5 {
       unless ($#_ >=0);
   my $realDIGS=$_[0];
   my $paramDIGS=0;
+  if($NO_DEF_NM_PARAM || $d<100) {
+    $d=$realDIGS;
+    $search_a5step=1;
+    $npr      = $d<=110 ? 4 : int($d/13-4.5); # or maybe even 3?
+    $normmax  = sprintf("%.3G", 10**(0.163  * $d - 1.4794));
+    $normmax1 = sprintf("%.3G", 10**(0.1522 * $d - 1.6969));
+    $normmax2 = sprintf("%.3G", 10**(0.142  * $d - 2.6429));
+    $murphymax= sprintf("%.3G", 10**(-0.0569* $d - 2.8452));
+    $maxPSTime= int(0.000004/$murphymax);
+    printf "-> Selected polsel parameters for $d digit level.\n";
+    return;
+  }
   die("Could not find default parameter file $DEFAULT_POLSEL_PAR_FILE!\n") 
       unless (-e $DEFAULT_POLSEL_PAR_FILE);
   open(IF, $DEFAULT_POLSEL_PAR_FILE);
@@ -552,7 +580,7 @@ sub runPol5 {
       printf("=> $cmd\n");
       $res=system($cmd);
       die "Abnormal return value $res. Terminating...\n" if ($res);
-      system("\"$CAT\" $pname.51.m >> $projectname.51.m.all");
+      concat("$pname.51.m", ">>", "$projectname.51.m.all");
       open(GR,"<$pname.cand");
       my %polyinf = ();
       my $changed = 0;
@@ -602,7 +630,7 @@ sub runPol5 {
         print BP "qintsize: $QINTSIZE\n";
         close(BP);
       }
-      system "\"$CAT\" $pname.cand >> $projectname.cand.all";
+      concat("$pname.cand", ">>", "$projectname.cand.all");
       unlink "$pname.cand";
     }
     printf "-> =====================================================\n";
@@ -905,6 +933,14 @@ sub checkParams {
   if ($CHECK_BINARIES) {
     $missing .= 'msieve ' unless (-x $MSIEVE);
     $missing .= '(lattice siever) ' unless (-x $LATSIEVER);
+    unlink '.lprels';
+    unlink '.rels';
+    open(OF, ">.rels");
+    print OF "N\n";
+    close(OF);
+    $CAT = "" unless system("\"$CAT\" .rels > .lprels"); # we will use perl then
+    unlink '.lprels';
+    unlink '.rels';
   }
   if ($missing) {
     print "-> Could not find GGNFS programs: $missing.\n";
@@ -1286,7 +1322,7 @@ sub setup {
 
   # Should we resume from an earlier run? #
   $resume=-1;
-  system("\"$CAT\" $JOBNAME.T1 > $JOBNAME") if (-e "$JOBNAME.T1");
+  concat("$JOBNAME.T1", ">", "$JOBNAME") if (-e "$JOBNAME.T1");
   if (-e $JOBNAME) {
     if ($PROMPTS) {
       print "-> It appears that an earlier attempt was interrupted in progress. Resume? (y/n) ";
@@ -1590,7 +1626,7 @@ while (!(-e $COLS)) {
       }
       $cmd="\"$CAT\" $SIEVER_OUTPUTNAME.T$j >> $SIEVER_OUTPUTNAME";
       print "=>$cmd\n" if($ECHO_CMDLINE);
-      system($cmd);
+      concat("$SIEVER_OUTPUTNAME.T$j", ">>", "$SIEVER_OUTPUTNAME");
       unlink "$SIEVER_OUTPUTNAME.T$j";
     }
   }
@@ -1607,7 +1643,7 @@ while (!(-e $COLS)) {
     # Move the new relations so they won't be wiped on restart.
     $cmd="\"$CAT\" $SIEVER_OUTPUTNAME >> $SIEVER_ADDNAME";
     print "=>$cmd\n" if($ECHO_CMDLINE);
-    system($cmd);
+    concat("$SIEVER_OUTPUTNAME", ">>", "$SIEVER_ADDNAME");
     unlink "$SIEVER_OUTPUTNAME";
     # And update the job file accordingly:
     makeJobFile($JOBNAME, $lastSPQ, $QSTEP, $CLIENT_ID, $NUM_CLIENTS);
@@ -1624,20 +1660,20 @@ while (!(-e $COLS)) {
   if ($CLIENT_ID > 1) {
     $cmd="\"$CAT\" $SIEVER_OUTPUTNAME >> spairs.add.$CLIENT_ID";
     print "=>$cmd\n" if($ECHO_CMDLINE);
-    system($cmd);
+    concat($SIEVER_OUTPUTNAME, ">>", "spairs.add.$CLIENT_ID");
   } else {
     # Are there relations coming from somewhere else which should be added in?
     if (-e "spairs.add") {
       $cmd="\"$CAT\" spairs.add >> spairs.out";
       print "=>$cmd\n" if($ECHO_CMDLINE);
-      system($cmd);
+      concat("spairs.add", ">>", "spairs.out");
       unlink "spairs.add";
     }
     for ($i=1; $i<=$NUM_CLIENTS; $i++) {
       if (-e "spairs.add.$i") {
         $cmd="\"$CAT\" spairs.add.$i >> spairs.out";
         print "=>$cmd\n" if($ECHO_CMDLINE);
-        system($cmd);
+	concat("spairs.add.$i", ">>", "spairs.out");
         unlink "spairs.add.$i";
       }
     }
@@ -1653,7 +1689,7 @@ while (!(-e $COLS)) {
     }
     $cmd="\"$CAT\" spairs.out >> $DATNAME";
     print "=>$cmd\n" if($ECHO_CMDLINE);
-    system($cmd);
+    concat("spairs.out", ">>", "$DATNAME");
     $CURR_RELS = linecount;
     print "Found $CURR_RELS relations, need at least $MINRELS to proceed.\n";
     if ($CURR_RELS > $MINRELS) {
