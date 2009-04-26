@@ -717,12 +717,14 @@ int lasieve()
           break;
         }
         else {
+#if 0
           char *cmd;
 
           asprintf(&cmd, "touch badsched.%s.%u.%u.%u", base_name,
                    special_q_side, special_q, r_ptr[root_no]);
           system(cmd);
           free(cmd);
+#endif
           continue;
         }
       }
@@ -3207,11 +3209,11 @@ int main(int argc, char **argv)
         schedules[s][i].n_strips = ns;
 #if I_bits<15
 /* no change here, there were no sched.pathologies, and memory footprint is small */
-#define SCHED_PAD 0
+#define SCHED_PAD 32
 #define SCHED_TOL 2
 #else
 /* these values are experimental; report SCHED_PATHOLOGY to http://mersenneforum.org/showthread.php?t=11430 */
-#define SCHED_PAD 32
+#define SCHED_PAD 48
 #define SCHED_TOL 1.2
 #endif
 		assert(rint(SCHED_PAD + SCHED_TOL * n_i * j_per_strip * log(log(fbp_ub) / log(fbp_lb))) <= ULONG_MAX);
