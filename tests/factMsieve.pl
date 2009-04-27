@@ -1758,6 +1758,7 @@ while (<INFO>) {
   s/\s+$//;
   @_ = split;
   if ($_[0] eq "LatSieveTime:") { $sieveT += $_[1]; }
+  if (/(Msieve.*)$/) { $version = $1; }
   if (/RelProcTime: (\S+)/) { $relprocT += $1; }
   if (/BLanczosTime: (\S+)/) { $matT += $1; }
   if (/sqrtTime: (\S+)/) { $sqrtT += $1; }
