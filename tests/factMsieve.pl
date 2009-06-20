@@ -952,7 +952,10 @@ sub checkParams {
   die("Error: 'n' not supplied!\n") unless ($N);
   die("Error: 'm' not supplied!\n") unless ($M || defined $COEFHASH{Y1});
   die("Error: polynomial not supplied!\n") unless (defined $COEFHASH{'c'.$DEGREE});
-  die("Error: 'skew' not supplied!\n") unless ($SKEW);
+  unless ($SKEW) {
+    $SKEW = abs($COEFHASH{'c0'}/$COEFHASH{'c'.$DEGREE})**(1.0/$DEGREE);
+    print "-> Using calculated skew $SKEW\n";
+  }
   die("Error: 'rlim' not supplied!\n") unless ($RLIM);
   die("Error: 'alim' not supplied!\n") unless ($ALIM);
   die("Error: 'lpbr' not supplied!\n") unless ($LPBR);
