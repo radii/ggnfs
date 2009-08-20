@@ -27,22 +27,22 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
 /**************************************************************/
 {
   float a0sq, a1sq, s;
-  i32_t iter;
 
   a0sq = ((float) a0) * a0;
   a0sq += sigma * ((float) b0) * b0;
   a1sq = ((float) a1) * a1;
   a1sq += sigma * ((float) b1) * b1;
 
-  for (iter=1; iter<1024; iter++) { /* inf.loop prevention */
+  for (;;) { 
     s = ((float) a0) * a1;
     s += sigma * ((float) b0) * b1;
 
+    n_iter++;
     if (a0sq < a1sq) {
       i32_t k;
 
 	  assert(((s / a0sq) >= INT_MIN) && ((s / a0sq) <= INT_MAX));
-      k = (i32_t)rint(s / a0sq);
+      k = (i32_t)trunc(s / a0sq);
       if (k == 0)
         break;
       a1 -= k * a0;
@@ -53,7 +53,7 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
       i32_t k;
 
 	  assert(((s / a1sq) >= INT_MIN) && ((s / a1sq) <= INT_MAX));
-      k = (i32_t)rint(s / a1sq);
+      k = (i32_t)trunc(s / a1sq);
       if (k == 0)
         break;
       a0 -= k * a1;
@@ -62,7 +62,6 @@ void reduce2(i32_t * a0_ptr, i32_t * b0_ptr, i32_t * a1_ptr, i32_t * b1_ptr,
       a0sq += sigma * ((float) b0) * b0;
     }
   }
-  n_iter += iter;
 
   if (b0 < 0) {
     b0 = -b0;
