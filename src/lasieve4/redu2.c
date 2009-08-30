@@ -19,6 +19,13 @@
 
 #include "lasieve.h"
 
+#ifdef _MSC_VER
+__inline double trunc(double x)
+{
+    return x < 0.0 ? ceil(x) : floor(x);
+}
+#endif
+
 i32_t n_iter = 0;
 
 /**************************************************************/
