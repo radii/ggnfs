@@ -24,6 +24,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -45,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GGNFS_TPIE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,6 +108,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -129,7 +131,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GGNFS_TPIE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -191,6 +193,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -212,7 +215,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -273,6 +276,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -295,7 +299,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental;..\..\..\..\tpie\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"

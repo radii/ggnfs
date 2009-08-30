@@ -27,6 +27,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -51,7 +52,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_MAKEFB_STANDALONE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -113,6 +114,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -138,7 +140,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="_DEBUG;_CONSOLE;_MAKEFB_STANDALONE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -200,6 +202,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -224,7 +227,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_MAKEFB_STANDALONE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -286,6 +289,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -311,7 +315,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="NDEBUG;_CONSOLE;_MAKEFB_STANDALONE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"

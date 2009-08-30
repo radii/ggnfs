@@ -27,6 +27,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -51,7 +52,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_ASM_INTEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -75,7 +76,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp\build.vc9\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -113,6 +114,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -138,7 +140,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
 				PreprocessorDefinitions="_DEBUG;_CONSOLE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -162,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp\build.vc9\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -200,6 +202,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -224,7 +227,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_ASM_INTEL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -246,7 +249,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp\build.vc9\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
@@ -285,6 +288,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -310,7 +314,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src;..\..\..\src\experimental\pol5\include;..\..\..\src\experimental\pol5\stage1"
 				PreprocessorDefinitions="NDEBUG;_CONSOLE;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -332,7 +336,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ..\..\..\..\gmp\build.vc9\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"

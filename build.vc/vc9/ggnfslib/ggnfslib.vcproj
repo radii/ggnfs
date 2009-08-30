@@ -27,6 +27,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -52,7 +53,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -100,6 +101,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -126,7 +128,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -174,6 +176,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -199,7 +202,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -247,6 +250,7 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
+			InheritedPropertySheets="..\mp_lib.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -273,7 +277,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\;..\..\..\include;&quot;..\..\..\include-extra&quot;;..\..\..\src"
+				AdditionalIncludeDirectories="..\;..\..\..\include;..\..\..\src"
 				PreprocessorDefinitions="NDEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -296,7 +300,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="..\..\..\..\gmp\build.vc9\lib\$(OutDir)\gmp.lib"
+				AdditionalDependencies="..\..\..\..\mpir\build.vc9\lib\$(OutDir)\mpir.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
 				AdditionalLibraryDirectories=""
 			/>
