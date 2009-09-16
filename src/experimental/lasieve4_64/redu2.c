@@ -6,6 +6,13 @@
 #include "asm/siever-config.h"
 #include "redu2.h"
 
+#ifdef _MSC_VER
+__inline double trunc(double x)
+{
+    return x < 0.0 ? ceil(x) : floor(x);
+}
+#endif
+
 i32_t n_iter= 0;
 void
 reduce2(i32_t*a0_ptr,i32_t*b0_ptr,i32_t*a1_ptr,i32_t*b1_ptr,
@@ -27,7 +34,7 @@ if(++j>1024) break; /* n_iter++; */
 if(a0sq<a1sq){
 i32_t k;
 
-k= rint(s/a0sq);
+k= (i32_t)trunc(s/a0sq);
 if(k==0)break;
 a1-= k*a0;
 b1-= k*b0;
@@ -36,7 +43,7 @@ a1sq+= sigma*((float)b1)*b1;
 }else{
 i32_t k;
 
-k= rint(s/a1sq);
+k= (i32_t)trunc(s/a1sq);
 if(k==0)break;
 a0-= k*a1;
 b0-= k*b1;
