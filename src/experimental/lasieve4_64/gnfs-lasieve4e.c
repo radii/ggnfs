@@ -147,7 +147,13 @@ u32_t fbi1[2];
 
 u32_t fbis[2];
 
-static u32_t j_per_strip,jps_bits,jps_mask,n_strips;
+#if I_bits<16
+static u32_t j_per_strip,jps_bits;
+#else
+#define j_per_strip 1
+#define jps_bits    0
+#endif
+static u32_t n_strips;
 static struct schedule_struct{
   u16_t***schedule;
   u32_t*fbi_bounds;
@@ -996,9 +1002,10 @@ int main(int argc, char **argv)
   tiny_sieve_buffer= xmalloc(TINY_SIEVEBUFFER_SIZE);
   if(n_i> L1_SIZE)
     complain("Strip length %u exceeds L1 size %u\n",n_i,L1_SIZE);
+#if I_bits<16
   j_per_strip= L1_SIZE/n_i;
   jps_bits= L1_BITS-i_bits;
-  jps_mask= j_per_strip-1;
+#endif
   if(j_per_strip!=1<<jps_bits)
     Schlendrian("Expected %u j per strip, calculated %u\n",
 		j_per_strip,1<<jps_bits);
@@ -2278,10 +2285,15 @@ int main(int argc, char **argv)
 		    p= x[0];
 		    l= x[1];
 		    d= x[2];
+#if I_bits<16
 		    while(d<j_per_strip) {
 		      horizontal_sievesums[d]+= l;
 		      d+= p;
 		    }
+#else
+		    if(d==0)
+		      *horizontal_sievesums += l;	    
+#endif
 #if 0
 		    x[2]= d-j_per_strip;
 #endif
@@ -3715,8 +3727,8 @@ trial_divide()
 	u16_t*x,j_step;
 	j_step= j_per_strip-last_j;
 	for(x= smallpsieve_aux[side];x<smallpsieve_aux_ub[side];x+= 3) {
-	  modulo32= x[0];
-	  x[2]= modsub32(x[2],(j_step)%modulo32);
+	  if((modulo32= x[0]))
+	    x[2]= modsub32(x[2],(j_step)%modulo32);
 	}
       }
 #endif
