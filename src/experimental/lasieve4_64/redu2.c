@@ -11,7 +11,19 @@ __inline double trunc(double x)
 {
     return x < 0.0 ? ceil(x) : floor(x);
 }
+
+__inline double rint(double x) 
+{ 
+  double i, r = modf(x, &i); 
+  if(r < 0.0) { 
+    r += 1; i -= 1; 
+  } 
+  return (r > 0.5 || r == 0.5 && ((int)i & 1) ? i + 1.0 : i); 
+} 
 #endif
+/*=== IMPORTANT: rint() with a sentinel counter is safe       */
+/*    AND        yields more relations than using trunc().    */
+/* A careful inspection is left as an excercise to the reader */
 
 i32_t n_iter= 0;
 void
@@ -34,7 +46,7 @@ if(++j>1024) break; /* n_iter++; */
 if(a0sq<a1sq){
 i32_t k;
 
-k= (i32_t)trunc(s/a0sq);
+k= (i32_t)rint(s/a0sq);
 if(k==0)break;
 a1-= k*a0;
 b1-= k*b0;
@@ -43,7 +55,7 @@ a1sq+= sigma*((float)b1)*b1;
 }else{
 i32_t k;
 
-k= (i32_t)trunc(s/a1sq);
+k= (i32_t)rint(s/a1sq);
 if(k==0)break;
 a0-= k*a1;
 b0-= k*b1;
