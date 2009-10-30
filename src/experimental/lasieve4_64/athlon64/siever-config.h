@@ -20,7 +20,7 @@ typedef long int i64_t;
 void asm_getbc(u32_t,u32_t,u32_t,u32_t*,u32_t*,u32_t*,u32_t*);
 #define ASM_SCHEDSIEVE
 #define ASM_SCHEDTDSIEVE2
-u16_t**tdsieve_sched2buf(u16_t*,u16_t*,unsigned char*,u16_t**,u16_t**);
+u16_t**tdsieve_sched2buf(u16_t**,u16_t*,unsigned char*,u16_t**,u16_t**);
 
 #define ASM_MPZ_TD
 #define PREINVERT

@@ -2708,12 +2708,12 @@ int main(int argc, char **argv)
       tNow = sTime();
       if (tNow > lastReport + 5.0) {
 	lastReport = tNow;
-	fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel)", 
+	fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel) ", 
 		(unsigned int)yield, (unsigned int)special_q, (tNow - tStart)/yield);
 	fflush(stderr);
       }
     }
-    fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel)\n", 
+    fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel) \n", 
 	    (unsigned int)yield, (unsigned int)special_q, (sTime() - tStart)/yield);
     free(r);
   }
@@ -3942,6 +3942,19 @@ output_tdsurvivor(fbp_buf0,fbp_buf0_ub,fbp_buf1,fbp_buf1_ub,lf0,lf1)
     
     mpz_neg(large_factors[s1],large_factors[s1]);
     if((nf= mpqs_factor(large_factors[s1],max_primebits[s1],&mf))<0) {
+      /* did it fail on a square? */
+      mpz_sqrtrem(large_primes[s1][0],large_primes[s1][1],large_factors[s1]);
+      if(mpz_sgn(large_primes[s1][1]) == 0) { /* remainder == 0? */
+	mpz_set(large_primes[s1][1],large_primes[s1][0]);
+	nlp[s1]= 2;
+	if(verbose) {
+	  fprintf(stderr," mpqs on a prime square ");
+	  mpz_out_str(stderr,10,large_primes[s1][0]);
+	  fprintf(stderr,"^2  ");
+	}
+	continue;
+      }
+      if(verbose) {
       fprintf(stderr,"mpqs failed for ");
       mpz_out_str(stderr,10,large_factors[s1]);
       fprintf(stderr,"(a,b): ");
@@ -3949,6 +3962,7 @@ output_tdsurvivor(fbp_buf0,fbp_buf0_ub,fbp_buf1,fbp_buf1_ub,lf0,lf1)
       fprintf(stderr," ");
       mpz_out_str(stderr,10,sr_b);
       fprintf(stderr,"\n");
+      }
       n_mpqsfail[s1]++;
       break;
     }
