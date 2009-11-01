@@ -79,7 +79,7 @@ $CHECK_POLY=1;
 # If this is zero, the lattice siever will sieve q-values on the algebraic side.
 # Otherwise, it will sieve rational q-values.
 $LATSIEVE_SIDE=1;
-# SB: rational for SNFS, algebraic for GNFS!!
+# SB: 1 (rational) for SNFS, 0 (algebraic) for GNFS!!
 
 # If this is zero, the GGNFS polynomial selection code will be used (when needed).
 # But the Kleinjung/Franke code is better, so you should use it if you can.
@@ -129,9 +129,12 @@ sub concat {			# for CAT-less people
   }
 }
 
-$LATSIEVER_L1=$GGNFS_BIN_PATH."/gnfs-lasieve4I12e".$EXEC_SUFFIX;
-$LATSIEVER_L2=$GGNFS_BIN_PATH."/gnfs-lasieve4I13e".$EXEC_SUFFIX;
-$LATSIEVER_L3=$GGNFS_BIN_PATH."/gnfs-lasieve4I14e".$EXEC_SUFFIX;
+$LATSIEVER_L1=$GGNFS_BIN_PATH."/gnfs-lasieve4I11e".$EXEC_SUFFIX;
+$LATSIEVER_L2=$GGNFS_BIN_PATH."/gnfs-lasieve4I12e".$EXEC_SUFFIX;
+$LATSIEVER_L3=$GGNFS_BIN_PATH."/gnfs-lasieve4I13e".$EXEC_SUFFIX;
+$LATSIEVER_L4=$GGNFS_BIN_PATH."/gnfs-lasieve4I14e".$EXEC_SUFFIX;
+$LATSIEVER_L5=$GGNFS_BIN_PATH."/gnfs-lasieve4I15e".$EXEC_SUFFIX;
+$LATSIEVER_L6=$GGNFS_BIN_PATH."/gnfs-lasieve4I16e".$EXEC_SUFFIX;
 $LATSIEVER=$LATSIEVER_L1; # Just a default.
 
 ####################################################################
@@ -469,14 +472,20 @@ sub loadDefaultParams {
   $DEG = $paramDEG;
   printf "-> Selected default factorization parameters for $paramDIGS digit level.\n";
   if ($type eq "gnfs") {
-    if ($realDIGS < 110) { $LATSIEVER=$LATSIEVER_L1; }
-    elsif ($realDIGS < 135) { $LATSIEVER=$LATSIEVER_L2; }
-    else { $LATSIEVER=$LATSIEVER_L3; }
+    if ($realDIGS < 95) { $LATSIEVER=$LATSIEVER_L1; } # just a guess
+    elsif ($realDIGS < 110) { $LATSIEVER=$LATSIEVER_L2; } # kept old value here
+    elsif ($realDIGS < 140) { $LATSIEVER=$LATSIEVER_L3; } # based on experience in mersenneforum
+    elsif ($realDIGS < 158) { $LATSIEVER=$LATSIEVER_L4; } # guess based on experience in mersenneforum
+    elsif ($realDIGS < 185) { $LATSIEVER=$LATSIEVER_L5; } # just a wild guess
+    else { $LATSIEVER=$LATSIEVER_L6; }
   } else {
     $realDIGS += $nonPrefDegAdjust if ($realDEG and ($paramDEG != $realDEG));
-    if ($realDIGS < 150) { $LATSIEVER=$LATSIEVER_L1; }
-    elsif ($realDIGS < 180) { $LATSIEVER=$LATSIEVER_L2; }
-    else { $LATSIEVER=$LATSIEVER_L3; }
+    if ($realDIGS < 120) { $LATSIEVER=$LATSIEVER_L1 } # just a guess
+    elsif ($realDIGS < 150) { $LATSIEVER=$LATSIEVER_L2; } # kept old value here
+    elsif ($realDIGS < 195) { $LATSIEVER=$LATSIEVER_L3; } # based on experience in mersenneforum
+    elsif ($realDIGS < 240) { $LATSIEVER=$LATSIEVER_L4; } # guess based on experience in mersenneforum
+    elsif ($realDIGS < 275) { $LATSIEVER=$LATSIEVER_L5; } # guess based on experience in mersenneforum
+    else { $LATSIEVER=$LATSIEVER_L6; }
   }
   printf "-> Selected lattice siever: $LATSIEVER\n";
 }
