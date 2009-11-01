@@ -1474,7 +1474,7 @@ zeitB(12);
     }
     if (ulqx<1048576) { /*printf("%d ",x);*/  /* !!! */
       if (ulqx<=mpqs_pmax) {
-        printf("%d %lu %u ",x,qx,ulqx);
+        /*printf("%d %lu %u ",x,qx,ulqx);*/ /* removes garbage output from 64bit siever */
 return -1; /* CJM, 11/30/04. */
         complain("dec.2\n");
       }
