@@ -102,6 +102,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gnfs-lasieve4I16e", "gnfs-l
 		{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7} = {1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gnfs-lasieve4I11e", "gnfs-lasieve4I11e\gnfs-lasieve4I11e.vcproj", "{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BD758C0-741C-4E0A-AEBB-FE57A7882AB7} = {1BD758C0-741C-4E0A-AEBB-FE57A7882AB7}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -270,6 +275,14 @@ Global
 		{26CDD177-12D7-4E75-92DF-CBC423F4F838}.Release|Win32.Build.0 = Release|Win32
 		{26CDD177-12D7-4E75-92DF-CBC423F4F838}.Release|x64.ActiveCfg = Release|x64
 		{26CDD177-12D7-4E75-92DF-CBC423F4F838}.Release|x64.Build.0 = Release|x64
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Debug|Win32.Build.0 = Debug|Win32
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Debug|x64.ActiveCfg = Debug|x64
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Debug|x64.Build.0 = Debug|x64
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Release|Win32.ActiveCfg = Release|Win32
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Release|Win32.Build.0 = Release|Win32
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Release|x64.ActiveCfg = Release|x64
+		{C20D7F3F-FE26-40B7-BE5C-5D09C2AD35B9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
