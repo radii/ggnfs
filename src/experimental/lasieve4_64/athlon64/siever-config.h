@@ -5,7 +5,7 @@
 #define __SIEVER_CONFIG_H__
 #include <stddef.h> 
 #include <limits.h> 
-#define L1_BITS 15
+#define L1_BITS 16
 #define ULONG_RI
 typedef unsigned u32_t;
 typedef int i32_t;

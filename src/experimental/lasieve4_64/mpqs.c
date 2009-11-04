@@ -1227,10 +1227,13 @@ zeitA(11);
       i1=sv[s1]; i2=sv[s2]; sv+=p;
       if (i1||i2) {
         if (i1) { nr=rels[i1][4]; rels[i1][nr+5]=mpqs_nFBk_1+i; rels[i1][4]++; }
-        if (i2) { nr=rels[i2][4]; rels[i2][nr+5]=mpqs_nFBk_1+i; rels[i2][4]++; }      }
+        if (i2) { nr=rels[i2][4]; rels[i2][nr+5]=mpqs_nFBk_1+i; rels[i2][4]++; }
+      }
       i1=sv[s1]; i2=sv[s2]; sv+=p;
       if (i1||i2) {
-        if (i1) { nr=rels[i1][4]; rels[i1][nr+5]=mpqs_nFBk_1+i; rels[i1][4]++; }        if (i2) { nr=rels[i2][4]; rels[i2][nr+5]=mpqs_nFBk_1+i; rels[i2][4]++; }      }
+        if (i1) { nr=rels[i1][4]; rels[i1][nr+5]=mpqs_nFBk_1+i; rels[i1][4]++; }
+        if (i2) { nr=rels[i2][4]; rels[i2][nr+5]=mpqs_nFBk_1+i; rels[i2][4]++; }
+      }
     }
     svend+=p;
     while (sv<svend) {
