@@ -37,7 +37,7 @@ extern u32_t stat_asm_div, stat_final_mulmod;
 #define MPQS_MAX_FBSIZE      512
 #define MPQS_MIN_EXCESS      10
 #define MPQS_MAX_ADIV_ALL    6
-#define MPQS_SIEVELEN        (1<<15)
+#define MPQS_SIEVELEN        (1<<(L1_BITS<15?L1_BITS:15))
 #define MPQS_REL_ENTRIES     32
 #define MPQS_TD_MAX_NDIV     (MPQS_REL_ENTRIES-5)
 #define MPQS_MAX_NRELS       256  /* ??? */
