@@ -18,10 +18,10 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 #include "ggnfs.h"
 
-#if I_bits>15
+#if 0 && I_bits>15
 #define L1_BITS (I_bits-1)
 #else
-#define L1_BITS 14
+#define L1_BITS 16
 #endif
 #define ULONG_RI
 #define asm_modinv32 modinv32

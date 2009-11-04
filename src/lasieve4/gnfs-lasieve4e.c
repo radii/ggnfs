@@ -3209,7 +3209,7 @@ int main(int argc, char **argv)
         schedules[s][i].n_strips = ns;
 #if I_bits<15
 /* no change here, there were no sched.pathologies, and memory footprint is small */
-#define SCHED_PAD 32
+#define SCHED_PAD 48
 #define SCHED_TOL 2
 #else
 /* these values are experimental; report SCHED_PATHOLOGY to http://mersenneforum.org/showthread.php?t=11430 */
