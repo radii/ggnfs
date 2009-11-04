@@ -18,11 +18,11 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 #include "ggnfs.h"
 
-#if 0 && I_bits>15
-#define L1_BITS (I_bits-1)
-#else
-#define L1_BITS 16
-#endif
+#define L1_BITS 15
+/* L1_BITS 15 for Intel Core2 (32Kb L1 data cache) */
+/* L1_BITS 16 for Phenom/Opteron... AMD K7 and up  */
+/* L1_BITS 14 was here before. Pentium3-4 had 16Kb */
+
 #define ULONG_RI
 #define asm_modinv32 modinv32
 
