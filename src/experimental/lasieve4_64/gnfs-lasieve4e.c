@@ -147,7 +147,7 @@ u32_t fbi1[2];
 
 u32_t fbis[2];
 
-#if I_bits<17
+#if I_bits<=L1_BITS
 static u32_t j_per_strip,jps_bits;
 #else
 #define j_per_strip 1
@@ -1002,7 +1002,7 @@ int main(int argc, char **argv)
   tiny_sieve_buffer= xmalloc(TINY_SIEVEBUFFER_SIZE);
   if(n_i> L1_SIZE)
     complain("Strip length %u exceeds L1 size %u\n",n_i,L1_SIZE);
-#if I_bits<17
+#if I_bits<=L1_BITS
   j_per_strip= L1_SIZE/n_i;
   jps_bits= L1_BITS-i_bits;
 #endif
@@ -2285,7 +2285,7 @@ int main(int argc, char **argv)
 		    p= x[0];
 		    l= x[1];
 		    d= x[2];
-#if I_bits<17
+#if I_bits<=L1_BITS
 		    while(d<j_per_strip) {
 		      horizontal_sievesums[d]+= l;
 		      d+= p;

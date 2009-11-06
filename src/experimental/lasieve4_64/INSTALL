@@ -2,6 +2,12 @@
 follow these steps to build the binaries on a 64-bit machine.
 These should build and run on Athlon64, or Core2 cpus.
 
+******************************
+NOTE: on Core2 replace in athlon64/ls-defs.asm
+- define(l1_bits,16)dnl
++ define(l1_bits,15)dnl
+****************************** (don't know how to automate this)
+
 Prerequisites: gmp.h libgmp
 
 cd athlon64
