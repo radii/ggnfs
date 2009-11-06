@@ -5,7 +5,17 @@
 #define __SIEVER_CONFIG_H__
 #include <stddef.h> 
 #include <limits.h> 
+
+#if defined(__amdfam10__) || defined(__k8__) || defined(__athlon__)
 #define L1_BITS 16
+#else
+#define L1_BITS 15
+/* L1_BITS 15 for Intel Core2 (32Kb L1 data cache), AMD K6 */
+/* L1_BITS 16 for Phenom/Opteron... AMD K7 and up  */
+/* L1_BITS 14 was here before. PentiumIII had 16Kb */
+/* L1_BITS 13 for Pentium4 ? (only 8Kb L1 Dcache)  */
+#endif
+
 #define ULONG_RI
 typedef unsigned u32_t;
 typedef int i32_t;
