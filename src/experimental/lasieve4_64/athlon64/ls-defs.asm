@@ -1,4 +1,4 @@
-define(l1_bits,16)dnl
+define(l1_bits,15)dnl
 define(n_i,eval(2**n_i_bits))dnl
 define(n_i_mask,eval(n_i-1))dnl
 define(l1_size,eval(2**l1_bits))dnl
