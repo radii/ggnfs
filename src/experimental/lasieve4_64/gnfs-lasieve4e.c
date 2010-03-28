@@ -695,7 +695,7 @@ int main(int argc, char **argv)
       }
       if(FB_bound[special_q_side]> first_spq) {
 	FB_bound[special_q_side]=(float) first_spq-1;
-	printf("Warning:  lowering FB_bound to %u.\n",first_spq-1);
+	if(verbose) printf("Warning:  lowering FB_bound to %u.\n",first_spq-1);
 	//complain("Special q lower bound %u below rFB bound %g\n",
 	//first_spq,FB_bound[special_q_side]);
       }
@@ -2285,14 +2285,22 @@ int main(int argc, char **argv)
 		    p= x[0];
 		    l= x[1];
 		    d= x[2];
-#if I_bits<=L1_BITS
+#if I_bits==L1_BITS
+		// j_per_strip = 2 here, and p is rarely 0 (which is a bug)
+		    if(d<2) horizontal_sievesums[d]+= l;
+		    if(p==0) x[0]=USHRT_MAX-1; // otherwise will crash in trial_divide()
+		    else if((d+=p)<2) horizontal_sievesums[d]+= l;
+#else
+#if I_bits<L1_BITS
 		    while(d<j_per_strip) {
 		      horizontal_sievesums[d]+= l;
 		      d+= p;
 		    }
 #else
+		// j_per_strip = 1 here, and p is rarely 0 (which is a bug) 
 		    if(d==0)
 		      *horizontal_sievesums += l;	    
+#endif
 #endif
 #if 0
 		    x[2]= d-j_per_strip;
@@ -2708,9 +2716,11 @@ int main(int argc, char **argv)
       tNow = sTime();
       if (tNow > lastReport + 5.0) {
 	lastReport = tNow;
-	fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel) ", 
+        if(verbose) {
+	  fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel) ", 
 		(unsigned int)yield, (unsigned int)special_q, (tNow - tStart)/yield);
-	fflush(stderr);
+	  fflush(stderr);
+        }
       }
     }
     fprintf(stderr, "\rtotal yield: %u, q=%u (%1.5lf sec/rel) \n", 
