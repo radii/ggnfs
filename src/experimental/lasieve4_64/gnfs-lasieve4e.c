@@ -532,7 +532,11 @@ int main(int argc, char **argv)
 	break;
       }
     }
-    
+
+    if(verbose) { /* first rudimentary test of automatic $Rev reporting */
+      fprintf(stderr, "gnfs-lasieve4I%de (with asm64): L1_BITS=%d, SVN $Revision$\n", I_bits, L1_BITS);
+    }
+
 #define LINE_BUF_SIZE 300
     
     if (g_resume != 0) {
