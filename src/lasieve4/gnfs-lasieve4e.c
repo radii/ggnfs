@@ -2518,6 +2518,18 @@ int lasieve()
                           nlp[s1] = 0;
 #endif
                           if (nlp[s1] == 0) {
+			    /* did it fail on a square? */
+			    mpz_sqrtrem(large_primes[s1][0],large_primes[s1][1],large_factors[s1]);
+			    if(mpz_sgn(large_primes[s1][1]) == 0) { /* remainder == 0? */
+			      mpz_set(large_primes[s1][1],large_primes[s1][0]);
+			      nlp[s1]= 2;
+			      if(ov > 1) {
+				fprintf(stderr," mpqs on a prime square ");
+				mpz_out_str(stderr,10,large_primes[s1][0]);
+				fprintf(stderr,"^2  ");
+			      }
+			      continue;
+			    }
                             if (ov > 1) {
                               fprintf(stderr, "mpqs failed for ");
                               mpz_out_str(stderr, 10, large_factors[s1]);
