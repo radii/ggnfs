@@ -55,8 +55,8 @@ int main(int argc, char **argv) {
         if (argc == 2) {
 	  DIM=atoi(argv[1]); 
         } else {
-	  fprintf(stderr,"\nusage: cat relations.file(s) | %s table_size > out_file \n"
-		  "\t table_size is a number (1000-3000 recommended)\n\n", argv[0]);
+	  fprintf(stderr,"\nusage: cat relations.file(s) | %s DIM > out_file \n"
+		  "\t DIM is a number (5 per million relations recommended)\n\n", argv[0]);
 	  exit(-1);
 	}
 
@@ -65,11 +65,13 @@ int main(int argc, char **argv) {
 		fprintf(stderr,"cannot open badfile\n");
 		exit(-1);
 	}
-	
-	if ((DIM<50)||(DIM>100000)) { 
-		fprintf(stderr,"DIM should be between 50 and 100000!\n");
+	if (DIM<20) DIM=20;
+#if 0
+	if (DIM>100000) { 
+		printf("DIM should be between 20 and 100000!\n");
 		exit(1);
 	}
+#endif
 
 	/* initialize arrays */
 	arra = (uint64**)malloc(MDVAL * sizeof(uint64 *));
@@ -90,7 +92,7 @@ int main(int argc, char **argv) {
 	while (fgets(buf, sizeof(buf), stdin)) {
 		char *tmp, *field_end;
 		uint64 a;
-		int32 i, j, p;
+		int32 i, j, p, cpos;
 
 		if (buf[0] == '#') {
 			printf("%s", buf);
@@ -106,11 +108,12 @@ int main(int argc, char **argv) {
 
 		/* Hash used to be in a and b bins; it worked well for SNFS */
 		/* However, for gnfs, the bins were very shallow */
-		/* New hash value a is a nonsensical base-11 hybrid of both a and b -SB 2009 */
+		/* New hash value a is a hybrid of both a and b -SB 2009 */
+		cpos = 0;
 		if(*tmp=='-') {a=10; tmp++;} else a=0;
 		for(         ; *tmp ; tmp++) {
-		  if (isdigit(*tmp)) a=11*a+(*tmp-'0');
-		  else if(*tmp==',') a=11*a+10;
+		  if (isdigit(*tmp)) a=10*a+(*tmp-'0');
+		  else if(*tmp==',' && !cpos) cpos = tmp-buf; /* must be only one comma between a,b */
 		  else {
 		    if(*tmp==':') {
 		      if ((tmp-2>buf && tmp[-2]==',' && tmp[-1]=='0') || strccnt(tmp+1,':')==1)
@@ -121,6 +124,7 @@ int main(int argc, char **argv) {
 		    goto skip_;
 		  }
 		}
+		a=4*a+(cpos&3); /* the "comma position" */
 		p=a%MDVAL;
 		for (i=0;i<n[p];i++)
 		  if (a==arra[p][i]) { numdups++; goto skip_; }
