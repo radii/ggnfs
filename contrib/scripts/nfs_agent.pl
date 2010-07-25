@@ -24,12 +24,10 @@
 #
 # How to use:
 #
-#   1) Change $nick script parameter and optionally set $output_dir to some shared folder (*.spairs output files will be moved there).  
+#   1) Change $nick script parameter and optionally set $output_dir to some shared folder (*.spairs output files will be moved there).
 #   2) Place these files into the same directory: 
 #      - gnfs-lasieve4I14e.exe 
-#      - sieve.pl 
-#      - factorbase.dat (optional, just rename  block-XXX.job.afb.0 into factorbase.dat) 
-#        !!! commands to copy factobase.dat tto block-XXX.job.afb.0 are currently disabled. !!!
+#      - nfs_agent.pl 
 #   3) Run the script. 
 #   4) Ensure it works and forget it for several weeks. :)
 #
@@ -260,22 +258,6 @@ sub ExecJob($)
     $spairsFileName = sprintf ("%s.%09d.%d.spairs", $baseName, $blkStart, $blkSize);
     $spqFileName = ".last_spq1234";
     unlink "$workFileName", "$spqFileName";
-
-    #
-    # 1) Copy factorbase.dat to .afb.0 file. Dunno yet how to tell gnfs-lasieve4I14e
-    #    to use given factorbase file.
-    # 2) Execute lasieve
-    # 3) Cleanup everything
-    #
-    if ($^O eq "MSWin32") 
-    {
-        # Win32
-        system ("copy factorbase.dat $jobFileName.afb.0");
-    }
-    else {
-        # Unix
-        #system ("cp factorbase.dat $jobFileName.afb.0");
-    }
 
     system ("gnfs-lasieve4I14e -k -o $workFileName -v -a $jobFileName -n1234") == 0 
        || die "Error: Unable to execute gnfs-lasieve4I14e.\n";
