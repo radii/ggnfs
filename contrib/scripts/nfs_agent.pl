@@ -24,9 +24,9 @@
 #
 # How to use:
 #
-#   1) Change $nick script parameter and optionally set $output_dir to some shared folder (*.spairs output files will be moved there).
+#   1) Change $nick script parameter and optionally set $output_dir to some shared folder (*.spairs output files will be moved there).  
 #   2) Place these files into the same directory: 
-#      - gnfs-lasieve4I14e.exe 
+#      - gnfs-lasieve4I16e.exe (file name can be changed via $lasieve variable).
 #      - nfs_agent.pl 
 #   3) Run the script. 
 #   4) Ensure it works and forget it for several weeks. :)
@@ -45,6 +45,7 @@ $host       = 'factoring.org';         # http header field
 $script     = 'sieve/getblock.php';    # ex. '2p643m3/getblock.php';
 $task       = 'TaskName.1';            # Task name
 $blocksize  = 'small';
+$lasieve    = 'gnfs-lasieve4I16e';     # siever file name.
 $output_dir = undef;                   # ex. for Windows: "\\\\myserver\\spairs"; Output files will be automatically moved to \\myserver\spairs.
 
 # --------------------------
@@ -81,6 +82,7 @@ if (open(LASTJOBFILE, ".lastjob") && ($jobFileName = <LASTJOBFILE>))
     print "Restoring last job: $jobFileName\n";
     ExecJob($jobFileName);
 }
+
 
 while (1) 
 {
@@ -216,13 +218,6 @@ sub GetAndParseJob($)
     print JOBFILE $response;
     close (JOBFILE);
 
-    #
-    # Save .lastjob file
-    #
-    open(LASTJOBFILE, ">.lastjob") || return 0; 
-    print LASTJOBFILE "$jobFileName";
-    close (LASTJOBFILE);
-   
     return "$jobFileName";
 }
 
@@ -236,6 +231,13 @@ sub ExecJob($)
 
     open(JOBFILE, $jobFileName) || die "Can't open job file ($jobFileName).\n";
 
+    #
+    # Save .lastjob file
+    #
+    open(LASTJOBFILE, ">.lastjob") || return 0; 
+    print LASTJOBFILE "$jobFileName";
+    close (LASTJOBFILE);
+   
     @JobData = <JOBFILE>;
     close (JOBFILE);
 
@@ -259,8 +261,8 @@ sub ExecJob($)
     $spqFileName = ".last_spq1234";
     unlink "$workFileName", "$spqFileName";
 
-    system ("gnfs-lasieve4I14e -k -o $workFileName -v -a $jobFileName -n1234") == 0 
-       || die "Error: Unable to execute gnfs-lasieve4I14e.\n";
+    system ("$lasieve -k -o $workFileName -v -a $jobFileName -n1234") == 0 
+       || die "Error: Unable to execute $lasieve.\n";
 
     rename ($workFileName, $spairsFileName);
     
