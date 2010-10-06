@@ -268,6 +268,7 @@ static size_t tds_fbi_alloc= TDFBI_ALLOC;
 static mpz_t td_rests[L1_SIZE];
 static mpz_t large_factors[2],*(large_primes[2]);
 static mpz_t FBb_sq[2];
+static mpz_t FBb_cu[2];
 
 
 void Usage()
@@ -285,9 +286,11 @@ FILE*debugfile;
 #endif
 
 static u16_t special_q_side,first_td_side,first_sieve_side;
-static u16_t first_psp_side,first_mpqs_side,append_output,exitval;
+static u16_t append_output,exitval;
 static u16_t cmdline_first_sieve_side= USHRT_MAX;
 static u16_t cmdline_first_td_side= USHRT_MAX;
+static u16_t cmdline_first_mpqs_side= USHRT_MAX;
+static u16_t cmdline_first_psp_side= USHRT_MAX;
 #define ALGEBRAIC_SIDE 0
 #define RATIONAL_SIDE 1
 #define NO_SIDE 2
@@ -440,8 +443,6 @@ int main(int argc, char **argv)
     process_no= 0;
     catch_signals= 0;
     
-    first_psp_side= 2;
-    first_mpqs_side= 0;
     J_bits= U32_MAX;
     
 #define NumRead(x) if(sscanf(optarg,"%u",&x)!=1) Usage()
@@ -462,10 +463,12 @@ int main(int argc, char **argv)
 	  sysload_cmd= optarg;
 	break;
 	case'M':
-	  NumRead16(first_mpqs_side);
+	  if(sscanf(optarg,"%hu",&cmdline_first_mpqs_side)!=1)
+	    complain("-M %s ???\n",optarg);
 	break;
 	case'P':
-	  NumRead16(first_psp_side);
+	  if(sscanf(optarg,"%hu",&cmdline_first_psp_side)!=1)
+	    complain("-P %s ???\n",optarg);
 	break;
 	case'S':
 	  if(sscanf(optarg,"%f",&sigma)!=1) {
@@ -561,8 +564,8 @@ int main(int argc, char **argv)
     
     if(J_bits == U32_MAX)
       J_bits = I_bits-1;
-    if(first_psp_side == 2)
-      first_psp_side = first_mpqs_side;
+    if(cmdline_first_psp_side == USHRT_MAX)
+      cmdline_first_psp_side = cmdline_first_mpqs_side;
 #ifndef I_bits
 #error Must #define I_bits
 #endif
@@ -1317,6 +1320,8 @@ int main(int argc, char **argv)
       }
       mpz_init_set_d(FBb_sq[s],FB_bound[s]);
       mpz_mul(FBb_sq[s],FBb_sq[s],FBb_sq[s]);
+      mpz_init_set_d(FBb_cu[s],FB_bound[s]);
+      mpz_pow_ui(FBb_cu[s],FBb_cu[s],3);
     }
   }
   
@@ -3859,18 +3864,36 @@ static int
 primality_tests()
 {
   int s;
+  u16_t first_psp_side= cmdline_first_psp_side;
+  int need_test[2];
+
+  if(first_psp_side>1)
+    first_psp_side= (mpz_cmp(large_factors[0],large_factors[1])<0) ? 0 : 1;
   
   for(s= 0;s<2;s++) {
-    i16_t is_prime;
-    u16_t s1;
+    size_t nb;
+    need_test[s]= 0;
     
+    nb= mpz_sizeinbase(large_factors[s],2);
+    if(mpz_cmp(large_factors[s],FBb_sq[s])<0) {
+      if(nb<=max_primebits[s])continue;
+      return 0;
+    }
+    if(mpz_cmp(large_factors[s],FBb_cu[s])<0) {
+      if(nb<=max_primebits[s]*2) {
+        need_test[s]= 1;
+        continue;
+      }
+      return 0;
+    }
+    need_test[s]= 1;
+  }
+  for(s= 0;s<2;s++) {
+    u16_t s1;
     s1= s^first_psp_side;
-    if(mpz_cmp_ui(large_factors[s1],1) == 0)continue;
-    if(mpz_cmp(large_factors[s1],FBb_sq[s1])<0)is_prime= 1;
-    else is_prime= psp(large_factors[s1],1);
-    if(is_prime == 1) {
-      if(mpz_sizeinbase(large_factors[s1],2)> max_primebits[s1])return 0;
-    } else mpz_neg(large_factors[s1],large_factors[s1]);
+    if(!need_test[s1])continue;
+    if(psp(large_factors[s1],1)==1)return 0;
+    mpz_neg(large_factors[s1],large_factors[s1]);
   }
   return 1;
 }
@@ -3924,6 +3947,7 @@ output_tdsurvivor(fbp_buf0,fbp_buf0_ub,fbp_buf1,fbp_buf1_ub,lf0,lf1)
   u32_t s,*(fbp_buffers[2]),*(fbp_buffers_ub[2]);
   u32_t nlp[2];
   clock_t cl;
+  u16_t first_mpqs_side= cmdline_first_mpqs_side;
   
   s= first_td_side;
   fbp_buffers[s]= fbp_buf0;
@@ -3937,6 +3961,10 @@ output_tdsurvivor(fbp_buf0,fbp_buf0_ub,fbp_buf1,fbp_buf1_ub,lf0,lf1)
   if(primality_tests() == 0)return;
 #endif
   
+  if(first_mpqs_side>1)
+    first_mpqs_side = (mpz_cmp(large_factors[0],large_factors[1])>0) ? 0 : 1;
+  /* Note: here, the large_factors[] values are negative, so the logic is reversed */
+
   cl= clock();
   for(s= 0;s<2;s++) {
     u16_t s1;
