@@ -227,6 +227,7 @@ static size_t tds_fbi_alloc = TDFBI_ALLOC;
 static mpz_t td_rests[L1_SIZE];
 static mpz_t large_factors[2], *(large_primes[2]);
 static mpz_t FBb_sq[2];
+static mpz_t FBb_cu[2];
 
 /**************************************************/
 void Usage()
@@ -245,9 +246,10 @@ FILE *debugfile;
 #endif
 
 static u16_t special_q_side, first_td_side, first_sieve_side;
-static u16_t first_psp_side, first_mpqs_side;
 static u16_t cmdline_first_sieve_side = USHRT_MAX;
 static u16_t cmdline_first_td_side = USHRT_MAX;
+static u16_t cmdline_first_mpqs_side= USHRT_MAX;
+static u16_t cmdline_first_psp_side= USHRT_MAX;
 
 
 jmp_buf termination_jb;
@@ -2409,9 +2411,12 @@ int lasieve()
                     {
                       u32_t s, *(fbp_buffers[2]), *(fbp_buffers_ub[2]);
                       i16_t need_mpqs[2];
+                      i16_t need_psp[2];
                       size_t nlp[2];
                       clock_t cl;
                       u32_t ov;
+                      u16_t first_psp_side = cmdline_first_psp_side;
+                      u16_t first_mpqs_side = cmdline_first_mpqs_side;
 
                       s = first_td_side;
                       fbp_buffers[s] = td_buf1[ci];
@@ -2428,34 +2433,56 @@ int lasieve()
                              mpz_sizeinbase(large_factors[0], 2),
                              mpz_sizeinbase(large_factors[1], 2));
 #endif
+
+                      if (first_psp_side > 1 || first_mpqs_side > 1) {
+                        if (mpz_cmp(large_factors[0], large_factors[1]) < 0) {
+                          if (first_psp_side > 1) first_psp_side = 0;
+                          if (first_mpqs_side > 1) first_mpqs_side = 0;
+                        }
+                        else {
+                          if (first_psp_side > 1) first_psp_side = 1;
+                          if (first_mpqs_side > 1) first_mpqs_side = 1;
+                        }
+                      }
+
                       for (s = 0; s < 2; s++) {
-                        i16_t is_prime;
+                        size_t nb = mpz_sizeinbase(large_factors[s], 2);
+
+                        need_psp[s] = 0;
+                        if (mpz_cmp(large_factors[s], FBb_sq[s]) < 0) {
+                          if (nb <= max_primebits[s])
+                            continue;
+                          break;
+                        }
+                        if (mpz_cmp(large_factors[s], FBb_cu[s]) < 0) {
+                          if (nb <= max_primebits[s] * 2) {
+                            need_psp[s] = 1;
+                            continue;
+                          }
+                          break;
+                        }
+                        need_psp[s] = 1;
+                      }
+                      if (s != 2)
+                        continue;
+
+                      for (s = 0; s < 2; s++) {
                         u16_t s1;
 
                         s1 = s ^ first_psp_side;
-                        if (mpz_cmp_ui(large_factors[s1], 1) == 0) {
-                          nlp[s1] = 0;
-                          need_mpqs[s1] = 0;
-                        } else {
-                          if (mpz_cmp(large_factors[s1], FBb_sq[s1]) < 0)
-                            is_prime = 1;
-                          else
-//                            is_prime = psp(large_factors[s1], 1);
-                            is_prime = psp(large_factors[s1]);
-                          if (is_prime == 1) {
-                            if (mpz_sizeinbase(large_factors[s1], 2) >
-                                max_primebits[s1])
-                              break;
-                            else {
-                              mpz_set(large_primes[s1][0],
-                                      large_factors[s1]);
-                              need_mpqs[s1] = 0;
-                              nlp[s1] = 1;
-                            }
-                          } else {
-                            need_mpqs[s1] = 1;
+                        need_mpqs[s1] = 0;
+                        if (!need_psp[s1]) {
+                          if (mpz_cmp_ui(large_factors[s1], 1) == 0)
+                            nlp[s1] = 0;
+                          else {
+                            mpz_set(large_primes[s1][0], large_factors[s1]);
+                            nlp[s1] = 1;
                           }
+                          continue;
                         }
+                        if (psp(large_factors[s1]))
+                          break;
+                        need_mpqs[s1] = 1;
                       }
                       if (s != 2)
                         continue;
@@ -2875,8 +2902,6 @@ int main(int argc, char **argv)
     process_no = 0;
     catch_signals = 0;
 
-    first_psp_side = 2;
-    first_mpqs_side = 0;
     J_bits = UINT_MAX;
 
 #define NumRead(x) if(sscanf(optarg, "%u" ,(unsigned int*)&x)!=1) Usage()
@@ -2894,9 +2919,13 @@ int main(int argc, char **argv)
         case 'L':
           sysload_cmd = optarg; break;
         case 'M':
-          NumRead16(first_mpqs_side); break;
+          if (sscanf(optarg, "%hu", &cmdline_first_mpqs_side) != 1)
+            complain("-M %s ???\n", optarg);
+          break;
         case 'P':
-          NumRead16(first_psp_side); break;
+          if (sscanf(optarg, "%hu", &cmdline_first_psp_side) != 1)
+            complain("-P %s ???\n", optarg);
+          break;
         case 'S':
           if (sscanf(optarg, "%f", &sigma) != 1) {
             errprintf("Cannot read floating point number %s\n", optarg);
@@ -2973,8 +3002,8 @@ int main(int argc, char **argv)
 
     if (J_bits == UINT_MAX)
       J_bits = I_bits - 1;
-    if (first_psp_side == 2)
-      first_psp_side = first_mpqs_side;
+    if (cmdline_first_psp_side == USHRT_MAX)
+      cmdline_first_psp_side = cmdline_first_mpqs_side;
 #ifndef I_bits
 #error Must #define I_bits
 #endif
@@ -3409,6 +3438,8 @@ int main(int argc, char **argv)
     }
     mpz_init_set_d(FBb_sq[s], FB_bound[s]);
     mpz_mul(FBb_sq[s], FBb_sq[s], FBb_sq[s]);
+    mpz_init_set_d(FBb_cu[s],FB_bound[s]);
+    mpz_pow_ui(FBb_cu[s],FBb_cu[s],3);
   }
 
   all_spq_done = 1;
