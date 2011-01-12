@@ -212,7 +212,7 @@ call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;I_bits=16;WIN64;__x86_64__;GGNFS_HOST_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
