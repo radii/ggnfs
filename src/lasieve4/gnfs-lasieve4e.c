@@ -2527,23 +2527,22 @@ int lasieve()
 #endif
 #define TRY_RHO_ON_FAILURES
 #ifdef TRY_RHO_ON_FAILURES
-                        nlp[s1] = 0;
                         { unsigned long small_factors[10];
 
-                          nf = rho_factor(small_factors, large_factors[s1]); 
-                          if(nf >= 1)
-                          {
-                              for (i = 0; i < nf; i++) {
-                                mpz_set_ui(large_primes[s1][i], small_factors[i]);
-                                if (mpz_sizeinbase(large_primes[s1][i],2) > max_primebits[s1]) {
-                                  n_mpqsvain[s1]++;
-                                  break;
-                                }
-                              }
-                              if (i >= nf)
-                                  nlp[s1] = nf;
+                          nf = rho_factor(small_factors, large_factors[s1]);
+                          for (i = 0; i < nf; i++) {
+                            mpz_set_ui(large_primes[s1][i], small_factors[i]);
+                            if (mpz_sizeinbase(large_primes[s1][i],2) > max_primebits[s1]) {
+                              n_mpqsvain[s1]++;
+                              break;
+                            }
                           }
+                          if ((i >= nf) && (nf >= 1))
+                            nlp[s1] = nf;
+                          else { nlp[s1]=0; }
                         }
+#else
+                          nlp[s1] = 0;
 #endif
                           if (nlp[s1] == 0) {
 			    /* did it fail on a square? */
