@@ -2527,9 +2527,10 @@ int lasieve()
 #endif
 #define TRY_RHO_ON_FAILURES
 #ifdef TRY_RHO_ON_FAILURES
+                        nlp[s1] = 0;
                         { unsigned long small_factors[10];
 
-                          nf = rho_factor(small_factors, large_factors[s1]);
+                          nf = rho_factor(small_factors, large_factors[s1]); 
                           if(nf >= 1)
                           {
                               for (i = 0; i < nf; i++) {
@@ -2542,13 +2543,7 @@ int lasieve()
                               if (i >= nf)
                                   nlp[s1] = nf;
                           }
-                          else
-                          { 
-                              nlp[s1] = 0; 
-                          }
                         }
-#else
-                          nlp[s1] = 0;
 #endif
                           if (nlp[s1] == 0) {
 			    /* did it fail on a square? */
