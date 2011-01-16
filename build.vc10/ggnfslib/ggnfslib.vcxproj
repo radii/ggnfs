@@ -46,19 +46,15 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\mp_lib.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\mp_lib.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\mp_lib.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\mp_lib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -82,8 +78,8 @@ if exist %Wd%\asm\32bit.h (echo deleting %Wd%\asm\32bit.h &amp;&amp; del %Wd%\as
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;..\..\..\mpir\build.vc10\lib\$(IntDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -117,8 +113,8 @@ call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;..\..\..\mpir\build.vc10\lib\$(IntDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -149,8 +145,8 @@ if exist %Wd%\asm\32bit.h (echo deleting %Wd%\asm\32bit.h &amp;&amp; del %Wd%\as
     <ClCompile>
       <Optimization>Full</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;..\..\..\mpir\build.vc10\lib\$(IntDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PrecompiledHeader>
@@ -163,7 +159,6 @@ if exist %Wd%\asm\32bit.h (echo deleting %Wd%\asm\32bit.h &amp;&amp; del %Wd%\as
     </ClCompile>
     <Lib>
       <AdditionalDependencies>..\..\..\mpir\build.vc10\lib\$(IntDir)mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
       <Command>..\run.bat "$(TargetDir)$(TargetFileName)" ..\..\bin\$(IntDir)</Command>
@@ -184,8 +179,8 @@ call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h
     <ClCompile>
       <Optimization>Full</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include;..\..\src;..\..\..\mpir\build.vc10\lib\$(IntDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_LIB;WIN64;__x86_64__;GGNFS_HOST_GENERIC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PrecompiledHeader>
@@ -198,7 +193,6 @@ call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h
     </ClCompile>
     <Lib>
       <AdditionalDependencies>..\..\..\mpir\build.vc10\lib\$(IntDir)mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
       <Command>..\run.bat "$(TargetDir)$(TargetFileName)" ..\..\bin\$(IntDir)</Command>
@@ -260,10 +254,6 @@ call ..\file_copy %Wd%\ppc32\32bit.h %Wd%\asm\32bit.h
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\ggnfs.h" />
-    <ClInclude Include="..\..\..\include-extra\gmp-impl.h" />
-    <ClInclude Include="..\..\..\include-extra\gmp-mparam.h" />
-    <ClInclude Include="..\..\..\include-extra\gmp.h" />
-    <ClInclude Include="..\..\..\include-extra\longlong.h" />
     <ClInclude Include="..\..\..\include\prand.h" />
     <ClInclude Include="..\..\..\include\version.h" />
   </ItemGroup>

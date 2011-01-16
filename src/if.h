@@ -67,7 +67,9 @@ int string2mpz(mpz_t rop,char*x,int base);
 
 #if __GNU_MP_VERSION < 3 || __GNU_MP_VERSION_MINOR == 0
 #define NEED_MPZ_MUL_SI
-void mpz_mul_si(mpz_t x,mpz_t y,long int z);
+#  ifndef mpz_mul_si
+     void mpz_mul_si(mpz_t x,mpz_t y,long int z);
+#  endif
 #endif
 
 #define mpz_add_si(r,o,s) \
