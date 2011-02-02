@@ -3,7 +3,12 @@
 
 #include <time.h> 
 #include <unistd.h> 
-#include <sys/times.h> 
+#if defined( _MSC_VER ) && defined( _WIN64 ) 
+#include <windows.h>
+#include <malloc.h>
+#else
+#include <sys/times.h>
+#endif
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <stdarg.h> 
@@ -31,6 +36,25 @@ return x;
 /*:3*//*4:*/
 #line 98 "../if.w"
 
+#if defined( _MSC_VER ) && defined( _WIN64 ) 
+
+void*xvalloc(size_t size)
+{
+    char*x;
+    static long g_pagesize = 0;
+    if(!g_pagesize) 
+    {
+        SYSTEM_INFO system_info;
+        GetSystemInfo (&system_info);
+        g_pagesize = system_info.dwPageSize;
+    }
+if(size==0)return NULL;
+if((x = _aligned_malloc(size, g_pagesize)) == NULL)complain("xvalloc: %m");
+return x;
+}
+
+#else
+
 void*xvalloc(size_t size)
 {
 char*x;
@@ -38,6 +62,8 @@ if(size==0)return NULL;
 if((x= valloc(size))==NULL)complain("xvalloc: %m");
 return x;
 }
+
+#endif
 
 /*:4*//*5:*/
 #line 108 "../if.w"

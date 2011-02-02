@@ -30,7 +30,9 @@
 #include <gmp.h> 
 #include <signal.h> 
 #include <setjmp.h> 
-
+#if defined( _MSC_VER ) and defined( _WIN64 )
+#include <crtdbg.h>
+#endif
 #include "asm/siever-config.h"
 #ifndef TDS_MPQS
 #define TDS_MPQS TDS_SPECIAL_Q

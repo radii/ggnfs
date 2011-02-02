@@ -26,8 +26,13 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <unistd.h>
 #include <limits.h>
 #include <math.h>
+#if defined( _MSC_VER ) && defined( _WIN64 )
+#include "mpir.h"
+#include "asm/if.h"
+#else
 #include <gmp.h>
 #include "if.h"
+#endif
 
 #include "asm/siever-config.h"
 

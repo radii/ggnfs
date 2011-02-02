@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Assembler">
+      <UniqueIdentifier>{a26ad0ae-94dc-4c79-8eab-9a24ca71a7da}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\gcd32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\invtab.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\mpz-trialdiv.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\psp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\zeit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\modinv32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\32bit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\getopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\if.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\zeit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\siever-config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\unistd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\mpir\build.vc10\lib\asm\release\gmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\schedsieve.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\ri-aux.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\pt64.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpz-td.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_td.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_sieveinit.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_sieve.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_nextpol.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_gauss.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_eval.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\modinv1000b.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\modinv1000.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD2.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD1.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\lasieve-asmprepn2.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\lasieve-asmprepn.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\tdsieve-from-sched.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\asm-zeit.asm">
+      <Filter>Source Files\Assembler</Filter>
+    </YASM>
+  </ItemGroup>
+</Project>

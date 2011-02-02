@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>liblasieve</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\vsyasm.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;n_i_bits=11;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;..\..\..\..\mpir\build.vc10\lib\$(IntDir);..\..\;..\..\..\src\experimental\lasieve4_64\x64</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;n_i_bits=11;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\src\experimental\lasieve4_64\asm;..\..\..\..\mpir\build.vc10\lib\$(IntDir);..\..\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>..\..\..\..\mpir\build.vc10\lib\$(IntDir)\mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\asm-zeit.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\lasieve-asmprepn.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\lasieve-asmprepn2.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD1.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD2.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\modinv1000.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\modinv1000b.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_eval.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_gauss.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_nextpol.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_sieve.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_sieveinit.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpqs_td.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\mpz-td.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\pt64.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\ri-aux.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\schedsieve.asm">
+      <FileType>Document</FileType>
+    </YASM>
+    <YASM Include="..\..\..\src\experimental\lasieve4_64\asm\tdsieve-from-sched.asm">
+      <FileType>Document</FileType>
+    </YASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\gcd32.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\invtab.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\MMX-TD.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\modinv32.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\mpz-trialdiv.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\psp.c" />
+    <ClCompile Include="..\..\..\src\experimental\lasieve4_64\asm\zeit.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\mpir\build.vc10\lib\asm\release\gmp.h" />
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\32bit.h" />
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\if.h" />
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\siever-config.h" />
+    <ClInclude Include="..\..\..\src\experimental\lasieve4_64\asm\zeit.h" />
+    <ClInclude Include="..\..\getopt.h" />
+    <ClInclude Include="..\..\unistd.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\vsyasm.targets" />
+  </ImportGroup>
+</Project>

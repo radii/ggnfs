@@ -18,9 +18,9 @@
 #include <sys/types.h>
 #include <string.h>
 #include <gmp.h>
-#include "if.h"
 
 #include "asm/siever-config.h"
+#include "if.h"
 #define MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b))
 
 #ifdef _OLD_FORMAT

@@ -1,0 +1,90 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieve", "liblasieve\liblasieve.vcxproj", "{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI11", "liblasieveI11\liblasieveI11.vcxproj", "{BAF749BD-63E0-437A-B229-6B5A3F570E6A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I11e", "lasieve4I11e\lasieve4I11e.vcxproj", "{451C3388-7276-48A1-A336-B2C4DE3C588A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+		{BAF749BD-63E0-437A-B229-6B5A3F570E6A} = {BAF749BD-63E0-437A-B229-6B5A3F570E6A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI12", "liblasieveI12\liblasieveI12.vcxproj", "{ECDAC80B-B64E-4B85-AD65-1B9CE8EDB501}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI13", "liblasieveI13\liblasieveI13.vcxproj", "{9796AF90-3B2F-470F-BDFA-C8AA336594B8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI14", "liblasieveI14\liblasieveI14.vcxproj", "{36E21BAD-4C26-4C28-9829-2DA09A411FFB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI15", "liblasieveI15\liblasieveI15.vcxproj", "{0E6599B1-F8AD-4997-80C9-4E0213E7B326}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblasieveI16", "liblasieveI16\liblasieveI16.vcxproj", "{C215C705-0613-4E32-ABCA-645EC7A0EF9B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I12e", "lasieve4I12e\lasieve4I12e.vcxproj", "{BBCFB293-3606-4549-9176-0AF516F84BAC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ECDAC80B-B64E-4B85-AD65-1B9CE8EDB501} = {ECDAC80B-B64E-4B85-AD65-1B9CE8EDB501}
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I13e", "lasieve4I13e\lasieve4I13e.vcxproj", "{DD4C5F19-1F05-494B-8F12-C4A70444293C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+		{9796AF90-3B2F-470F-BDFA-C8AA336594B8} = {9796AF90-3B2F-470F-BDFA-C8AA336594B8}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I14e", "lasieve4I14e\lasieve4I14e.vcxproj", "{BA608E82-06A5-46C5-B0E2-60ED71F38DC4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+		{36E21BAD-4C26-4C28-9829-2DA09A411FFB} = {36E21BAD-4C26-4C28-9829-2DA09A411FFB}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I15e", "lasieve4I15e\lasieve4I15e.vcxproj", "{379879A2-FB3D-4A0E-B3FD-94EFE9D035EE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+		{0E6599B1-F8AD-4997-80C9-4E0213E7B326} = {0E6599B1-F8AD-4997-80C9-4E0213E7B326}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lasieve4I16e", "lasieve4I16e\lasieve4I16e.vcxproj", "{3E382630-1512-4975-B165-1CC2F6E0F407}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C215C705-0613-4E32-ABCA-645EC7A0EF9B} = {C215C705-0613-4E32-ABCA-645EC7A0EF9B}
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2} = {6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}.Debug|x64.ActiveCfg = Debug|x64
+		{6AEFD47C-FC47-4F43-A7B2-408C5E45A6D2}.Release|x64.ActiveCfg = Release|x64
+		{BAF749BD-63E0-437A-B229-6B5A3F570E6A}.Debug|x64.ActiveCfg = Debug|x64
+		{BAF749BD-63E0-437A-B229-6B5A3F570E6A}.Release|x64.ActiveCfg = Release|x64
+		{451C3388-7276-48A1-A336-B2C4DE3C588A}.Debug|x64.ActiveCfg = Debug|x64
+		{451C3388-7276-48A1-A336-B2C4DE3C588A}.Release|x64.ActiveCfg = Release|x64
+		{ECDAC80B-B64E-4B85-AD65-1B9CE8EDB501}.Debug|x64.ActiveCfg = Debug|x64
+		{ECDAC80B-B64E-4B85-AD65-1B9CE8EDB501}.Release|x64.ActiveCfg = Release|x64
+		{9796AF90-3B2F-470F-BDFA-C8AA336594B8}.Debug|x64.ActiveCfg = Debug|x64
+		{9796AF90-3B2F-470F-BDFA-C8AA336594B8}.Release|x64.ActiveCfg = Release|x64
+		{36E21BAD-4C26-4C28-9829-2DA09A411FFB}.Debug|x64.ActiveCfg = Debug|x64
+		{36E21BAD-4C26-4C28-9829-2DA09A411FFB}.Release|x64.ActiveCfg = Release|x64
+		{0E6599B1-F8AD-4997-80C9-4E0213E7B326}.Debug|x64.ActiveCfg = Debug|x64
+		{0E6599B1-F8AD-4997-80C9-4E0213E7B326}.Release|x64.ActiveCfg = Release|x64
+		{C215C705-0613-4E32-ABCA-645EC7A0EF9B}.Debug|x64.ActiveCfg = Debug|x64
+		{C215C705-0613-4E32-ABCA-645EC7A0EF9B}.Release|x64.ActiveCfg = Release|x64
+		{BBCFB293-3606-4549-9176-0AF516F84BAC}.Debug|x64.ActiveCfg = Debug|x64
+		{BBCFB293-3606-4549-9176-0AF516F84BAC}.Release|x64.ActiveCfg = Release|x64
+		{DD4C5F19-1F05-494B-8F12-C4A70444293C}.Debug|x64.ActiveCfg = Debug|x64
+		{DD4C5F19-1F05-494B-8F12-C4A70444293C}.Release|x64.ActiveCfg = Release|x64
+		{BA608E82-06A5-46C5-B0E2-60ED71F38DC4}.Debug|x64.ActiveCfg = Debug|x64
+		{BA608E82-06A5-46C5-B0E2-60ED71F38DC4}.Release|x64.ActiveCfg = Release|x64
+		{379879A2-FB3D-4A0E-B3FD-94EFE9D035EE}.Debug|x64.ActiveCfg = Debug|x64
+		{379879A2-FB3D-4A0E-B3FD-94EFE9D035EE}.Release|x64.ActiveCfg = Release|x64
+		{3E382630-1512-4975-B165-1CC2F6E0F407}.Debug|x64.ActiveCfg = Debug|x64
+		{3E382630-1512-4975-B165-1CC2F6E0F407}.Release|x64.ActiveCfg = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
