@@ -3625,6 +3625,11 @@ trial_divide()
 	if(side == first_td_side)fbp_buf= td_buf1[nc1];
 	else fbp_buf= td_buf[side];
 	fbp_ptr= fbp_buf;
+	
+	if(side == special_q_side) {
+	  *(fbp_ptr++)= special_q;
+	}
+	
 	{
 	  int np,x;
 	  
@@ -3671,10 +3676,6 @@ trial_divide()
 	      *(fbp_ptr++)= *x;
 	    }
 	  }
-	}
-	
-	if(side == special_q_side) {
-	  *(fbp_ptr++)= special_q;
 	}
 	
 	fbp_ptr= mpz_trialdiv(aux1,fbp_buf,fbp_ptr-fbp_buf,
@@ -4021,46 +4022,31 @@ output_tdsurvivor(fbp_buf0,fbp_buf0_ub,fbp_buf1,fbp_buf1_ub,lf0,lf1)
   }
   mpqs_clock+= clock()-cl;
   if(s!=2)return;
+  yield++;
+  
+  mpz_out_str(g_ofile, 10, sr_a);
+  fprintf(g_ofile, ",");
+  mpz_out_str(g_ofile, 10, sr_b);
   
 #define OBASE 16
-                      yield++;
-		      mpz_out_str(g_ofile, 10, sr_a);
-		      fprintf(g_ofile, ",");
-		      mpz_out_str(g_ofile, 10, sr_b);
-		      { int numR=0;
-		      { u32_t *x; int i;
-		      
-		      fprintf(g_ofile, ":");
-		      for (i = 0; i < nlp[1]; i++) { /* rational first. */
-			if (i>0) fprintf(g_ofile, ",");
-			mpz_out_str(g_ofile, OBASE, large_primes[1][i]);
-			numR++;
-		      }
-		      for (x = fbp_buffers[1]; x < fbp_buffers_ub[1];x++) {
-			if ((unsigned int)*x >1000) {
-			  if (numR>0) fprintf(g_ofile, ",%x", (unsigned int)*x);
-			  else { fprintf(g_ofile, "%x", (unsigned int)*x); numR++;}
-			}
-		      }
-		      }
-		      { int numA=0;
-		      u32_t *x; int i;
-		      
-		      fprintf(g_ofile, ":");
-		      for (i = 0; i < nlp[0]; i++) { /* algebraic next. */
-			if (i>0) fprintf(g_ofile, ",");
-			mpz_out_str(g_ofile, OBASE, large_primes[0][i]);
-			numA++;
-		      }
-		      for (x = fbp_buffers[0]; x < fbp_buffers_ub[0];x++) {
-			if ((unsigned int)*x > 1000) {
-			  if (numA>0) fprintf(g_ofile, ",%x", (unsigned int)*x);
-			  else { fprintf(g_ofile, "%x", (unsigned int)*x); numA++;}
-			}
-		      }
-		      }
-		      fprintf(g_ofile, "\n");
-		      }
+  for(s= 0;s<2;s++) {
+    int num = 0;
+    u32_t *x = fbp_buffers_ub[1-s];
+
+    fprintf(g_ofile, ":");
+    while (num < nlp[1-s]) {
+      if (num>0) fprintf(g_ofile, ",");
+      mpz_out_str(g_ofile, OBASE, large_primes[1-s][num]);
+      num++;
+    }
+    while (x-- != fbp_buffers[1-s]) {
+      if ((unsigned int)*x <1000) continue;
+      if (num>0) fprintf(g_ofile, ",");
+      fprintf(g_ofile, "%x", (unsigned int)*x);
+      num++;
+    }
+  }
+  fprintf(g_ofile, "\n");
 }
 /* 
    #ifdef OFMT_CWI
