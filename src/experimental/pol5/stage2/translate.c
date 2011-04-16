@@ -152,8 +152,12 @@ optimize_1(curr_poly_t *c,
 	for (i = 0; i < 6; i++)
 		dbl_a[i] = mpz_get_d(c->gmp_a[i]);
 	dbl_d = mpz_get_d(c->gmp_d);
-	s = sqrt(fabs(dbl_a[2] / dbl_a[4]));
-	s0 = fabs(dbl_a[2] / dbl_a[3]);
+	s = 1.;
+	if (dbl_a[4] != 0)
+		s = sqrt(fabs(dbl_a[2] / dbl_a[4]));
+	s0 = 1.;
+	if (dbl_a[3] != 0)
+		s0 = fabs(dbl_a[2] / dbl_a[3]);
 	if (s0 > s)
 		s = s0;
 	ds = 2.;
