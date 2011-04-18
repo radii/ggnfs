@@ -565,7 +565,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
   }
 #elif defined(GGNFS_x86_64_ATTASM)
   asm volatile (
-    "movq     (%%rax),%%mm7\n"
+    "movq     %1,%%mm7\n"
     ".align 32\n"
     "1:\n"
     "movq     (%%rsi),%%mm1\n"
@@ -582,7 +582,7 @@ inline void optsieve(uint32_t st1, uchar* i_o, uchar* i_max, size_t j) {
     "cmpq     %%rsi,%%rdi\n"
     "ja       1b\n"
     "2:\n"
-    "emms":"=S" (i_o):"a"(&x),
+    "emms":"=S" (i_o):"m"(x),
     "S"(i_o), "D"(i_max)
   );
 #elif defined(GGNFS_x86_32_ATTASM_MMX)
