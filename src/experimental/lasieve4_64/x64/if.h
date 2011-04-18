@@ -66,7 +66,7 @@ ssize_t getline(char**,size_t*,FILE*);
 void adjust_mpz_bufsize(mpz_t**x,size_t*alloc_ptr,size_t size,size_t increment);
 int string2mpz(mpz_t rop,char*x,int base);
 
-#if __GNU_MP_VERSION < 3 || __GNU_MP_VERSION_MINOR == 0
+#if __GNU_MP_VERSION < 3 || (__GNU_MP_VERSION == 3 && __GNU_MP_VERSION_MINOR == 0)
 #define NEED_MPZ_MUL_SI
 #  ifndef mpz_mul_si
      void mpz_mul_si(mpz_t x,mpz_t y,long int z);
