@@ -148,7 +148,7 @@ void input_poly(mpz_t N, mpz_t ** A, i32_t *adeg, mpz_t ** B,
                 i32_t *bdeg, mpz_t m, FILE *fp)
 /*******************************************************/
 { char  token[256], value[512], thisLine[1024];
-  int   i, j, cont=1, have_m=0;
+  int   i, cont=1, have_m=0;
   mpz_t tmpA, tmpB;
 
   *adeg = *bdeg = 0;                                                    
