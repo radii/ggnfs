@@ -2984,7 +2984,7 @@ int main(int argc, char **argv)
 
     if (g_resume != 0) {
       char buf[LINE_BUF_SIZE];
-      int ret;
+      int ret = 0;
       
       if (zip_output != 0)
 	complain("Cannot resume gzipped file. gunzip, and retry without -z\n");
