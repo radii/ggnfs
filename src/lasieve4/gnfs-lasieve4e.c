@@ -3577,7 +3577,7 @@ void do_scheduling(struct schedule_struct *sched, u32_t ns, u32_t ot, u32_t s)
             continue;
 /* report SCHED_PATHOLOGY to http://mersenneforum.org/showthread.php?t=11430 */
           fprintf(stderr,"\rSCHED_PATHOLOGY q0=%u k=%d excess=%d                      \n",
-		  (unsigned int)special_q, k, sched->schedule[ll+1][k]-(sched->schedule[0][k]+sched->alloc));
+		  (unsigned int)special_q, k, (int)(sched->schedule[ll+1][k]-(sched->schedule[0][k]+sched->alloc)));
           longjmp(termination_jb, SCHED_PATHOLOGY);
         }
     }
