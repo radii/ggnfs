@@ -87,7 +87,7 @@ u32_t all_spq_done;
 static mpz_t g_m, g_N, g_aux1, g_aux2, g_aux3, g_sr_a, g_sr_b;
 static mpz_t *(g_poly[2]);
 double *(poly_f[2]), poly_norm[2];
-u32_t  g_poldeg[2], poldeg_max;
+i32_t  g_poldeg[2], poldeg_max;
 u32_t  keep_factorbase;
 u32_t  g_resume;
 
